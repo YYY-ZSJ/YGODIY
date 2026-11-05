@@ -80,6 +80,11 @@ YGODIY 是一个 Windows 桌面的游戏王 DIY 工具：做卡面、用积木�
 - 伊格尼斯写的内容要自己核对，尤其是效果文字和裁定细节。
 - 只支持 Windows。
 
+## 作者与协作
+
+- 项目作者：[yy1040309551-cmd](https://github.com/yy1040309551-cmd)。
+- AI 协作：GPT、Claude、DeepSeek。
+
 ## 第三方资料
 
 本项目使用的第三方资料见 [THIRD_PARTY.md](THIRD_PARTY.md)。
