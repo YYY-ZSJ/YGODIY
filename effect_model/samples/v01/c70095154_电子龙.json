@@ -1,0 +1,11 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 70095154, "name": "电子龙", "kind": "monster", "subtypes": ["effect"]},
+  "effects": [
+    {"type": "summon_rule", "from": ["hand"],
+     "condition": [
+       {"count": {"who": "you", "where": ["mzone"]}, "cmp": ["==", 0]},
+       {"count": {"who": "opp", "where": ["mzone"]}, "cmp": [">=", 1]}
+     ]}
+  ]
+}

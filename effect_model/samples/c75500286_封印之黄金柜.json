@@ -1,0 +1,48 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 75500286,
+  "name": "封印之黄金柜",
+  "kind": "spell",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "do": [
+    {
+     "act": "banish",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1
+     },
+     "as": "x"
+    },
+    {
+     "act": "schedule_operation",
+     "activates": false,
+     "at": {
+      "phase": "standby",
+      "player": "you",
+      "nth": 2,
+      "count_from": "activation"
+     },
+     "do": [
+      {
+       "act": "add_to_hand",
+       "what": {
+        "ref": "x"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

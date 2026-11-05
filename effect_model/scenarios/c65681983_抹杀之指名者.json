@@ -1,0 +1,22 @@
+{
+  "card": 65681983,
+  "scenarios": [
+    {
+      "name": "抹杀之指名者：宣言的卡从卡组除外，这个回合同名卡的效果无效",
+      "field": {
+        "0": {"hand": [65681983, 74117290], "deck": [14558127]},
+        "1": {"hand": [14558127]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 65681983},
+        {"player": 0, "do": "announce", "card": 14558127},
+        {"check": "count", "player": 0, "in": "banished", "card": 14558127, "eq": 1},
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 74117290},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"check": "event", "name": "chain_disabled", "eq": 1},
+        {"check": "drawn", "player": 0, "eq": 1}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "card": 26202165,
+  "scenarios": [
+    {
+      "name": "三眼怪：从场上送去墓地，检索攻击力1500以下的怪兽，这回合不能发动同名卡",
+      "field": {
+        "0": {"hand": [53129443], "mzone": [26202165], "deck": [23434538, 14558127]},
+        "1": {"mzone": [15025844]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 53129443},
+        {"player": 0, "do": "select", "cards": [23434538]},
+        {"check": "count", "player": 0, "in": "hand", "card": 23434538, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 26202165, "eq": 1},
+        {"check": "offered", "card": 23434538, "as": "activate", "eq": false}
+      ]
+    },
+    {
+      "name": "三眼怪（对照）：没有检索时增殖的G在手卡可以发动",
+      "field": {"0": {"hand": [23434538]}, "1": {}},
+      "actions": [
+        {"check": "offered", "card": 23434538, "as": "activate", "eq": true}
+      ]
+    },
+    {
+      "name": "三眼怪：从手卡送去墓地不会诱发",
+      "field": {
+        "0": {"hand": [72270339, 26202165], "deck": [14558127]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 72270339},
+        {"player": 0, "do": "select", "cards": [26202165]},
+        {"check": "count", "player": 0, "in": "grave", "card": 26202165, "eq": 1},
+        {"check": "count", "player": 0, "in": "hand", "card": 14558127, "eq": 0}
+      ]
+    }
+  ]
+}

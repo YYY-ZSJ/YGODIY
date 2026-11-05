@@ -1,0 +1,8 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 12580477, "name": "雷击", "kind": "spell", "subtypes": ["normal"]},
+  "effects": [
+    {"type": "activate",
+     "do": [{"act": "destroy", "what": {"who": "opp", "where": ["mzone"], "filter": [{"card_type": "monster"}], "count": "all"}}]}
+  ]
+}

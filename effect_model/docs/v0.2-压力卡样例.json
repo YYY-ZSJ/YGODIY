@@ -1,0 +1,441 @@
+{
+ "note": "Effect Model v0.2 骨架的验证样例：调研任务 6 的 26 类难点各取一张代表卡（外加鲜花女男爵），按 v0.2 结构手写。只验证结构能否表达，尚无生成器。卡文取自本机 MDPro3 中文卡库。",
+ "cards": [
+  {
+   "difficulty": "01 效果编号引用与发动履历",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 44508094, "name": "星尘龙", "kind": "monster", "subtypes": ["effect", "synchro"]},
+   "summon": {"materials": {"method": "synchro", "tuner": {"count": 1}, "nontuner": {"min": 1}}},
+   "effects": [
+    {"id": "e1", "type": "quick",
+     "on": {"event": "effect_activated", "kinds": ["spell", "trap", "monster"], "includes": ["destroy_on_field"]}, "timing": "when",
+     "cost": [{"act": "release", "what": {"ref": "self"}, "as": "released", "keep": "this_turn"}],
+     "do": [
+      {"act": "negate_activation", "what": {"ref": "chain"}},
+      {"act": "destroy", "what": {"ref": "chain.card"}, "link": "and_if_you_do"}
+     ]},
+    {"id": "e2", "type": "trigger", "range": ["grave"],
+     "on": {"event": "phase_window", "phase": "end"},
+     "condition": [{"cond": "named_card_used", "effect": "e1", "what": "applied", "when": "this_turn"}],
+     "do": [{"act": "special_summon", "what": {"ref": "e1.released"}}]}
+   ]
+  },
+  {
+   "difficulty": "01 效果编号引用与发动履历（两个额度叠加）",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 84815190, "name": "鲜花女男爵", "kind": "monster", "subtypes": ["effect", "synchro"]},
+   "summon": {"materials": {"method": "synchro", "tuner": {"count": 1}, "nontuner": {"min": 1}}},
+   "limits": {
+    "l1": {"scope": "card", "per": "turn", "n": 1},
+    "l2": {"scope": "name", "per": "turn", "n": 1},
+    "l3": {"scope": "face_up", "n": 1}
+   },
+   "effects": [
+    {"id": "e1", "type": "ignition", "limit": "l1",
+     "target": [{"as": "t", "sel": {"who": "both", "where": ["field"], "count": 1}}],
+     "do": [{"act": "destroy", "what": {"ref": "t"}}]},
+    {"id": "e2", "type": "quick", "limit": ["l2", "l3"],
+     "on": {"event": "effect_activated", "kinds": ["spell", "trap", "monster"]}, "timing": "when",
+     "do": [
+      {"act": "negate_activation", "what": {"ref": "chain"}},
+      {"act": "destroy", "what": {"ref": "chain.card"}, "link": "and_if_you_do"}
+     ]},
+    {"id": "e3", "type": "quick", "window": {"turn": "any", "phases": ["standby"]},
+     "target": [{"as": "t", "sel": {"who": "you", "where": ["grave"], "filter": [{"card_type": "monster"}, {"level": ["<=", 9]}], "count": 1}}],
+     "do": [
+      {"act": "return_to_extra", "what": {"ref": "self"}},
+      {"act": "special_summon", "what": {"ref": "t"}, "link": "and_if_you_do"}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "02 任意诱发时点与事件保留",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 52624755, "name": "暗道化师 彼得", "kind": "monster", "subtypes": ["effect"]},
+   "effects": [
+    {"id": "e1", "type": "trigger", "range": ["grave"],
+     "on": {"event": "sent_to_gy", "subject": {"ref": "self"}}, "timing": "when",
+     "cost": [{"act": "banish", "what": {"ref": "self"}}],
+     "do": [{"act": "special_summon", "what": {"who": "you", "where": ["hand", "deck"], "filter": [{"name": 52624755}], "count": 1}}]}
+   ]
+  },
+  {
+   "difficulty": "03 伤害步骤与无效种类",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 37742478, "name": "欧尼斯特", "kind": "monster", "subtypes": ["effect"]},
+   "effects": [
+    {"id": "e1", "type": "ignition",
+     "do": [{"act": "add_to_hand", "what": {"ref": "self"}}]},
+    {"id": "e2", "type": "quick", "range": ["hand"],
+     "window": {"phase": "damage_step", "from": "start", "to": "before_calc"},
+     "condition": [{"cond": "battle_participant", "side": "you", "filter": [{"attribute": "light"}]}],
+     "cost": [{"act": "send_to_gy", "what": {"ref": "self"}}],
+     "do": [{"act": "apply_continuous", "until": "end_of_turn",
+             "apply": {"cont": "atk_update", "affects": {"ref": "battle.you"}, "value": {"stat": "atk", "of": {"ref": "battle.opp"}}}}]}
+   ]
+  },
+  {
+   "difficulty": "04 连锁应答限制与召唤无效窗口",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 40605147, "name": "神之通告", "kind": "trap", "subtypes": ["counter"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "cost": [{"act": "pay_lp", "amount": 1500}],
+     "modes": {"choose": 1, "at": "activation", "options": [
+      {"on": {"event": "effect_activated", "what": "effect", "kinds": ["monster"]}, "timing": "when",
+       "do": [
+        {"act": "negate_activation", "what": {"ref": "chain"}},
+        {"act": "destroy", "what": {"ref": "chain.card"}, "link": "and_if_you_do"}
+       ]},
+      {"on": {"event": "summon_attempt", "method": "special", "by": "both"}, "timing": "when",
+       "do": [
+        {"act": "negate_summon", "what": {"ref": "event"}},
+        {"act": "destroy", "what": {"ref": "event"}, "link": "and_if_you_do"}
+       ]}
+     ]}}
+   ]
+  },
+  {
+   "difficulty": "05 连接词与部分处理",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 74117290, "name": "暗黑界的取引", "kind": "spell", "subtypes": ["normal"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "do": [
+      {"act": "draw", "player": "both", "count": 1, "as": "drew"},
+      {"act": "discard", "link": "then", "for_each": {"players_of": {"ref": "drew"}}, "each_as": "p",
+       "what": {"who": {"ref": "p"}, "where": ["hand"], "count": 1, "chooser": {"ref": "p"}}}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "06 对玩家的指示与非取对象选择",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 15693423, "name": "颉颃胜负", "kind": "trap", "subtypes": ["normal"]},
+   "rules": [
+    {"rule": "activate_from_hand", "condition": [{"cond": "card_count", "sel": {"who": "you", "where": ["field"]}, "cmp": ["==", 0]}]}
+   ],
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "on": {"event": "phase_end", "phase": "battle", "turn": "any"}, "timing": "when",
+     "condition": [{"cond": "value_compare", "left": {"count": {"who": "opp", "where": ["field"]}}, "op": ">", "right": {"count": {"who": "you", "where": ["field"]}}}],
+     "do": [{"act": "banish", "face": "down", "by": "opp",
+             "what": {"who": "opp", "where": ["field"], "chooser": "opp",
+                      "count": {"until_equal": {"count": {"who": "you", "where": ["field"]}}}}}]}
+   ]
+  },
+  {
+   "difficulty": "07 控制权、持有者与手卡交换",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 31036355, "name": "强制转移", "kind": "spell", "subtypes": ["normal"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "do": [
+      {"act": "select", "for_each": {"players": "both"}, "each_as": "p", "as": "chosen",
+       "what": {"who": {"ref": "p"}, "where": ["mzone"], "count": 1, "chooser": {"ref": "p"}, "filter": [{"can": "change_control"}]}},
+      {"act": "swap_control", "what": {"ref": "chosen"}},
+      {"act": "apply_continuous", "until": "end_of_turn",
+       "apply": {"cont": "cannot_change_position", "affects": {"ref": "chosen"}}}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "08 复制效果与卡名快照",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 95453143, "name": "百眼龙", "kind": "monster", "subtypes": ["effect", "synchro"]},
+   "summon": {"materials": {"method": "synchro", "tuner": {"count": 1, "filter": [{"attribute": "dark"}]}, "nontuner": {"min": 1, "filter": [{"race": "fiend"}]}}},
+   "limits": {"l1": {"scope": "card", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "ignition", "limit": "l1",
+     "cost": [{"act": "banish", "as": "paid",
+               "what": {"who": "you", "where": ["grave"], "count": 1, "filter": [{"level": ["<=", 6]}, {"attribute": "dark"}, {"subtype": "effect"}]}}],
+     "do": [{"act": "copy_effect", "to": {"ref": "self"}, "from": {"ref": "paid", "snapshot": "cost"},
+             "fields": ["name", "effects"], "original": true, "until": "end_phase"}]},
+    {"id": "e2", "type": "trigger", "optional": false, "range": ["grave"],
+     "on": {"event": "sent_to_gy", "subject": {"ref": "self"}, "reason": ["destroyed"]}, "timing": "if",
+     "do": [{"act": "add_to_hand", "what": {"who": "you", "where": ["deck"], "count": 1, "filter": [{"set": "地缚神", "setcode": "0x1021"}, {"card_type": "monster"}]}}]}
+   ]
+  },
+  {
+   "difficulty": "09 规则同名与区域限定同名",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 91932350, "name": "鹰身女郎1", "kind": "monster", "subtypes": ["effect"], "rule_names": [76812113]},
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "apply": {"cont": "atk_update", "affects": {"who": "both", "where": ["mzone"], "face": "up", "filter": [{"attribute": "wind"}]}, "value": 300}}
+   ]
+  },
+  {
+   "difficulty": "10 特殊胜利条件",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 95308449, "name": "终焉的倒计时", "kind": "spell", "subtypes": ["normal"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "cost": [{"act": "pay_lp", "amount": 2000}],
+     "do": [{"act": "schedule_operation", "activates": false,
+             "at": {"turn": 20, "count_from": "activation", "players": "both", "point": "end_of_turn"},
+             "do": [{"act": "win_duel", "player": "you"}]}]}
+   ]
+  },
+  {
+   "difficulty": "11 跳过阶段、回合与定时处理",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 35316708, "name": "刻之封印", "kind": "trap", "subtypes": ["normal"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "do": [{"act": "apply_continuous", "until": {"next": "draw", "player": "opp"},
+             "apply": {"cont": "skip_phase", "player": "opp", "phase": "draw"}}]}
+   ]
+  },
+  {
+   "difficulty": "12 接触融合与双方场上素材",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 79229522, "name": "嵌合要塞龙", "kind": "monster", "subtypes": ["effect", "fusion"]},
+   "summon": {
+    "materials": {"method": "fusion", "list": [{"name": 70095154}, {"filter": [{"race": "machine"}], "min": 1}]},
+    "proper": "only",
+    "procedures": [{"id": "p1", "kind": "contact", "from": ["extra"],
+                    "materials": {"where": {"who": "both", "where": ["mzone"]}, "destination": "grave", "record_as": "materials"}}],
+    "restrictions": [{"cannot_be_material": "fusion"}]
+   },
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "apply": {"cont": "atk_set", "original": true, "affects": {"ref": "self"}, "value": {"mul": [{"count": {"ref": "materials"}}, 1000]}}}
+   ]
+  },
+  {
+   "difficulty": "13 同调等级运算与调整身份",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 27693363, "name": "北极天熊-勾陈一", "kind": "monster", "subtypes": ["effect", "synchro"]},
+   "summon": {
+    "cannot": ["synchro"],
+    "proper": "only",
+    "procedures": [{"id": "p1", "kind": "special", "from": ["extra"],
+                    "cost": [{"act": "send_to_gy", "what": {"who": "you", "where": ["mzone"], "count": 2,
+                              "relation": {"roles": [{"filter": [{"subtype": "tuner"}], "count": 1}, {"filter": [{"not": {"subtype": "tuner"}}], "count": 1}],
+                                           "diff": {"stat": "level", "value": 1}}}}]}]
+   },
+   "limits": {"l1": {"scope": "name", "per": "turn", "n": 1}, "l2": {"scope": "name", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "trigger", "limit": "l1",
+     "on": {"event": "special_summon_success", "subject": {"ref": "self"}}, "timing": "if",
+     "do": [{"act": "activate_from_deck", "what": {"who": "you", "where": ["deck"], "count": 1, "filter": [{"name": 89264428}]}}]},
+    {"id": "e2", "type": "ignition", "limit": "l2",
+     "cost": [{"act": "release", "what": {"who": "you", "where": ["mzone"], "count": 1, "filter": [{"level": [">=", 7]}]}}],
+     "do": [{"act": "one_of", "acts": ["add_to_hand", "special_summon"],
+             "what": {"who": "you", "where": ["grave"], "count": 1, "filter": [{"set": "北极天熊", "setcode": "0x163"}, {"card_type": "monster"}]}}]}
+   ]
+  },
+  {
+   "difficulty": "14 超量替代手续与素材继承",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 10443957, "name": "电子龙·无限", "kind": "monster", "subtypes": ["effect", "xyz"]},
+   "summon": {
+    "materials": {"method": "xyz", "filter": [{"race": "machine"}, {"attribute": "light"}], "level": 6, "count": 3},
+    "procedures": [{"id": "p1", "kind": "xyz_overlay", "limit": "l0",
+                    "on": {"who": "you", "where": ["mzone"], "face": "up", "filter": [{"name": 58069384}]}}]
+   },
+   "limits": {
+    "l0": {"scope": "name", "per": "turn", "n": 1, "unit": "procedure"},
+    "l1": {"scope": "card", "per": "turn", "n": 1},
+    "l2": {"scope": "card", "per": "turn", "n": 1}
+   },
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "apply": {"cont": "atk_update", "affects": {"ref": "self"}, "value": {"mul": [{"count": {"ref": "overlay"}}, 200]}}},
+    {"id": "e2", "type": "ignition", "limit": "l1",
+     "target": [{"as": "t", "sel": {"who": "both", "where": ["mzone"], "position": "faceup_attack", "count": 1}}],
+     "do": [{"act": "attach_xyz_material", "what": {"ref": "t"}, "to": {"ref": "self"}}]},
+    {"id": "e3", "type": "quick", "limit": "l2",
+     "on": {"event": "effect_activated", "kinds": ["spell", "trap", "monster"]}, "timing": "when",
+     "cost": [{"act": "detach_xyz_material", "from": {"ref": "self"}, "count": 1}],
+     "do": [
+      {"act": "negate_activation", "what": {"ref": "chain"}},
+      {"act": "destroy", "what": {"ref": "chain.card"}, "link": "and_if_you_do"}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "15 连接素材、连接区与素材授予",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 98127546, "name": "闭锁世界的冥神", "kind": "monster", "subtypes": ["effect", "link"]},
+   "summon": {
+    "materials": {"method": "link", "filter": [{"subtype": "effect"}], "min": 4},
+    "material_permissions": [{"for": "link", "who": "opp", "where": ["mzone"], "count": 1}]
+   },
+   "limits": {"l1": {"scope": "card", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "trigger",
+     "on": {"event": "special_summon_success", "subject": {"ref": "self"}, "method": "link"}, "timing": "if",
+     "do": [{"act": "negate_card_effects", "until": "permanent", "what": {"who": "opp", "where": ["mzone"], "face": "up", "count": "all"}}]},
+    {"id": "e2", "type": "continuous",
+     "condition": [{"cond": "summon_history", "what": {"ref": "self"}, "method": "link"}],
+     "apply": {"cont": "immune_effect", "affects": {"ref": "self"},
+               "from": {"player": "opp", "activated": true, "except": {"targets": {"ref": "self"}}}}},
+    {"id": "e3", "type": "quick", "limit": "l1",
+     "on": {"event": "effect_activated", "kinds": ["spell", "trap", "monster"], "by": "opp", "includes": ["special_summon_from_gy"]}, "timing": "when",
+     "do": [{"act": "negate_activation", "what": {"ref": "chain"}}]}
+   ]
+  },
+  {
+   "difficulty": "16 仪式数值、素材区域与多体召唤",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 46052429, "name": "高等仪式术", "kind": "spell", "subtypes": ["ritual"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "do": [{"act": "perform_summon", "method": "ritual",
+             "monster": {"who": "you", "where": ["hand"], "count": 1, "filter": [{"subtype": "ritual"}, {"card_type": "monster"}]},
+             "materials": {"who": "you", "where": ["deck"], "filter": [{"subtype": "normal"}, {"card_type": "monster"}], "destination": "grave"},
+             "value": {"stat": "level", "op": "=="}}]}
+   ]
+  },
+  {
+   "difficulty": "17 衍生物与陷阱怪兽的状态变化",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 73915051, "name": "替罪羊", "kind": "spell", "subtypes": ["quickplay"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "restrict": [{"span": "whole_turn", "who": "you", "forbid": ["summon", "flip_summon", "special_summon"], "except": {"by_effect": "this_card"}}],
+     "condition": [{"cond": "zone_capacity", "who": "you", "where": "mzone", "count": 4}],
+     "do": [
+      {"act": "create_token", "count": 4, "player": "you", "position": "defense", "as": "tokens",
+       "token": {"code": 73915052, "name": "羊衍生物", "race": "beast", "attribute": "earth", "level": 1, "atk": 0, "def": 0}},
+      {"act": "apply_continuous", "until": "permanent",
+       "apply": {"cont": "cannot_release", "affects": {"ref": "tokens"}, "for": ["tribute_summon"]}}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "18 跨回合持续与离场后处理",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 75500286, "name": "封印之黄金柜", "kind": "spell", "subtypes": ["normal"]},
+   "effects": [
+    {"id": "e1", "type": "activation",
+     "do": [
+      {"act": "banish", "what": {"who": "you", "where": ["deck"], "count": 1}, "as": "x"},
+      {"act": "schedule_operation", "activates": false,
+       "at": {"phase": "standby", "player": "you", "nth": 2, "count_from": "activation"},
+       "do": [{"act": "add_to_hand", "what": {"ref": "x"}}]}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "19 永续无效范围与攻守计算层次",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 82732705, "name": "技能抽取", "kind": "trap", "subtypes": ["continuous"]},
+   "effects": [
+    {"id": "e0", "type": "activation", "cost": [{"act": "pay_lp", "amount": 1000}]},
+    {"id": "e1", "type": "continuous",
+     "apply": {"cont": "effects_disabled", "scope": "dynamic", "affects": {"who": "both", "where": ["mzone"], "face": "up"}}}
+   ]
+  },
+  {
+   "difficulty": "20 去向替代、禁止与破坏代替",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 81674782, "name": "次元的裂缝", "kind": "spell", "subtypes": ["continuous"]},
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "apply": {"cont": "redirect_destination", "affects": {"who": "both", "filter": [{"card_type": "monster"}]}, "from_dest": "grave", "to_dest": "banished"}}
+   ]
+  },
+  {
+   "difficulty": "21 多卡关系与复杂筛选",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 85138716, "name": "救援兔", "kind": "monster", "subtypes": ["effect"]},
+   "summon": {"restrictions": [{"cannot_special_summon_from": ["deck"]}]},
+   "limits": {"l1": {"scope": "name", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "ignition", "limit": "l1",
+     "cost": [{"act": "banish", "what": {"ref": "self"}}],
+     "do": [
+      {"act": "special_summon", "as": "ss",
+       "what": {"who": "you", "where": ["deck"], "count": 2, "filter": [{"subtype": "normal"}, {"card_type": "monster"}, {"level": ["<=", 4]}], "relation": {"same": ["name"]}}},
+      {"act": "schedule_operation", "activates": false, "at": {"phase": "end", "which": "this_turn"},
+       "do": [{"act": "destroy", "what": {"ref": "ss"}}]}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "22 魔力指示物的放置、支付与继承",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 70791313, "name": "王立魔法图书馆", "kind": "monster", "subtypes": ["effect"]},
+   "counters": {"spell": {"max": 3}},
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "on": {"event": "effect_activated", "what": "card", "kinds": ["spell"], "by": "both"},
+     "do": [{"act": "add_counter", "counter": "spell", "count": 1, "what": {"ref": "self"}}]},
+    {"id": "e2", "type": "ignition",
+     "cost": [{"act": "remove_counter", "counter": "spell", "count": 3, "from": {"ref": "self"}}],
+     "do": [{"act": "draw", "player": "you", "count": 1}]}
+   ]
+  },
+  {
+   "difficulty": "23 宣言、公开信息与卡组表示",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 65681983, "name": "抹杀之指名者", "kind": "spell", "subtypes": ["quickplay"]},
+   "limits": {"l1": {"scope": "name", "per": "turn", "n": 1, "unit": "activate_card"}},
+   "effects": [
+    {"id": "e1", "type": "activation", "limit": "l1",
+     "declare": [{"as": "named", "kind": "card_name", "domain": {"who": "you", "where": ["deck"]}}],
+     "do": [
+      {"act": "banish", "as": "x", "what": {"who": "you", "where": ["deck"], "count": 1, "filter": [{"name": {"ref": "named"}}]}},
+      {"act": "apply_continuous", "until": "end_of_turn",
+       "apply": {"cont": "effects_disabled", "scope": "dynamic",
+                 "affects": {"any": [{"ref": "x"}, {"who": "both", "filter": [{"original_name": {"same_as": {"ref": "x"}}}]}]}}}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "24 硬币骰子与重投",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 71625222, "name": "时间魔术师", "kind": "monster", "subtypes": ["effect"]},
+   "limits": {"l1": {"scope": "card", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "ignition", "limit": "l1",
+     "do": [
+      {"act": "toss_coin", "count": 1, "call": true, "as": "coin"},
+      {"act": "branch", "cases": [
+       {"if": {"cond": "die_coin_result", "of": {"ref": "coin"}, "called_right": true},
+        "do": [{"act": "destroy", "what": {"who": "opp", "where": ["mzone"], "count": "all"}}]},
+       {"if": {"cond": "die_coin_result", "of": {"ref": "coin"}, "called_right": false},
+        "do": [
+         {"act": "destroy", "what": {"who": "you", "where": ["mzone"], "count": "all"}, "as": "d"},
+         {"act": "damage", "link": "and_if_you_do", "player": "you",
+          "amount": {"half": {"sum": "atk", "of": {"ref": "d", "filter": [{"previous": {"face": "up"}}]}}}}
+        ]}
+      ]}
+     ]}
+   ]
+  },
+  {
+   "difficulty": "25 灵摆双文本与额外卡组迁移",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 65518099, "name": "机壳工具 丑恶", "kind": "monster", "subtypes": ["normal", "pendulum"], "scale": 9},
+   "limits": {"l1": {"scope": "card", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "p1", "block": "pendulum", "type": "continuous", "cannot_be_negated": true,
+     "apply": {"cont": "cannot_special_summon", "player": "you", "which": [{"not": {"set": "机壳", "setcode": "0xaa"}}]}},
+    {"id": "p2", "block": "pendulum", "type": "ignition", "limit": "l1",
+     "cost": [{"act": "pay_lp", "amount": 800}],
+     "do": [{"act": "add_to_hand", "what": {"who": "you", "where": ["deck"], "count": 1, "filter": [{"set": "机壳", "setcode": "0xaa"}, {"not": {"name": 65518099}}]}}]}
+   ]
+  },
+  {
+   "difficulty": "26 列、移动与互相连接",
+   "schema": "ygodiy-effect/0.2",
+   "card": {"code": 32841045, "name": "魔弹射手 卡斯帕", "kind": "monster", "subtypes": ["effect"]},
+   "limits": {"l2": {"scope": "name", "per": "turn", "n": 1}},
+   "effects": [
+    {"id": "e1", "type": "continuous",
+     "apply": [
+      {"cont": "trap_from_hand", "player": "you", "which": [{"set": "魔弹", "setcode": "0x108"}, {"card_type": "trap"}]},
+      {"cont": "quickplay_opponent_hand", "player": "you", "which": [{"set": "魔弹", "setcode": "0x108"}, {"card_type": "spell"}]}
+     ]},
+    {"id": "e2", "type": "trigger", "limit": "l2",
+     "on": {"event": "effect_activated", "what": "card", "kinds": ["spell", "trap"], "where": {"column_of": {"ref": "self"}}}, "timing": "if",
+     "do": [{"act": "add_to_hand", "what": {"who": "you", "where": ["deck"], "count": 1,
+             "filter": [{"set": "魔弹", "setcode": "0x108"}, {"not": {"name": {"same_as": {"ref": "event", "snapshot": "event"}}}}]}}]}
+   ]
+  }
+ ]
+}

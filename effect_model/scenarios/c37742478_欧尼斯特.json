@@ -1,0 +1,43 @@
+{
+  "card": 37742478,
+  "scenarios": [
+    {
+      "name": "欧尼斯特①：自己主要阶段回到手卡",
+      "field": {
+        "0": {"mzone": [37742478]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 37742478},
+        {"check": "count", "player": 0, "in": "hand", "card": 37742478, "eq": 1}
+      ]
+    },
+    {
+      "name": "欧尼斯特②：光属性怪兽战斗时从手卡送去墓地，攻击力上升对方怪兽的攻击力",
+      "field": {
+        "0": {"mzone": [89631139], "hand": [37742478]},
+        "1": {"mzone": [46986414]}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 89631139, "target": 46986414},
+        {"player": 0, "do": "activate", "card": 37742478},
+        {"check": "lp", "player": 1, "eq": 5000},
+        {"check": "count", "player": 1, "in": "grave", "eq": 1},
+        {"check": "atk", "player": 0, "card": 89631139, "eq": 5500}
+      ]
+    },
+    {
+      "name": "欧尼斯特②：不是光属性怪兽战斗时不能发动",
+      "field": {
+        "0": {"mzone": [74677422], "hand": [37742478]},
+        "1": {"mzone": [89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 74677422, "target": 89631139},
+        {"check": "offered", "card": 37742478, "as": "chain", "eq": false}
+      ]
+    }
+  ]
+}

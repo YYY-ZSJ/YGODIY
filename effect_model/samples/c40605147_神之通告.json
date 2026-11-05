@@ -1,0 +1,77 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 40605147,
+  "name": "神之通告",
+  "kind": "trap",
+  "subtypes": [
+   "counter"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "cost": [
+    {
+     "act": "pay_lp",
+     "amount": 1500
+    }
+   ],
+   "modes": {
+    "choose": 1,
+    "at": "activation",
+    "options": [
+     {
+      "on": {
+       "event": "effect_activated",
+       "what": "effect",
+       "kinds": [
+        "monster"
+       ]
+      },
+      "timing": "when",
+      "do": [
+       {
+        "act": "negate_activation",
+        "what": {
+         "ref": "chain"
+        }
+       },
+       {
+        "act": "destroy",
+        "what": {
+         "ref": "chain.card"
+        },
+        "link": "and_if_you_do"
+       }
+      ]
+     },
+     {
+      "on": {
+       "event": "summon_attempt",
+       "method": "special",
+       "by": "both"
+      },
+      "timing": "when",
+      "do": [
+       {
+        "act": "negate_summon",
+        "what": {
+         "ref": "event"
+        }
+       },
+       {
+        "act": "destroy",
+        "what": {
+         "ref": "event"
+        },
+        "link": "and_if_you_do"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

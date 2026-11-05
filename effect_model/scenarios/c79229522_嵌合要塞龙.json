@@ -1,0 +1,19 @@
+{
+  "card": 79229522,
+  "scenarios": [
+    {
+      "name": "嵌合要塞龙：把双方场上的电子龙和机械族怪兽送去墓地特殊召唤，原本攻击力是素材数×1000",
+      "field": {
+        "0": {"mzone": [70095154], "extra": [79229522]},
+        "1": {"mzone": [70095154]}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 79229522},
+        {"player": 0, "do": "select", "cards": [{"code": 70095154, "player": 0}, {"code": 70095154, "player": 1}]},
+        {"check": "atk", "player": 0, "card": 79229522, "eq": 2000},
+        {"check": "count", "player": 1, "in": "grave", "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "eq": 1}
+      ]
+    }
+  ]
+}

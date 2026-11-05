@@ -1,0 +1,28 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009753,
+  "name": "积木·替身",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "destroy_replace",
+   "mode": "self",
+   "range": "mzone",
+   "limit": "",
+   "protect": [],
+   "cost": [
+    {
+     "block": "pay_lp",
+     "amount": [
+      {
+       "block": "num",
+       "value": 500
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

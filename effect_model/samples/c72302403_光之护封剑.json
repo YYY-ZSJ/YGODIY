@@ -1,0 +1,61 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 72302403,
+  "name": "光之护封剑",
+  "kind": "spell",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "rules": [
+  {
+   "id": "e1",
+   "rule": "lasting",
+   "turns": 3,
+   "count_on": "opp"
+  }
+ ],
+ "effects": [
+  {
+   "id": "e2",
+   "type": "activation",
+   "do": [
+    {
+     "act": "change_position",
+     "to": "faceup",
+     "when_exists": true,
+     "what": {
+      "who": "opp",
+      "where": [
+       "mzone"
+      ],
+      "filter": [
+       {
+        "position": "facedown"
+       }
+      ],
+      "count": "all"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e3",
+   "type": "continuous",
+   "range": [
+    "szone"
+   ],
+   "apply": {
+    "cont": "cannot_attack",
+    "declare": true,
+    "affects": {
+     "who": "opp",
+     "where": [
+      "mzone"
+     ]
+    }
+   }
+  }
+ ]
+}

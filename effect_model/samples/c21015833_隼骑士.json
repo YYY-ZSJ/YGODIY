@@ -1,0 +1,24 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 21015833,
+  "name": "隼骑士",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "extra_attack",
+    "affects": {
+     "ref": "self"
+    },
+    "n": 2
+   }
+  }
+ ]
+}

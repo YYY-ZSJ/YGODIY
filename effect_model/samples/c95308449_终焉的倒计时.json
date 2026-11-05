@@ -1,0 +1,41 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 95308449,
+  "name": "终焉的倒计时",
+  "kind": "spell",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "cost": [
+    {
+     "act": "pay_lp",
+     "amount": 2000
+    }
+   ],
+   "do": [
+    {
+     "act": "schedule_operation",
+     "activates": false,
+     "at": {
+      "turn": 20,
+      "count_from": "activation",
+      "players": "both",
+      "point": "end_of_turn"
+     },
+     "do": [
+      {
+       "act": "win_duel",
+       "player": "you"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

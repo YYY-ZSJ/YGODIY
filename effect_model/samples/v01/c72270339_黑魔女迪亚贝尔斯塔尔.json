@@ -1,0 +1,20 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 72270339, "name": "黑魔女 迪亚贝尔斯塔尔", "kind": "monster", "subtypes": ["effect"]},
+  "effects": [
+    {"type": "summon_rule", "from": ["hand"],
+     "limit": {"scope": "name", "kind": "activate"},
+     "cost": [{"act": "send_to_gy", "what": {"who": "you", "where": ["hand", "field"], "count": 1}}]},
+    {"type": "trigger", "optional": true, "limit": {"scope": "name"},
+     "on": {"event": "summoned", "subject": "self", "how": ["normal", "special"]},
+     "do": [{"act": "set",
+             "what": {"who": "you", "where": ["deck"], "count": 1,
+                      "filter": [{"set": "罪宝", "setcode": "0x19e"}, {"card_type": "spell_trap"}]}}]},
+    {"type": "trigger", "optional": true, "limit": {"scope": "name"},
+     "on": {"event": "sent_to_gy", "subject": "self", "from": ["hand", "field"], "turn": "opp"},
+     "do": [
+       {"act": "send_to_gy", "what": {"who": "you", "where": ["hand", "field"], "count": 1}},
+       {"act": "special_summon", "link": "then", "what": {"ref": "self"}}
+     ]}
+  ]
+}

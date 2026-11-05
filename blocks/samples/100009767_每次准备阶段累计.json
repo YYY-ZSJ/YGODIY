@@ -1,0 +1,47 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009767,
+  "name": "积木·渐衰",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "listener",
+   "event": "standby",
+   "event_player": "you",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "register",
+     "code": "EFFECT_UPDATE_ATTACK",
+     "reset": "permanent",
+     "against": "any",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ],
+     "value": [
+      {
+       "block": "num",
+       "value": -200
+      }
+     ],
+     "value_cards": []
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 83764718, "name": "死者苏生", "kind": "spell", "subtypes": ["normal"]},
+  "effects": [
+    {"type": "activate",
+     "target": [{"as": "t", "who": "both", "where": ["grave"], "filter": [{"card_type": "monster"}], "count": 1}],
+     "do": [{"act": "special_summon", "what": {"ref": "t"}, "to": "you"}]}
+  ]
+}

@@ -1,0 +1,38 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009734,
+  "name": "积木·伤害回复",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "trigger_f",
+   "event": "player_battle_damaged",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "recover",
+     "player": "you",
+     "amount": [
+      {
+       "block": "event_value"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

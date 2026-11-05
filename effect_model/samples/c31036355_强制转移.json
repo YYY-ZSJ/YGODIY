@@ -1,0 +1,60 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 31036355,
+  "name": "强制转移",
+  "kind": "spell",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "do": [
+    {
+     "act": "select",
+     "for_each": {
+      "players": "both"
+     },
+     "each_as": "p",
+     "as": "chosen",
+     "what": {
+      "who": {
+       "ref": "p"
+      },
+      "where": [
+       "mzone"
+      ],
+      "count": 1,
+      "chooser": {
+       "ref": "p"
+      },
+      "filter": [
+       {
+        "can": "change_control"
+       }
+      ]
+     }
+    },
+    {
+     "act": "swap_control",
+     "what": {
+      "ref": "chosen"
+     }
+    },
+    {
+     "act": "apply_continuous",
+     "until": "end_of_turn",
+     "apply": {
+      "cont": "cannot_change_position",
+      "affects": {
+       "ref": "chosen"
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

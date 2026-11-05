@@ -1,0 +1,40 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009770,
+  "name": "积木·两处发动",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "hand_grave",
+   "limit": "name",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "special_summon",
+     "position": "faceup",
+     "to": "you",
+     "ignore": "",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

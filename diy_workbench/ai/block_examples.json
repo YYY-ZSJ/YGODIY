@@ -1,0 +1,439 @@
+[
+ {
+  "code": 100009702,
+  "source": "100009702_增援.json",
+  "name": "积木·增援",
+  "text": "从卡组把1只4星以下的战士族怪兽加入手卡。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "activate",
+     "event": "free",
+     "event_player": "any",
+     "range": "mzone",
+     "limit": "",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [],
+     "target": [],
+     "operation": [
+      {
+       "block": "select",
+       "player": "you",
+       "count": 1,
+       "as": "A",
+       "upto": "",
+       "different": "",
+       "sum": "",
+       "source": [
+        {
+         "block": "all",
+         "who": "you",
+         "where": "deck",
+         "filter": [
+          {
+           "block": "f_level",
+           "op": "<=",
+           "value": 4,
+           "value_n": []
+          },
+          {
+           "block": "f_race",
+           "race": "warrior"
+          },
+          {
+           "block": "f_kind",
+           "kind": "monster"
+          }
+         ]
+        }
+       ],
+       "count_n": [],
+       "sum_n": []
+      },
+      {
+       "block": "to_hand",
+       "to": "",
+       "cards": [
+        {
+         "block": "var",
+         "name": "A"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009704,
+  "source": "100009704_代价与取对象.json",
+  "name": "积木·丢弃破坏",
+  "text": "把1张手卡丢弃，以对方场上1只怪兽为对象才能发动。那只怪兽破坏。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "activate",
+     "event": "free",
+     "event_player": "any",
+     "range": "mzone",
+     "limit": "",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [
+      {
+       "block": "discard",
+       "cards": [
+        {
+         "block": "pick",
+         "who": "you",
+         "where": "hand",
+         "count": 1,
+         "upto": "",
+         "different": "",
+         "filter": [],
+         "count_n": []
+        }
+       ]
+      }
+     ],
+     "target": [
+      {
+       "block": "take_target",
+       "count": 1,
+       "as": "T",
+       "source": [
+        {
+         "block": "all",
+         "who": "opp",
+         "where": "mzone",
+         "filter": [
+          {
+           "block": "f_kind",
+           "kind": "monster"
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "operation": [
+      {
+       "block": "destroy",
+       "cards": [
+        {
+         "block": "target",
+         "name": "T"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009708,
+  "source": "100009708_连锁无效.json",
+  "name": "积木·手坑",
+  "text": "这个卡名的效果1回合只能使用1次。\n①：对方把卡的效果发动时，把这张卡从手卡丢弃才能发动。那个发动无效并破坏。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "quick_o",
+     "event": "chaining",
+     "event_player": "opp",
+     "range": "hand",
+     "limit": "name",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [
+      {
+       "block": "discard",
+       "cards": [
+        {
+         "block": "this_card"
+        }
+       ]
+      }
+     ],
+     "target": [],
+     "operation": [
+      {
+       "block": "negate_activation"
+      },
+      {
+       "block": "after",
+       "how": "then",
+       "body": [
+        {
+         "block": "destroy",
+         "cards": [
+          {
+           "block": "chain_card"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009711,
+  "source": "100009711_双方各自.json",
+  "name": "积木·双方除外陷阱",
+  "text": "①：对方主要阶段，把这张卡从手卡丢弃才能发动。双方各自从卡组把1张陷阱卡除外。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "quick_o",
+     "event": "free",
+     "event_player": "any",
+     "range": "hand",
+     "limit": "",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [
+      {
+       "block": "all_of",
+       "items": [
+        {
+         "block": "turn",
+         "player": "opp"
+        },
+        {
+         "block": "phase",
+         "phase": "main"
+        }
+       ]
+      }
+     ],
+     "cost": [
+      {
+       "block": "discard",
+       "cards": [
+        {
+         "block": "this_card"
+        }
+       ]
+      }
+     ],
+     "target": [],
+     "operation": [
+      {
+       "block": "each_player",
+       "body": [
+        {
+         "block": "banish",
+         "face": "up",
+         "temp": "",
+         "cards": [
+          {
+           "block": "pick",
+           "who": "you",
+           "where": "deck",
+           "count": 1,
+           "upto": "",
+           "different": "",
+           "filter": [
+            {
+             "block": "f_kind",
+             "kind": "trap"
+            }
+           ],
+           "count_n": []
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009716,
+  "source": "100009716_融合召唤.json",
+  "name": "积木·融合",
+  "text": "自己的手卡·场上的怪兽作为融合素材，从额外卡组把1只融合怪兽融合召唤。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "activate",
+     "event": "free",
+     "event_player": "any",
+     "range": "mzone",
+     "limit": "",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [],
+     "target": [],
+     "operation": [
+      {
+       "block": "fusion_summon",
+       "mats": "hf",
+       "filter": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009742,
+  "source": "100009742_一个效果两个时机.json",
+  "name": "积木·去哪都抽",
+  "text": "①：这张卡被送去墓地的场合或者被除外的场合才能发动。自己从卡组抽1张。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "trigger_o",
+     "event": "to_grave",
+     "event_player": "any",
+     "range": "mzone",
+     "limit": "",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [],
+     "target": [],
+     "operation": [
+      {
+       "block": "draw",
+       "player": "you",
+       "count": 1,
+       "count_n": []
+      }
+     ],
+     "event2": "banished"
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009770,
+  "source": "100009770_手卡·墓地都能发动.json",
+  "name": "积木·两处发动",
+  "text": "这个卡名的效果1回合只能使用1次。\n①：这张卡在手卡·墓地存在的场合才能发动。这张卡特殊召唤。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "ignition",
+     "event": "free",
+     "event_player": "any",
+     "range": "hand_grave",
+     "limit": "name",
+     "limit_n": 1,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [],
+     "target": [],
+     "operation": [
+      {
+       "block": "special_summon",
+       "position": "faceup",
+       "to": "you",
+       "ignore": "",
+       "cards": [
+        {
+         "block": "this_card"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "code": 100009773,
+  "source": "100009773_1回合2次.json",
+  "name": "积木·1回合2次",
+  "text": "①：1回合2次，自己主要阶段才能发动。给与对方100伤害。",
+  "model": {
+   "schema": "ygodiy-blocks/0.3",
+   "effects": [
+    {
+     "block": "effect",
+     "type": "ignition",
+     "event": "free",
+     "event_player": "any",
+     "range": "mzone",
+     "limit": "card",
+     "limit_n": 2,
+     "damage_step": "",
+     "chain_limit": "",
+     "unstoppable": "",
+     "part": "monster",
+     "twice_when": [],
+     "condition": [],
+     "cost": [],
+     "target": [],
+     "operation": [
+      {
+       "block": "damage",
+       "player": "opp",
+       "amount": [
+        {
+         "block": "num",
+         "value": 100
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+]

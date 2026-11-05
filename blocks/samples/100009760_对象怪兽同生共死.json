@@ -1,0 +1,99 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009760,
+  "name": "积木·活死人",
+  "kind": "trap"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [
+    {
+     "block": "take_target",
+     "count": 1,
+     "as": "T",
+     "source": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "grave",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "operation": [
+    {
+     "block": "special_summon",
+     "position": "faceup",
+     "to": "you",
+     "ignore": "",
+     "cards": [
+      {
+       "block": "target",
+       "name": "T"
+      }
+     ]
+    },
+    {
+     "block": "keep_target",
+     "cards": [
+      {
+       "block": "target",
+       "name": "T"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "block": "target_link",
+   "link": "leave_destroy",
+   "range": "szone"
+  },
+  {
+   "block": "target_link",
+   "link": "target_destroyed",
+   "range": "szone"
+  },
+  {
+   "block": "continuous",
+   "mode": "card_target",
+   "code": "EFFECT_UPDATE_ATTACK",
+   "range": "szone",
+   "who": "you",
+   "where": "mzone",
+   "player": "you",
+   "against": "any",
+   "part": "monster",
+   "condition": [],
+   "value": [
+    {
+     "block": "num",
+     "value": 300
+    }
+   ],
+   "filter": [],
+   "value_cards": []
+  }
+ ]
+}

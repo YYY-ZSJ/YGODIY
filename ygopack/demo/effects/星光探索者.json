@@ -1,0 +1,10 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "effects": [
+    {"type": "trigger", "optional": true, "limit": {"scope": "name"},
+     "on": {"event": "summoned", "subject": "self", "how": ["normal", "special"]},
+     "do": [{"act": "add_to_hand",
+             "what": {"who": "you", "where": ["deck"], "count": 1,
+                      "filter": [{"set": "星光", "setcode": "0xa01"}, {"card_type": "monster"}]}}]}
+  ]
+}

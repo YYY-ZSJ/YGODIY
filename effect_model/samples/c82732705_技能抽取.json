@@ -1,0 +1,38 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 82732705,
+  "name": "技能抽取",
+  "kind": "trap",
+  "subtypes": [
+   "continuous"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e0",
+   "type": "activation",
+   "cost": [
+    {
+     "act": "pay_lp",
+     "amount": 1000
+    }
+   ]
+  },
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "effects_disabled",
+    "scope": "dynamic",
+    "affects": {
+     "who": "both",
+     "where": [
+      "mzone"
+     ],
+     "face": "up"
+    }
+   }
+  }
+ ]
+}

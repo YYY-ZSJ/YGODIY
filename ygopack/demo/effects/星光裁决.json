@@ -1,0 +1,11 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "effects": [
+    {"type": "activate",
+     "on": {"event": "activation", "by": "opp", "kinds": ["spell", "trap", "monster"]},
+     "do": [
+       {"act": "negate_activation", "what": {"ref": "chain"}},
+       {"act": "destroy", "link": "and", "what": {"ref": "chain"}}
+     ]}
+  ]
+}

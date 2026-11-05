@@ -1,0 +1,54 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009721,
+  "name": "积木·吸收素材",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "attach",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "grave",
+       "count": 1,
+       "upto": "",
+       "different": "",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ],
+       "count_n": []
+      }
+     ],
+     "to": [
+      {
+       "block": "this_card"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

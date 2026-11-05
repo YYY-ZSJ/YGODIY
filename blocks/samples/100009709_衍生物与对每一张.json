@@ -1,0 +1,77 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009709,
+  "name": "积木·衍生物列阵",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "create_token",
+     "name": "积木衍生物",
+     "count": 2,
+     "race": "warrior",
+     "attribute": "light",
+     "level": 1,
+     "atk": 0,
+     "def": 0,
+     "position": "defense",
+     "count_n": []
+    },
+    {
+     "block": "for_each",
+     "cards": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "mzone",
+       "filter": [
+        {
+         "block": "f_race",
+         "race": "warrior"
+        }
+       ]
+      }
+     ],
+     "body": [
+      {
+       "block": "register",
+       "code": "EFFECT_UPDATE_ATTACK",
+       "reset": "end_of_turn",
+       "against": "any",
+       "cards": [
+        {
+         "block": "each"
+        }
+       ],
+       "value": [
+        {
+         "block": "num",
+         "value": 300
+        }
+       ],
+       "value_cards": []
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

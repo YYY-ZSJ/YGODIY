@@ -1,0 +1,145 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 84815190,
+  "name": "鲜花女男爵",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "synchro"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "synchro",
+   "tuner": {
+    "count": 1
+   },
+   "nontuner": {
+    "min": 1
+   }
+  }
+ },
+ "limits": {
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  },
+  "l2": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  },
+  "l3": {
+   "scope": "face_up",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "ignition",
+   "limit": "l1",
+   "target": [
+    {
+     "as": "t",
+     "sel": {
+      "who": "both",
+      "where": [
+       "field"
+      ],
+      "count": 1
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "t"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "quick",
+   "limit": [
+    "l2",
+    "l3"
+   ],
+   "on": {
+    "event": "effect_activated",
+    "kinds": [
+     "spell",
+     "trap",
+     "monster"
+    ]
+   },
+   "timing": "when",
+   "do": [
+    {
+     "act": "negate_activation",
+     "what": {
+      "ref": "chain"
+     }
+    },
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "chain.card"
+     },
+     "link": "and_if_you_do"
+    }
+   ]
+  },
+  {
+   "id": "e3",
+   "type": "trigger",
+   "target": [
+    {
+     "as": "t",
+     "sel": {
+      "who": "you",
+      "where": [
+       "grave"
+      ],
+      "filter": [
+       {
+        "card_type": "monster"
+       },
+       {
+        "level": [
+         "<=",
+         9
+        ]
+       }
+      ],
+      "count": 1
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "return_to_extra",
+     "what": {
+      "ref": "self"
+     }
+    },
+    {
+     "act": "special_summon",
+     "what": {
+      "ref": "t"
+     },
+     "link": "and_if_you_do"
+    }
+   ],
+   "on": {
+    "event": "phase_window",
+    "phase": "standby",
+    "turn": "any"
+   }
+  }
+ ]
+}

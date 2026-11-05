@@ -1,0 +1,12 @@
+{
+  "name": "星光示例",
+  "author": "YGODIY",
+  "setnames": {"0xa01": "星光"},
+  "cards": [
+    {"card": "cards/星光探索者.json", "effect": "effects/星光探索者.json", "setcodes": ["星光"], "art": "art/星光探索者.png"},
+    {"card": "cards/星光守卫.json", "setcodes": ["星光"]},
+    {"card": "cards/星光裁决.json", "effect": "effects/星光裁决.json", "setcodes": ["星光"], "art": "art/星光裁决.png"},
+    {"card": "cards/星光之龙.json", "effect": "effects/星光之龙.json", "setcodes": ["星光"], "art": "art/星光之龙.png"}
+  ],
+  "scenarios": ["情景.json"]
+}

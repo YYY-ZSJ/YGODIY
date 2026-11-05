@@ -1,0 +1,93 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 44508094,
+  "name": "星尘龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "synchro"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "synchro",
+   "tuner": {
+    "count": 1
+   },
+   "nontuner": {
+    "min": 1
+   }
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "quick",
+   "on": {
+    "event": "effect_activated",
+    "kinds": [
+     "spell",
+     "trap",
+     "monster"
+    ],
+    "includes": [
+     "destroy_on_field"
+    ]
+   },
+   "timing": "when",
+   "cost": [
+    {
+     "act": "release",
+     "what": {
+      "ref": "self"
+     },
+     "as": "released",
+     "keep": "this_turn"
+    }
+   ],
+   "do": [
+    {
+     "act": "negate_activation",
+     "what": {
+      "ref": "chain"
+     }
+    },
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "chain.card"
+     },
+     "link": "and_if_you_do"
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "trigger",
+   "range": [
+    "grave"
+   ],
+   "on": {
+    "event": "phase_window",
+    "phase": "end"
+   },
+   "condition": [
+    {
+     "cond": "named_card_used",
+     "effect": "e1",
+     "what": "applied",
+     "when": "this_turn"
+    }
+   ],
+   "do": [
+    {
+     "act": "special_summon",
+     "what": {
+      "ref": "e1.released"
+     }
+    }
+   ]
+  }
+ ]
+}

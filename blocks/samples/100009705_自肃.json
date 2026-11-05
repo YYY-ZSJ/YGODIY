@@ -1,0 +1,54 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009705,
+  "name": "积木·自肃抽卡",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "name",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [
+    {
+     "block": "pay_lp",
+     "amount": [
+      {
+       "block": "num",
+       "value": 1000
+      }
+     ]
+    }
+   ],
+   "target": [],
+   "operation": [
+    {
+     "block": "draw",
+     "player": "you",
+     "count": 1,
+     "count_n": []
+    },
+    {
+     "block": "register_player",
+     "player": "you",
+     "code": "EFFECT_CANNOT_SUMMON",
+     "reset": "end_of_turn",
+     "value": [],
+     "filter": [],
+     "value_cards": []
+    }
+   ]
+  }
+ ]
+}

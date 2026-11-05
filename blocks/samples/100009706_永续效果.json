@@ -1,0 +1,35 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009706,
+  "name": "积木·战士的号令",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "continuous",
+   "mode": "zone",
+   "code": "EFFECT_UPDATE_ATTACK",
+   "range": "mzone",
+   "who": "you",
+   "where": "mzone",
+   "player": "you",
+   "against": "any",
+   "part": "monster",
+   "condition": [],
+   "value": [
+    {
+     "block": "num",
+     "value": 500
+    }
+   ],
+   "filter": [
+    {
+     "block": "f_race",
+     "race": "warrior"
+    }
+   ],
+   "value_cards": []
+  }
+ ]
+}

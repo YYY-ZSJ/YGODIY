@@ -1,0 +1,14 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009724,
+  "name": "积木·唯一",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "unique",
+   "who": "you"
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 23434538, "name": "增殖的G", "kind": "monster", "subtypes": ["effect"]},
+  "effects": [
+    {"type": "quick", "from": ["hand"],
+     "limit": {"scope": "name"},
+     "cost": [{"act": "send_to_gy", "what": {"ref": "self"}}],
+     "do": [
+       {"act": "apply", "duration": "this_turn",
+        "effect": {"what": "listener", "on": {"event": "special_summoned", "by": "opp"},
+                   "do": [{"act": "draw", "player": "you", "count": 1}]}}
+     ]}
+  ]
+}

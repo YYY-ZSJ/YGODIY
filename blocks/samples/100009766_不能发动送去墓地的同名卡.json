@@ -1,0 +1,76 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009766,
+  "name": "积木·清闲",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "select",
+     "player": "you",
+     "count": 1,
+     "as": "A",
+     "upto": "",
+     "different": "",
+     "sum": "",
+     "source": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "deck",
+       "filter": []
+      }
+     ],
+     "count_n": [],
+     "sum_n": []
+    },
+    {
+     "block": "send_to_gy",
+     "cards": [
+      {
+       "block": "var",
+       "name": "A"
+      }
+     ]
+    },
+    {
+     "block": "register_player",
+     "player": "you",
+     "code": "EFFECT_CANNOT_ACTIVATE",
+     "reset": "end_of_turn",
+     "value": [],
+     "filter": [
+      {
+       "block": "f_same_code",
+       "card": [
+        {
+         "block": "var",
+         "name": "A"
+        }
+       ]
+      }
+     ],
+     "value_cards": []
+    }
+   ]
+  }
+ ]
+}

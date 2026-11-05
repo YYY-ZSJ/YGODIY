@@ -1,0 +1,27 @@
+{
+  "card": 70095154,
+  "scenarios": [
+    {
+      "name": "电子龙：只有对方场上有怪兽时从手卡特殊召唤",
+      "field": {"0": {"hand": [70095154]}, "1": {"mzone": [15025844]}},
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 70095154},
+        {"check": "count", "player": 0, "in": "mzone", "card": 70095154, "eq": 1}
+      ]
+    },
+    {
+      "name": "电子龙：自己场上有怪兽时不能特殊召唤",
+      "field": {"0": {"hand": [70095154], "mzone": [15025844]}, "1": {"mzone": [15025844]}},
+      "actions": [
+        {"check": "offered", "card": 70095154, "as": "spsummon", "eq": false}
+      ]
+    },
+    {
+      "name": "电子龙：对方场上没有怪兽时不能特殊召唤",
+      "field": {"0": {"hand": [70095154]}, "1": {}},
+      "actions": [
+        {"check": "offered", "card": 70095154, "as": "spsummon", "eq": false}
+      ]
+    }
+  ]
+}

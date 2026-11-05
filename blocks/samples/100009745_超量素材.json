@@ -1,0 +1,27 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009745,
+  "name": "积木·兽族超量",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "extra_materials",
+   "method": "xyz",
+   "count": 2,
+   "more": "",
+   "rank": 4,
+   "tuners": "",
+   "tuner": [],
+   "material": [
+    {
+     "block": "f_race",
+     "race": "beast"
+    }
+   ],
+   "include": [],
+   "alter": []
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "星光探索者",
+  "card_type": 0,
+  "call_way": 1,
+  "extra1": 0,
+  "extra2": 0,
+  "race": 3,
+  "level": 4,
+  "rank": 0,
+  "attribute": "光",
+  "ATK": "1600",
+  "DEF": "1200",
+  "link_status": [false, false, false, false, false, false, false, false],
+  "effect_text": "这个卡名的效果1回合只能使用1次。\n①：这张卡召唤·特殊召唤的场合才能发动。从卡组把1只「星光」怪兽加入手卡。",
+  "lb_text": "",
+  "lb_level": "",
+  "cardpass": "100001000"
+}

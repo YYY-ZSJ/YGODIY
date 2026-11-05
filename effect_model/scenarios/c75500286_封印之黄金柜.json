@@ -1,0 +1,23 @@
+{
+  "card": 75500286,
+  "scenarios": [
+    {
+      "name": "封印之黄金柜：从卡组除外1张，发动后第2次的自己准备阶段加入手卡",
+      "field": {
+        "0": {"hand": [75500286], "deck": [12580477]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 75500286},
+        {"player": 0, "do": "select", "cards": [12580477]},
+        {"check": "count", "player": 0, "in": "banished", "card": 12580477, "eq": 1},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "banished", "card": 12580477, "eq": 1},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "hand", "card": 12580477, "eq": 1}
+      ]
+    }
+  ]
+}

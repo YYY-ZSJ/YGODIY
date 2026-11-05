@@ -1,0 +1,29 @@
+{
+  "card": 85138716,
+  "scenarios": [
+    {
+      "name": "救援兔：把自己除外，从卡组特殊召唤2只同名通常怪兽，结束阶段破坏",
+      "field": {
+        "0": {"mzone": [85138716], "deck": [76812113, 76812113]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 85138716},
+        {"check": "count", "player": 0, "in": "banished", "card": 85138716, "eq": 1},
+        {"check": "count", "player": 0, "in": "mzone", "card": 76812113, "eq": 2},
+        {"player": 0, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "grave", "card": 76812113, "eq": 2}
+      ]
+    },
+    {
+      "name": "救援兔：卡组只有1只4星以下的通常怪兽时不能发动",
+      "field": {
+        "0": {"mzone": [85138716], "deck": [76812113]},
+        "1": {}
+      },
+      "actions": [
+        {"check": "offered", "card": 85138716, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

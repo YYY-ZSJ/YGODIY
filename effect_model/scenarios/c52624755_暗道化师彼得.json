@@ -1,0 +1,30 @@
+{
+  "card": 52624755,
+  "scenarios": [
+    {
+      "name": "彼得：从手卡丢弃送去墓地时，把自己除外，从卡组特殊召唤另一只彼得",
+      "field": {
+        "0": {"hand": [74117290, 52624755], "deck": [89631139, 52624755]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 74117290},
+        {"player": 0, "do": "select", "cards": [52624755]},
+        {"check": "count", "player": 0, "in": "banished", "card": 52624755, "eq": 1},
+        {"check": "count", "player": 0, "in": "mzone", "card": 52624755, "eq": 1}
+      ]
+    },
+    {
+      "name": "彼得：作为上级召唤的祭品送去墓地时错过时点",
+      "field": {
+        "0": {"mzone": [52624755], "hand": [70781052], "deck": [52624755]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "summon", "card": 70781052},
+        {"check": "count", "player": 0, "in": "grave", "card": 52624755, "eq": 1},
+        {"check": "count", "player": 0, "in": "mzone", "card": 52624755, "eq": 0}
+      ]
+    }
+  ]
+}

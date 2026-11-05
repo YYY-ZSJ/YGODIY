@@ -1,0 +1,15 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 84013237, "name": "No.39 希望皇 霍普", "kind": "monster", "subtypes": ["effect", "xyz"]},
+  "summon": {"method": "xyz", "level": 4, "count": 2},
+  "effects": [
+    {"type": "trigger", "optional": true, "from": ["mzone"],
+     "on": {"event": "attack_declared", "by": "any"},
+     "cost": [{"act": "detach", "what": {"ref": "self"}, "count": 1}],
+     "do": [{"act": "negate_attack"}]},
+    {"type": "trigger", "optional": false,
+     "on": {"event": "targeted_for_attack", "subject": "self"},
+     "condition": [{"self_materials": ["==", 0]}],
+     "do": [{"act": "destroy", "what": {"ref": "self"}}]}
+  ]
+}

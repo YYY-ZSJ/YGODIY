@@ -1,0 +1,32 @@
+{
+  "card": 71625222,
+  "scenarios": [
+    {
+      "name": "时间魔术师：投掷硬币猜中，对方场上的怪兽全部破坏",
+      "field": {
+        "0": {"mzone": [71625222, 89631139]},
+        "1": {"mzone": [89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 71625222},
+        {"player": 0, "do": "option", "index": 1},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 0},
+        {"check": "count", "player": 0, "in": "mzone", "eq": 2}
+      ]
+    },
+    {
+      "name": "时间魔术师：投掷硬币猜错，自己场上的怪兽全部破坏，受到攻击力合计一半的伤害",
+      "field": {
+        "0": {"mzone": [71625222, 89631139]},
+        "1": {"mzone": [89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 71625222},
+        {"player": 0, "do": "option", "index": 0},
+        {"check": "count", "player": 0, "in": "mzone", "eq": 0},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 2},
+        {"check": "lp", "player": 0, "eq": 6250}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "card": 1861629,
+  "scenarios": [
+    {
+      "name": "解码语者：攻击力按连接区怪兽数上升；对方以自己场上的卡为对象发动时，解放连接区怪兽使其无效并破坏",
+      "field": {
+        "0": {
+          "mzone": [{"code": 1861629, "seq": 5}, {"code": 15025844, "seq": 0}, {"code": 91152256, "seq": 2}],
+          "szone": [{"code": 55144522, "seq": 1}],
+          "hand": [69140098]
+        },
+        "1": {"szone": [5318639]}
+      },
+      "actions": [
+        {"check": "atk", "player": 0, "card": 1861629, "eq": 3300},
+        {"player": 0, "do": "summon", "card": 69140098},
+        {"player": 1, "do": "activate", "card": 5318639},
+        {"player": 1, "do": "select", "cards": [55144522]},
+        {"player": 0, "do": "activate", "card": 1861629},
+        {"player": 0, "do": "select", "cards": [15025844]},
+        {"check": "count", "player": 1, "in": "grave", "card": 5318639, "eq": 1},
+        {"check": "count", "player": 0, "in": "szone", "card": 55144522, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 15025844, "eq": 1},
+        {"check": "atk", "player": 0, "card": 1861629, "eq": 2800}
+      ]
+    }
+  ]
+}

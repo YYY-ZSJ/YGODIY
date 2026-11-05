@@ -1,0 +1,75 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 65518099,
+  "name": "机壳工具 丑恶",
+  "kind": "monster",
+  "subtypes": [
+   "normal",
+   "pendulum"
+  ],
+  "scale": 9
+ },
+ "limits": {
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "p1",
+   "block": "pendulum",
+   "type": "continuous",
+   "cannot_be_negated": true,
+   "apply": {
+    "cont": "cannot_special_summon",
+    "player": "you",
+    "which": [
+     {
+      "not": {
+       "set": "机壳",
+       "setcode": "0xaa"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "p2",
+   "block": "pendulum",
+   "type": "ignition",
+   "limit": "l1",
+   "cost": [
+    {
+     "act": "pay_lp",
+     "amount": 800
+    }
+   ],
+   "do": [
+    {
+     "act": "add_to_hand",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "set": "机壳",
+        "setcode": "0xaa"
+       },
+       {
+        "not": {
+         "name": 65518099
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

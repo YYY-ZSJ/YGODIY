@@ -1,0 +1,16 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009762,
+  "name": "积木·解放对方",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "ns_proc",
+   "tribute": 1,
+   "opp": "yes",
+   "condition": []
+  }
+ ]
+}

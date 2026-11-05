@@ -1,0 +1,100 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 1861629,
+  "name": "解码语者",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "link"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "link",
+   "filter": [
+    {
+     "subtype": "effect"
+    }
+   ],
+   "min": 2
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "atk_update",
+    "affects": {
+     "ref": "self"
+    },
+    "value": {
+     "mul": [
+      {
+       "count": {
+        "who": "both",
+        "where": [
+         "linked"
+        ]
+       }
+      },
+      500
+     ]
+    }
+   }
+  },
+  {
+   "id": "e2",
+   "type": "quick",
+   "on": {
+    "event": "effect_activated",
+    "by": "opp",
+    "kinds": [
+     "spell",
+     "trap",
+     "monster"
+    ],
+    "targets": {
+     "who": "you",
+     "where": [
+      "field"
+     ]
+    }
+   },
+   "timing": "when",
+   "cost": [
+    {
+     "act": "release",
+     "what": {
+      "who": "you",
+      "where": [
+       "linked"
+      ],
+      "filter": [
+       {
+        "card_type": "monster"
+       }
+      ],
+      "count": 1
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "negate_activation",
+     "what": {
+      "ref": "chain"
+     }
+    },
+    {
+     "act": "destroy",
+     "link": "and_if_you_do",
+     "what": {
+      "ref": "chain.card"
+     }
+    }
+   ]
+  }
+ ]
+}

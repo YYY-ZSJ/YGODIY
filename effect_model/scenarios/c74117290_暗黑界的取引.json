@@ -1,0 +1,22 @@
+{
+  "card": 74117290,
+  "scenarios": [
+    {
+      "name": "暗黑界的取引：双方各抽1张，那之后各自丢弃1张手卡",
+      "field": {
+        "0": {"hand": [74117290, 12580477]},
+        "1": {"hand": [14558127]}
+      },
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 74117290},
+        {"check": "drawn", "player": 0, "eq": 1},
+        {"check": "drawn", "player": 1, "eq": 1},
+        {"check": "count", "player": 0, "in": "hand", "eq": 1},
+        {"check": "count", "player": 1, "in": "hand", "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "eq": 2},
+        {"check": "count", "player": 1, "in": "grave", "eq": 1}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009743,
+  "name": "积木·同级苏生",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "select",
+     "player": "you",
+     "count": 1,
+     "as": "A",
+     "upto": "",
+     "different": "",
+     "sum": "",
+     "source": [
+      {
+       "block": "all",
+       "who": "opp",
+       "where": "mzone",
+       "filter": []
+      }
+     ],
+     "count_n": [],
+     "sum_n": []
+    },
+    {
+     "block": "special_summon",
+     "position": "faceup",
+     "to": "you",
+     "ignore": "",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "grave",
+       "count": 1,
+       "upto": "",
+       "different": "",
+       "filter": [
+        {
+         "block": "f_level",
+         "op": "==",
+         "value": 4,
+         "value_n": [
+          {
+           "block": "level_of",
+           "card": [
+            {
+             "block": "var",
+             "name": "A"
+            }
+           ]
+          }
+         ]
+        }
+       ],
+       "count_n": []
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

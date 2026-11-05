@@ -1,0 +1,57 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009755,
+  "name": "积木·暂时除外",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "banish",
+     "face": "up",
+     "temp": "yes",
+     "cards": [
+      {
+       "block": "all",
+       "who": "opp",
+       "where": "mzone",
+       "filter": []
+      }
+     ]
+    },
+    {
+     "block": "delay",
+     "when": "this_end",
+     "carry": "yes",
+     "body": [
+      {
+       "block": "return_to_field",
+       "cards": [
+        {
+         "block": "carried"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 81674782,
+  "name": "次元的裂缝",
+  "kind": "spell",
+  "subtypes": [
+   "continuous"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "redirect_destination",
+    "affects": {
+     "who": "both",
+     "filter": [
+      {
+       "card_type": "monster"
+      }
+     ]
+    },
+    "from_dest": "grave",
+    "to_dest": "banished"
+   }
+  }
+ ]
+}

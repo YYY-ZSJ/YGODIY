@@ -1,0 +1,35 @@
+{
+  "card": 14558127,
+  "scenarios": [
+    {
+      "name": "灰流丽：对方发动抽卡效果时丢弃自身，那个效果无效",
+      "field": {"0": {"hand": [55144522]}, "1": {"hand": [14558127]}},
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 55144522},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"check": "event", "name": "chain_disabled", "eq": 1},
+        {"check": "drawn", "player": 0, "eq": 0},
+        {"check": "count", "player": 1, "in": "grave", "card": 14558127, "eq": 1}
+      ]
+    },
+    {
+      "name": "灰流丽：对方发动「雷击」这类不相关的效果时不能发动",
+      "field": {"0": {"hand": [12580477]}, "1": {"hand": [14558127], "mzone": [15025844]}},
+      "actions": [
+        {"player": 0, "do": "activate", "card": 12580477},
+        {"check": "offered", "player": 1, "card": 14558127, "as": "chain", "eq": false}
+      ]
+    },
+    {
+      "name": "灰流丽：卡名一回合一次",
+      "field": {"0": {"hand": [55144522, 55144522]}, "1": {"hand": [14558127, 14558127]}},
+      "actions": [
+        {"player": 0, "do": "activate", "card": 55144522},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"player": 0, "do": "activate", "card": 55144522},
+        {"check": "offered", "player": 1, "card": 14558127, "as": "chain", "eq": false}
+      ]
+    }
+  ]
+}

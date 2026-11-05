@@ -1,0 +1,45 @@
+{
+  "card": 16178681,
+  "scenarios": [
+    {
+      "name": "异色眼灵摆龙：和对方怪兽战斗给与的战斗伤害变成2倍",
+      "field": {"0": {"mzone": [16178681]}, "1": {"mzone": [15025844]}},
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 16178681, "target": 15025844},
+        {"check": "lp", "player": 1, "eq": 4600}
+      ]
+    },
+    {
+      "name": "异色眼灵摆龙（灵摆②）：自己结束阶段破坏自身，检索攻击力1500以下的灵摆怪兽",
+      "field": {"0": {"pzone": [16178681], "deck": [94415058]}, "1": {}},
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 0, "do": "activate", "card": 16178681},
+        {"player": 0, "do": "select", "cards": [94415058]},
+        {"check": "count", "player": 0, "in": "hand", "card": 94415058, "eq": 1},
+        {"check": "count", "player": 0, "in": "extra", "card": 16178681, "eq": 1}
+      ]
+    },
+    {
+      "name": "异色眼灵摆龙（灵摆①）：自己的灵摆怪兽战斗造成的伤害可以变成0",
+      "field": {"0": {"pzone": [16178681], "mzone": [94415058]}, "1": {"mzone": [89631139]}},
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 94415058, "target": 89631139},
+        {"player": 0, "do": "yes"},
+        {"check": "lp", "player": 0, "eq": 8000}
+      ]
+    },
+    {
+      "name": "异色眼灵摆龙（灵摆①对照）：选「否」照常受到伤害",
+      "field": {"0": {"pzone": [16178681], "mzone": [94415058]}, "1": {"mzone": [89631139]}},
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 94415058, "target": 89631139},
+        {"player": 0, "do": "no"},
+        {"check": "lp", "player": 0, "eq": 6200}
+      ]
+    }
+  ]
+}

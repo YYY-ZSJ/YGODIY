@@ -1,0 +1,20 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 16178681, "name": "异色眼灵摆龙", "kind": "monster", "subtypes": ["effect", "pendulum"]},
+  "summon": {"method": "pendulum"},
+  "effects": [
+    {"box": "pendulum", "type": "continuous", "limit": {"scope": "name"},
+     "apply": {"what": "avoid_battle_damage",
+               "involving": {"who": "you", "where": ["mzone"], "filter": [{"subtype": "pendulum"}]}}},
+    {"box": "pendulum", "type": "trigger", "optional": true, "limit": {"scope": "name"},
+     "on": {"event": "phase", "phase": "end", "turn": "you"},
+     "do": [
+       {"act": "destroy", "what": {"ref": "self"}},
+       {"act": "add_to_hand", "link": "then",
+        "what": {"who": "you", "where": ["deck"], "count": 1,
+                 "filter": [{"card_type": "monster"}, {"subtype": "pendulum"}, {"atk": ["<=", 1500]}]}}
+     ]},
+    {"type": "continuous",
+     "apply": {"what": "double_battle_damage", "when": "battling_opp_monster"}}
+  ]
+}

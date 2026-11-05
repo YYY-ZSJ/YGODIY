@@ -1,0 +1,49 @@
+{
+  "card": 65518099,
+  "scenarios": [
+    {
+      "name": "丑恶②：支付800，从卡组把丑恶以外的机壳卡加入手卡",
+      "field": {
+        "0": {"pzone": [65518099], "deck": [65518099, 20447641]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 65518099},
+        {"check": "lp", "player": 0, "eq": 7200},
+        {"check": "count", "player": 0, "in": "hand", "card": 20447641, "eq": 1},
+        {"check": "count", "player": 0, "in": "hand", "eq": 1}
+      ]
+    },
+    {
+      "name": "丑恶②：卡组没有丑恶以外的机壳卡时不能发动",
+      "field": {
+        "0": {"pzone": [65518099], "deck": [65518099]},
+        "1": {}
+      },
+      "actions": [
+        {"check": "offered", "card": 65518099, "as": "activate", "eq": false}
+      ]
+    },
+    {
+      "name": "丑恶①：自己不是机壳怪兽不能特殊召唤",
+      "field": {
+        "0": {"pzone": [65518099], "hand": [83764718], "grave": [89631139]},
+        "1": {}
+      },
+      "actions": [
+        {"check": "offered", "card": 83764718, "as": "activate", "eq": false}
+      ]
+    },
+    {
+      "name": "丑恶①：机壳怪兽可以特殊召唤",
+      "field": {
+        "0": {"pzone": [65518099], "hand": [83764718], "grave": [13073850]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 83764718},
+        {"check": "count", "player": 0, "in": "mzone", "card": 13073850, "eq": 1}
+      ]
+    }
+  ]
+}

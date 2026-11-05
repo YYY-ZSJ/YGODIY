@@ -1,0 +1,46 @@
+{
+  "card": 72270339,
+  "scenarios": [
+    {
+      "name": "迪亚贝尔斯塔尔：①送1张卡去墓地特殊召唤（1回合1次），②盖放「罪宝」魔陷",
+      "field": {
+        "0": {"hand": [72270339, 72270339, 15025844, 91152256], "deck": [2006591]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 72270339},
+        {"player": 0, "do": "select", "cards": [15025844]},
+        {"player": 0, "do": "activate", "card": 72270339},
+        {"player": 0, "do": "select", "cards": [2006591]},
+        {"check": "count", "player": 0, "in": "mzone", "card": 72270339, "eq": 1},
+        {"check": "count", "player": 0, "in": "szone", "card": 2006591, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 15025844, "eq": 1},
+        {"check": "offered", "card": 72270339, "as": "spsummon", "eq": false}
+      ]
+    },
+    {
+      "name": "迪亚贝尔斯塔尔：③在对方回合从场上送去墓地，送1张卡去墓地后特殊召唤自身",
+      "field": {
+        "0": {"mzone": [72270339], "hand": [15025844]},
+        "1": {"hand": [12580477]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "activate", "card": 12580477},
+        {"player": 0, "do": "activate", "card": 72270339},
+        {"player": 0, "do": "select", "cards": [15025844]},
+        {"check": "count", "player": 0, "in": "mzone", "card": 72270339, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 15025844, "eq": 1}
+      ]
+    },
+    {
+      "name": "迪亚贝尔斯塔尔：③在自己回合送去墓地不会诱发",
+      "field": {"0": {"mzone": [72270339], "hand": [53129443, 15025844]}, "1": {}},
+      "actions": [
+        {"player": 0, "do": "activate", "card": 53129443},
+        {"check": "count", "player": 0, "in": "grave", "card": 72270339, "eq": 1},
+        {"check": "count", "player": 0, "in": "hand", "card": 15025844, "eq": 1}
+      ]
+    }
+  ]
+}

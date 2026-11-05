@@ -1,0 +1,45 @@
+{
+  "card": 24224830,
+  "scenarios": [
+    {
+      "name": "墓穴的指名者：除外对方墓地的怪兽，同名怪兽在手卡发动的效果也被无效",
+      "field": {
+        "0": {"hand": [24224830, 55144522]},
+        "1": {"grave": [14558127], "hand": [14558127]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 24224830},
+        {"player": 0, "do": "select", "cards": [14558127]},
+        {"check": "count", "player": 1, "in": "banished", "card": 14558127, "eq": 1},
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 55144522},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"check": "event", "name": "chain_disabled", "eq": 1},
+        {"check": "drawn", "player": 0, "eq": 2}
+      ]
+    },
+    {
+      "name": "墓穴的指名者：同名怪兽的效果无效持续到下个回合结束",
+      "field": {
+        "0": {"hand": [24224830]},
+        "1": {"grave": [26202165], "hand": [26202165]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 24224830},
+        {"player": 0, "do": "select", "cards": [26202165]},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "summon", "card": 26202165},
+        {"check": "disabled", "player": 1, "card": 26202165, "eq": true},
+        {"player": 1, "do": "end_turn"},
+        {"check": "disabled", "player": 1, "card": 26202165, "eq": false}
+      ]
+    },
+    {
+      "name": "墓穴的指名者：对方墓地没有怪兽时不能发动",
+      "field": {"0": {"hand": [24224830], "grave": [14558127]}, "1": {}},
+      "actions": [
+        {"check": "offered", "card": 24224830, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

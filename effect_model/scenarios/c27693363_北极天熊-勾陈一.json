@@ -1,0 +1,41 @@
+{
+  "card": 27693363,
+  "scenarios": [
+    {
+      "name": "勾陈一：把调整和等级差1的怪兽送去墓地特殊召唤，①从卡组发动北极天熊北斗星",
+      "field": {
+        "0": {"mzone": [14558127, 76812113], "extra": [27693363], "deck": [89264428]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 27693363},
+        {"check": "count", "player": 0, "in": "mzone", "card": 27693363, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "eq": 2},
+        {"check": "count", "player": 0, "in": "szone", "card": 89264428, "eq": 1}
+      ]
+    },
+    {
+      "name": "勾陈一：等级差不是1时不能特殊召唤",
+      "field": {
+        "0": {"mzone": [14558127, 89631139], "extra": [27693363]},
+        "1": {}
+      },
+      "actions": [
+        {"check": "offered", "card": 27693363, "as": "spsummon", "eq": false}
+      ]
+    },
+    {
+      "name": "勾陈一②：解放7星以上的怪兽，从墓地把北极天熊怪兽加入手卡；1回合1次",
+      "field": {
+        "0": {"mzone": [27693363, 89631139], "grave": [29537493]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 27693363},
+        {"player": 0, "do": "select", "cards": [89631139]},
+        {"check": "count", "player": 0, "in": "hand", "card": 29537493, "eq": 1},
+        {"check": "offered", "card": 27693363, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

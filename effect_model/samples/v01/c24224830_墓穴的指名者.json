@@ -1,0 +1,13 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 24224830, "name": "墓穴的指名者", "kind": "spell", "subtypes": ["quick"]},
+  "effects": [
+    {"type": "activate",
+     "target": [{"as": "t", "who": "opp", "where": ["grave"], "filter": [{"card_type": "monster"}], "count": 1}],
+     "do": [
+       {"act": "banish", "what": {"ref": "t"}, "as": "x"},
+       {"act": "apply", "link": "also", "duration": "until_end_of_next_turn",
+        "effect": {"what": "negate_effects", "affects": {"same_original_name_as": "x"}}}
+     ]}
+  ]
+}

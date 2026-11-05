@@ -1,0 +1,18 @@
+{
+  "card": 11125718,
+  "scenarios": [
+    {
+      "name": "枪兵龙人：攻击守备表示怪兽时给与贯通伤害",
+      "field": {
+        "0": {"mzone": [11125718]},
+        "1": {"mzone": [{"code": 756652, "pos": "defense"}]}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 11125718, "target": 756652},
+        {"check": "lp", "player": 1, "eq": 7000},
+        {"check": "count", "player": 1, "in": "grave", "eq": 1}
+      ]
+    }
+  ]
+}

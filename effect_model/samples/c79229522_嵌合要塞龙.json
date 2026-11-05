@@ -1,0 +1,78 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 79229522,
+  "name": "嵌合要塞龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "fusion"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "fusion",
+   "list": [
+    {
+     "name": 70095154
+    },
+    {
+     "filter": [
+      {
+       "race": "machine"
+      }
+     ],
+     "min": 1
+    }
+   ]
+  },
+  "proper": "only",
+  "procedures": [
+   {
+    "id": "p1",
+    "kind": "contact",
+    "from": [
+     "extra"
+    ],
+    "materials": {
+     "where": {
+      "who": "both",
+      "where": [
+       "mzone"
+      ]
+     },
+     "destination": "grave",
+     "record_as": "materials"
+    }
+   }
+  ],
+  "restrictions": [
+   {
+    "cannot_be_material": "fusion"
+   }
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "atk_set",
+    "original": true,
+    "affects": {
+     "ref": "self"
+    },
+    "value": {
+     "mul": [
+      {
+       "count": {
+        "ref": "materials"
+       }
+      },
+      1000
+     ]
+    }
+   }
+  }
+ ]
+}

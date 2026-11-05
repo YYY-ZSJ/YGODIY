@@ -1,0 +1,33 @@
+{
+  "card": 15693423,
+  "scenarios": [
+    {
+      "name": "颉颃胜负：自己场上没有卡时从手卡发动，战斗阶段结束时对方把多出来的卡里侧除外",
+      "field": {
+        "0": {"hand": [15693423]},
+        "1": {"mzone": [89631139, 89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "battle"},
+        {"player": 1, "do": "main2"},
+        {"player": 0, "do": "activate", "card": 15693423},
+        {"check": "count", "player": 1, "in": "banished", "ge": 2},
+        {"check": "count", "player": 1, "in": "mzone", "le": 1}
+      ]
+    },
+    {
+      "name": "颉颃胜负：自己场上有卡时不能从手卡发动",
+      "field": {
+        "0": {"hand": [15693423], "mzone": [76812113]},
+        "1": {"mzone": [89631139, 89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "battle"},
+        {"player": 1, "do": "main2"},
+        {"check": "offered", "player": 0, "card": 15693423, "as": "chain", "eq": false}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 85138716,
+  "name": "救援兔",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "summon": {
+  "restrictions": [
+   {
+    "cannot_special_summon_from": [
+     "deck"
+    ]
+   }
+  ]
+ },
+ "limits": {
+  "l1": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "ignition",
+   "limit": "l1",
+   "cost": [
+    {
+     "act": "banish",
+     "what": {
+      "ref": "self"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "special_summon",
+     "as": "ss",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 2,
+      "filter": [
+       {
+        "subtype": "normal"
+       },
+       {
+        "card_type": "monster"
+       },
+       {
+        "level": [
+         "<=",
+         4
+        ]
+       }
+      ],
+      "relation": {
+       "same": [
+        "name"
+       ]
+      }
+     }
+    },
+    {
+     "act": "schedule_operation",
+     "activates": false,
+     "at": {
+      "phase": "end",
+      "which": "this_turn"
+     },
+     "do": [
+      {
+       "act": "destroy",
+       "what": {
+        "ref": "ss"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

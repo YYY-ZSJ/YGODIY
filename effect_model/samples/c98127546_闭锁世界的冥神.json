@@ -1,0 +1,122 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 98127546,
+  "name": "闭锁世界的冥神",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "link"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "link",
+   "filter": [
+    {
+     "subtype": "effect"
+    }
+   ],
+   "min": 4
+  },
+  "material_permissions": [
+   {
+    "for": "link",
+    "who": "opp",
+    "where": [
+     "mzone"
+    ],
+    "count": 1
+   }
+  ]
+ },
+ "limits": {
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "trigger",
+   "on": {
+    "event": "special_summon_success",
+    "subject": {
+     "ref": "self"
+    },
+    "method": "link"
+   },
+   "timing": "if",
+   "do": [
+    {
+     "act": "negate_card_effects",
+     "until": "permanent",
+     "what": {
+      "who": "opp",
+      "where": [
+       "mzone"
+      ],
+      "face": "up",
+      "count": "all"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "continuous",
+   "condition": [
+    {
+     "cond": "summon_history",
+     "what": {
+      "ref": "self"
+     },
+     "method": "link"
+    }
+   ],
+   "apply": {
+    "cont": "immune_effect",
+    "affects": {
+     "ref": "self"
+    },
+    "from": {
+     "player": "opp",
+     "activated": true,
+     "except": {
+      "targets": {
+       "ref": "self"
+      }
+     }
+    }
+   }
+  },
+  {
+   "id": "e3",
+   "type": "quick",
+   "limit": "l1",
+   "on": {
+    "event": "effect_activated",
+    "kinds": [
+     "spell",
+     "trap",
+     "monster"
+    ],
+    "by": "opp",
+    "includes": [
+     "special_summon_from_gy"
+    ]
+   },
+   "timing": "when",
+   "do": [
+    {
+     "act": "negate_activation",
+     "what": {
+      "ref": "chain"
+     }
+    }
+   ]
+  }
+ ]
+}

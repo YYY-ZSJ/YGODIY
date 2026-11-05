@@ -1,0 +1,111 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 16178681,
+  "name": "异色眼灵摆龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "pendulum"
+  ]
+ },
+ "limits": {
+  "l_e1": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  },
+  "l_e2": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "block": "pendulum",
+   "limit": [
+    "l_e1"
+   ],
+   "apply": {
+    "cont": "battle_damage_zero",
+    "optional": true,
+    "player": "you",
+    "involving": {
+     "who": "you",
+     "where": [
+      "mzone"
+     ],
+     "filter": [
+      {
+       "subtype": "pendulum"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "e2",
+   "type": "trigger",
+   "block": "pendulum",
+   "optional": true,
+   "on": {
+    "event": "phase_window",
+    "phase": "end",
+    "turn": "you"
+   },
+   "limit": [
+    "l_e2"
+   ],
+   "do": [
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "self"
+     }
+    },
+    {
+     "act": "add_to_hand",
+     "link": "and_if_you_do",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "card_type": "monster"
+       },
+       {
+        "subtype": "pendulum"
+       },
+       {
+        "atk": [
+         "<=",
+         1500
+        ]
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "e3",
+   "type": "continuous",
+   "apply": {
+    "cont": "battle_damage_change",
+    "affects": {
+     "ref": "self"
+    },
+    "against": "opp_monster",
+    "value": {
+     "mul": 2
+    }
+   }
+  }
+ ]
+}

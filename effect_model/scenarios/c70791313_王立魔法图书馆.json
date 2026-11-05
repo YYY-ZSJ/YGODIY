@@ -1,0 +1,21 @@
+{
+  "card": 70791313,
+  "scenarios": [
+    {
+      "name": "王立魔法图书馆：每次魔法卡发动放置1个魔力指示物，取除3个抽1张",
+      "field": {
+        "0": {"mzone": [70791313], "hand": [75500286, 75500286, 75500286]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 75500286},
+        {"player": 0, "do": "activate", "card": 75500286},
+        {"check": "offered", "card": 70791313, "as": "activate", "eq": false},
+        {"player": 0, "do": "activate", "card": 75500286},
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 70791313},
+        {"check": "drawn", "player": 0, "eq": 1}
+      ]
+    }
+  ]
+}

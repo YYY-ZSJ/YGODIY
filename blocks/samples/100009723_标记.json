@@ -1,0 +1,76 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009723,
+  "name": "积木·标记",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "card",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "draw",
+     "player": "you",
+     "count": 1,
+     "count_n": []
+    },
+    {
+     "block": "set_flag",
+     "on": "card",
+     "name": 1,
+     "reset": "end_of_turn"
+    }
+   ]
+  },
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "card",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [
+    {
+     "block": "has_flag",
+     "on": "card",
+     "name": 1
+    }
+   ],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "recover",
+     "player": "you",
+     "amount": [
+      {
+       "block": "num",
+       "value": 1000
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

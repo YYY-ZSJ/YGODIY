@@ -1,0 +1,51 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009736,
+  "name": "积木·电子龙式",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "sp_proc",
+   "range": "hand",
+   "limit": "",
+   "position": "faceup",
+   "condition": [
+    {
+     "block": "all_of",
+     "items": [
+      {
+       "block": "not_cond",
+       "item": [
+        {
+         "block": "exists",
+         "cards": [
+          {
+           "block": "all",
+           "who": "you",
+           "where": "mzone",
+           "filter": []
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "block": "exists",
+       "cards": [
+        {
+         "block": "all",
+         "who": "opp",
+         "where": "mzone",
+         "filter": []
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "cost": []
+  }
+ ]
+}

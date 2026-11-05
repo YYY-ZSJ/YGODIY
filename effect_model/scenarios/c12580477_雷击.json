@@ -1,0 +1,26 @@
+{
+  "card": 12580477,
+  "scenarios": [
+    {
+      "name": "雷击：对方场上的怪兽全部破坏，自己的不受影响",
+      "field": {
+        "0": {"hand": [12580477], "mzone": [15025844]},
+        "1": {"mzone": [15025844, {"code": 89631139, "pos": "facedown_defense"}]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 12580477},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 0},
+        {"check": "count", "player": 1, "in": "grave", "eq": 2},
+        {"check": "count", "player": 0, "in": "mzone", "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 12580477, "eq": 1}
+      ]
+    },
+    {
+      "name": "雷击：对方场上没有怪兽时不能发动",
+      "field": {"0": {"hand": [12580477], "mzone": [15025844]}, "1": {}},
+      "actions": [
+        {"check": "offered", "card": 12580477, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

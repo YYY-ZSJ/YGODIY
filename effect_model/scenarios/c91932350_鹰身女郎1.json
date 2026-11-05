@@ -1,0 +1,29 @@
+{
+  "card": 91932350,
+  "scenarios": [
+    {
+      "name": "鹰身女郎1：场上的风属性怪兽攻击力上升300",
+      "field": {
+        "0": {"mzone": [91932350]},
+        "1": {"mzone": [76812113, 89631139]}
+      },
+      "actions": [
+        {"check": "atk", "player": 0, "card": 91932350, "eq": 1600},
+        {"check": "atk", "player": 1, "card": 76812113, "eq": 1600},
+        {"check": "atk", "player": 1, "card": 89631139, "eq": 3000}
+      ]
+    },
+    {
+      "name": "鹰身女郎1：卡名当作「鹰身女郎」使用（在卡组里也是）",
+      "field": {
+        "0": {"hand": [65681983], "deck": [91932350]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 65681983},
+        {"player": 0, "do": "announce", "card": 76812113},
+        {"check": "count", "player": 0, "in": "banished", "card": 91932350, "eq": 1}
+      ]
+    }
+  ]
+}

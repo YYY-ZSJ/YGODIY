@@ -1,0 +1,47 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009737,
+  "name": "积木·墓地苏醒",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "summon_rule",
+   "normal": "no",
+   "special": "proc_only",
+   "by": []
+  },
+  {
+   "block": "sp_proc",
+   "range": "grave",
+   "limit": "once",
+   "position": "faceup",
+   "condition": [],
+   "cost": [
+    {
+     "block": "banish",
+     "face": "up",
+     "temp": "",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "grave",
+       "count": 2,
+       "upto": "",
+       "different": "",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ],
+       "count_n": []
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

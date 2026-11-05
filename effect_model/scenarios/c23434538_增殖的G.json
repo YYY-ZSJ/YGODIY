@@ -1,0 +1,33 @@
+{
+  "card": 23434538,
+  "scenarios": [
+    {
+      "name": "增殖的G：连锁中和连锁外的特殊召唤各抽1张",
+      "field": {
+        "0": {"hand": [83764718, 72270339, 15025844]},
+        "1": {"hand": [23434538], "grave": [46986414]}
+      },
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 83764718},
+        {"player": 0, "do": "select", "cards": [46986414]},
+        {"player": 1, "do": "activate", "card": 23434538},
+        {"check": "drawn", "player": 1, "eq": 1},
+        {"check": "count", "player": 1, "in": "grave", "card": 23434538, "eq": 1},
+        {"player": 0, "do": "spsummon", "card": 72270339},
+        {"player": 0, "do": "select", "cards": [15025844]},
+        {"check": "drawn", "player": 1, "eq": 2}
+      ]
+    },
+    {
+      "name": "增殖的G：自己特殊召唤不抽卡",
+      "field": {"0": {"hand": [23434538, 70095154]}, "1": {"mzone": [15025844], "hand": [55144522]}},
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 23434538},
+        {"player": 0, "do": "spsummon", "card": 70095154},
+        {"check": "drawn", "player": 0, "eq": 0}
+      ]
+    }
+  ]
+}

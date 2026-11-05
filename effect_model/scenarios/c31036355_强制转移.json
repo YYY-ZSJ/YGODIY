@@ -1,0 +1,18 @@
+{
+  "card": 31036355,
+  "scenarios": [
+    {
+      "name": "强制转移：双方各选1只怪兽交换控制权，这个回合不能变更表示形式",
+      "field": {
+        "0": {"hand": [31036355], "mzone": [76812113]},
+        "1": {"mzone": [89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 31036355},
+        {"check": "count", "player": 0, "in": "mzone", "card": 89631139, "eq": 1},
+        {"check": "count", "player": 1, "in": "mzone", "card": 76812113, "eq": 1},
+        {"check": "offered", "card": 89631139, "as": "reposition", "eq": false}
+      ]
+    }
+  ]
+}

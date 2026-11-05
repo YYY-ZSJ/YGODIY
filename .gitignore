@@ -1,0 +1,24 @@
+_dump/
+_work/
+_draft/
+__pycache__/
+_tools/smoke_result.txt
+
+# 本机凭据、AI 配置与独立会话，不随源码提交。
+.env
+.env.*
+*.key
+*.pem
+AI服务设置.json
+AI服务设置.json.tmp
+AI会话/
+
+# 运行日志、缓存、临时文件与本地测试输出；保留源码样例夹具。
+*.log
+*.py[cod]
+*.tmp
+test-results/
+_test_output/
+_tools/*_report.json
+_tools/*_result.json
+_tools/*.png

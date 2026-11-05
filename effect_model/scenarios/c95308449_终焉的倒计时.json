@@ -1,0 +1,38 @@
+{
+  "card": 95308449,
+  "scenarios": [
+    {
+      "name": "终焉的倒计时：支付2000，第20回合结束时决斗胜利",
+      "field": {
+        "0": {"hand": [95308449]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 95308449},
+        {"check": "lp", "player": 0, "eq": 6000},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"check": "lp", "player": 0, "eq": 6000},
+        {"player": 1, "do": "end_turn"},
+        {"check": "win", "player": 0}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009714,
+  "name": "积木·战殁抽卡",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "trigger_o",
+   "event": "battle_destroyed",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "draw",
+     "player": "you",
+     "count": 1,
+     "count_n": []
+    }
+   ]
+  }
+ ]
+}

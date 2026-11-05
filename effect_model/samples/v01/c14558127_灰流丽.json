@@ -1,0 +1,12 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 14558127, "name": "灰流丽", "kind": "monster", "subtypes": ["effect", "tuner"]},
+  "effects": [
+    {"type": "quick", "from": ["hand"],
+     "limit": {"scope": "name"},
+     "on": {"event": "activation", "kinds": ["spell", "trap", "monster"],
+            "includes": ["add_from_deck", "ss_from_deck", "send_from_deck_to_gy"]},
+     "cost": [{"act": "discard", "what": {"ref": "self"}}],
+     "do": [{"act": "negate_effect", "what": {"ref": "chain"}}]}
+  ]
+}

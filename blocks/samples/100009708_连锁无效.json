@@ -1,0 +1,55 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009708,
+  "name": "积木·手坑",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "quick_o",
+   "event": "chaining",
+   "event_player": "opp",
+   "range": "hand",
+   "limit": "name",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [
+    {
+     "block": "discard",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ]
+    }
+   ],
+   "target": [],
+   "operation": [
+    {
+     "block": "negate_activation"
+    },
+    {
+     "block": "after",
+     "how": "then",
+     "body": [
+      {
+       "block": "destroy",
+       "cards": [
+        {
+         "block": "chain_card"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

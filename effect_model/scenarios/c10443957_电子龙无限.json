@@ -1,0 +1,57 @@
+{
+  "card": 10443957,
+  "scenarios": [
+    {
+      "name": "电子龙·无限：在电子龙·新星上面重叠超量召唤，攻击力上升素材数×200",
+      "field": {
+        "0": {"mzone": [{"code": 58069384, "materials": [70095154, 70095154]}], "extra": [10443957]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 10443957},
+        {"check": "overlay", "player": 0, "card": 10443957, "eq": 3},
+        {"check": "atk", "player": 0, "card": 10443957, "eq": 2700}
+      ]
+    },
+    {
+      "name": "电子龙·无限②：以表侧攻击表示怪兽为对象，那只怪兽作为超量素材",
+      "field": {
+        "0": {"mzone": [{"code": 10443957, "materials": [70095154, 70095154]}]},
+        "1": {"mzone": [{"code": 46986414, "pos": "defense"}, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 10443957},
+        {"player": 0, "do": "select", "cards": [89631139]},
+        {"check": "overlay", "player": 0, "card": 10443957, "eq": 3},
+        {"check": "atk", "player": 0, "card": 10443957, "eq": 2700},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 1}
+      ]
+    },
+    {
+      "name": "电子龙·无限②：只有守备表示怪兽时不能发动",
+      "field": {
+        "0": {"mzone": [{"code": 10443957, "materials": [70095154]}]},
+        "1": {"mzone": [{"code": 89631139, "pos": "defense"}]}
+      },
+      "actions": [
+        {"check": "offered", "card": 10443957, "as": "activate", "eq": false}
+      ]
+    },
+    {
+      "name": "电子龙·无限③：对方效果发动时取除1个素材，那个发动无效",
+      "field": {
+        "0": {"mzone": [{"code": 10443957, "materials": [70095154, 70095154]}], "hand": [74117290]},
+        "1": {"hand": [14558127]}
+      },
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 74117290},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"player": 0, "do": "activate", "card": 10443957},
+        {"check": "event", "name": "chain_negated", "eq": 1},
+        {"check": "overlay", "player": 0, "card": 10443957, "eq": 1},
+        {"check": "drawn", "player": 0, "eq": 1}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 74117290,
+  "name": "暗黑界的取引",
+  "kind": "spell",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "do": [
+    {
+     "act": "draw",
+     "player": "both",
+     "count": 1,
+     "as": "drew"
+    },
+    {
+     "act": "discard",
+     "link": "then",
+     "for_each": {
+      "players_of": {
+       "ref": "drew"
+      }
+     },
+     "each_as": "p",
+     "what": {
+      "who": {
+       "ref": "p"
+      },
+      "where": [
+       "hand"
+      ],
+      "count": 1,
+      "chooser": {
+       "ref": "p"
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

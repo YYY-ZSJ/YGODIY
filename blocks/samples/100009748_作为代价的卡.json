@@ -1,0 +1,66 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009748,
+  "name": "积木·代价烧伤",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [
+    {
+     "block": "banish",
+     "face": "up",
+     "temp": "",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "grave",
+       "count": 1,
+       "upto": "",
+       "different": "",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ],
+       "count_n": []
+      }
+     ]
+    }
+   ],
+   "target": [],
+   "operation": [
+    {
+     "block": "damage",
+     "player": "opp",
+     "amount": [
+      {
+       "block": "atk_of",
+       "card": [
+        {
+         "block": "cost_cards"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

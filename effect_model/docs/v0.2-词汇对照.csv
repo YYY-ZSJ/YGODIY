@@ -1,0 +1,515 @@
+﻿id,中文名,常见程度（估计）,v0.2 位置,状态
+efftype.ignition,起动效果,常见,type,已有
+efftype.trigger_optional,选发诱发效果,常见,"type: trigger, optional: true",已有
+efftype.trigger_mandatory,必发诱发效果,常见,"type: trigger, optional: false",已有
+efftype.quick_optional,选发诱发即时效果,常见,type: quick,已有
+efftype.continuous,永续效果,常见,type,已有
+efftype.normal_spell_activation,通常魔法的卡片发动,常见,type,已有
+efftype.quickplay_spell_activation,速攻魔法的卡片发动,常见,type,已有
+efftype.continuous_spell_activation,永续魔法的卡片发动,常见,type,已有
+efftype.field_spell_activation,场地魔法的卡片发动,常见,type,已有
+efftype.equip_spell_activation,装备魔法的卡片发动,常见,type,已有
+efftype.ritual_spell_activation,仪式魔法的卡片发动,常见,type,已有
+efftype.normal_trap_activation,通常陷阱的卡片发动,常见,type,已有
+efftype.continuous_trap_activation,永续陷阱的卡片发动,常见,type,已有
+efftype.counter_trap_activation,反击陷阱的卡片发动,常见,type,已有
+efftype.spell_trap_effect,魔法陷阱的效果发动,常见,type + range（魔法与陷阱区域、场地区域）,已有
+efftype.hand_range,手卡发动范围,常见,range,已有
+efftype.grave_range,墓地发动范围,常见,range,已有
+efftype.banished_range,除外状态发动范围,常见,range,已有
+efftype.pendulum,灵摆效果栏,一般,block: pendulum,已有
+efftype.flip,反转效果,一般,type,已有
+efftype.equip_granted,装备卡给予的效果,一般,granted_to: equipped,补充
+efftype.granted,使其他卡得到效果,一般,granted_to: 选卡器,补充
+efftype.lingering_application,处理后持续适用,一般,act apply_continuous + until,已有
+efftype.non_effect_text,效果外文本,一般,summon / rules,已有
+efftype.xyz_material_granted,超量素材给予的效果,少见,granted_to: {xyz_host: 过滤},补充
+efftype.deck_range,卡组发动范围,少见,range,已有
+efftype.extra_range,额外卡组发动范围,少见,range,已有
+efftype.monster_in_spell_zone,怪兽卡在魔陷区的效果,少见,range + 条件 self_location / 当作装备卡,已有
+efftype.quick_mandatory,必发诱发即时效果,少见,"type: quick, optional: false",已有
+efftype.both_players_use,双方可使用的效果,少见,both_players: true,补充
+event.normal_summon_success,召唤成功,常见,on.event,已有
+event.special_summon_success,特殊召唤成功,常见,on.event,已有
+event.flip_summon_success,反转召唤成功,常见,on.event,已有
+event.sent_to_gy,送去墓地,常见,on.event,已有
+event.banished,被除外,常见,on.event,已有
+event.destroyed,被破坏,常见,on.event,已有
+event.leaves_field,离场,常见,on.event,已有
+event.added_to_hand,加入手卡,常见,on.event,已有
+event.drawn,抽卡,常见,on.event,已有
+event.discarded,被丢弃,常见,on.event,已有
+event.released,被解放,常见,on.event,已有
+event.becomes_effect_target,成为效果对象,常见,on.event,已有
+event.attack_declared,攻击宣言,常见,on.event,已有
+event.becomes_attack_target,成为攻击对象,常见,on.event,已有
+event.effect_activated,卡或效果发动,常见,on.event,已有
+event.used_as_material,作为素材,常见,on.event,已有
+event.battle_damage,战斗伤害发生,常见,on.event,已有
+event.phase_window,指定阶段内的处理时点,常见,on.event,已有
+event.flip,被翻开,一般,on.event,已有
+event.returned_to_deck,回到卡组,一般,on.event,已有
+event.returned_to_extra,回到额外卡组,一般,on.event,已有
+event.effect_damage,效果伤害发生,一般,on.event,已有
+event.lp_recovered,基本分回复,一般,on.event,已有
+event.damage_step_start,伤害步骤开始,一般,on.event,已有
+event.before_damage_calculation,伤害计算前,一般,on.event,已有
+event.damage_calculation,伤害计算时,一般,on.event,已有
+event.after_damage_calculation,伤害计算后,一般,on.event,已有
+event.damage_step_end,伤害步骤结束,一般,on.event,已有
+event.battle_destroying,战斗破坏了怪兽,一般,on.event,已有
+event.phase_start,阶段开始,一般,on.event,已有
+event.phase_end,阶段结束,一般,on.event,已有
+event.control_changed,控制权改变,少见,on.event,已有
+event.position_changed,表示形式改变,少见,on.event,已有
+event.equipped,装备成功,少见,on.event,已有
+event.xyz_material_detached,超量素材被取除,少见,on.event,已有
+event.chain_link_resolved,连锁环节处理后,少见,on.event,已有
+event.chain_end,连锁结束,少见,生成器（连锁结束时合并处理）,生成器
+event.activation_negated,发动被无效,少见,on.event,已有
+event.effect_negated,连锁效果被无效,少见,生成器（连锁环节被无效的内部记录）,生成器
+event.summon_attempt,召唤之际,少见,on.event,已有
+event.summon_negated,召唤被无效,少见,on.event,已有
+event.monster_set,怪兽被盖放,少见,on.event,已有
+event.spell_trap_set,魔法陷阱被盖放,少见,on.event,已有
+event.attack_negated,攻击被无效,少见,on.event,已有
+event.before_normal_draw,通常抽卡前,少见,on.event,已有
+event.lp_paid,基本分作为代价支付,少见,on.event,已有
+event.counter_added,指示物放置,少见,on.event,已有
+event.counter_removed,指示物取除,少见,on.event,已有
+event.coin_result,投硬币结果确定,少见,on.event,已有
+event.dice_result,掷骰子结果确定,少见,on.event,已有
+event.leaves_gy,离开墓地,少见,on.event,已有
+event.before_leaves_field,离场前记录,少见,生成器（离场前快照）,生成器
+event.level_increased,等级上升,个别,on.event,已有
+cond.own_turn,自己回合,常见,condition[].cond,已有
+cond.opponent_turn,对方回合,常见,condition[].cond,已有
+cond.either_turn,自己或对方回合,常见,condition[].cond,已有
+cond.phase,指定阶段或步骤,常见,condition[].cond,已有
+cond.card_exists,指定卡存在,常见,condition[].cond,已有
+cond.card_absent,指定卡不存在,常见,condition[].cond,已有
+cond.card_count,符合条件的卡数量,常见,condition[].cond,已有
+cond.self_location,这张卡在指定区域,常见,condition[].cond,已有
+cond.self_face_up,这张卡表侧存在,常见,condition[].cond,已有
+cond.summon_history,以指定方式召唤过,常见,condition[].cond,已有
+cond.activation_includes,发动效果包含指定处理,常见,condition[].cond,已有
+cond.reason,事件发生原因,常见,condition[].cond,已有
+cond.reason_player,事件执行者,常见,condition[].cond,已有
+cond.source_location,事件前的区域,常见,condition[].cond,已有
+cond.event_subject,事件主体,常见,condition[].cond,已有
+cond.logical_combination,条件的且或非组合,常见,condition 的 all / any / not,已有
+cond.lp_compare,基本分比较,一般,condition[].cond,已有
+cond.hand_count,手卡数量条件,一般,condition[].cond,已有
+cond.deck_count,卡组数量条件,一般,condition[].cond,已有
+cond.all_cards_match,范围内全为指定卡,一般,condition[].cond,已有
+cond.only_self_monster,自己仅有这只怪兽,一般,condition[].cond,已有
+cond.link_state,连接状态,一般,condition[].cond,已有
+cond.material_possession,持有指定素材,一般,condition[].cond,已有
+cond.battle_participant,正在战斗的主体,一般,condition[].cond,已有
+cond.chain_length,连锁数条件,一般,condition[].cond,已有
+cond.previous_action,本回合既往行动,一般,condition[].cond,已有
+cond.this_turn_moved,本回合进入指定区域,一般,condition[].cond,已有
+cond.counter_count,指示物数量条件,一般,condition[].cond,已有
+cond.equipped_state,装备状态条件,一般,condition[].cond,已有
+cond.name_variety,不同名称种类数,一般,condition[].cond,已有
+cond.distinct_property_count,属性或种族种类数,一般,condition[].cond,已有
+cond.value_compare,数值关系条件,一般,condition[].cond,已有
+cond.resolve_recheck,处理时再次确认,一般,condition[].at,已有
+cond.effect_relation,与效果的关联仍存在,一般,target[].recheck,已有
+cond.zone_capacity,可使用区域条件,一般,condition[].cond,已有
+cond.turn_count,经过回合数,少见,condition[].cond,已有
+cond.zone_geometry,列与区域位置,少见,condition[].cond,已有
+cond.die_coin_result,硬币或骰子结果条件,少见,condition[].cond,已有
+cond.declared_information,宣言信息条件,少见,condition[].cond,已有
+cond.named_card_used,指定卡或效果已使用,少见,cond effect_used,已有
+limit.soft_opt,单卡1回合1次,常见,limits,已有
+limit.hard_opt_name,这个卡名的效果1回合1次,常见,limits,已有
+limit.hard_opt_each,各编号效果分别1次,常见,limits,已有
+limit.shared_choice,多个效果合计只能用一个,常见,limits,已有
+limit.card_activation_name,同名卡1回合只能发动1张,常见,limits,已有
+limit.use_vs_activate,使用与发动的计次区别,常见,limits,已有
+limit.post_resolution_lock,处理后到回合结束的制约,常见,restrict span=after_resolution,已有
+limit.turn_oath,发动或使用回合的誓约,常见,restrict span=whole_turn,已有
+limit.summon_lock,召唤种类制约,常见,restrict forbid 召唤类,已有
+limit.activation_lock,卡或效果发动制约,常见,restrict forbid activate,已有
+limit.attack_lock,攻击制约,常见,restrict forbid attack,已有
+limit.n_per_turn,1回合最多若干次,一般,limits,已有
+limit.duel_once,决斗中只能1次,一般,limits,已有
+limit.face_up_once,表侧存在期间只能1次,一般,limits,已有
+limit.chain_once,同一连锁只能1次,一般,limits,已有
+limit.damage_lock,伤害制约,一般,restrict forbid damage,已有
+limit.normal_summon_lock,通常召唤或盖放制约,一般,restrict forbid summon / set,已有
+limit.draw_search_lock,抽卡或加入手卡制约,一般,restrict forbid draw / add_to_hand,已有
+limit.summoned_card_lock,对处理所得怪兽的制约,一般,apply_continuous 作用于绑定的卡,已有
+limit.while_applied_lock,适用期间的制约,一般,restrict span=while_applied,已有
+limit.response_lock,响应发动的限制,一般,response_lock,已有
+limit.delayed_obligation,未来阶段必须执行的义务,一般,schedule_operation,已有
+limit.phase_once,每个指定阶段的次数限制,少见,limits.per = 阶段,补充
+limit.per_copy_shared_effects,单卡多个效果共享次数,少见,limits,已有
+limit.summon_count_name,同名怪兽出场次数限制,少见,limits unit=special_summon + summon.limit,补充
+limit.mandatory_maintenance,维持条件与不支付的处理,少见,rules: maintenance,已有
+cost.discard,丢弃手卡,常见,cost[] 里的动作,已有
+cost.send_to_gy,送去墓地,常见,cost[] 里的动作,已有
+cost.release,解放,常见,cost[] 里的动作,已有
+cost.banish,除外,常见,cost[] 里的动作,已有
+cost.pay_lp,支付基本分,常见,cost[] 里的动作,已有
+cost.detach_xyz,取除超量素材,常见,act detach_xyz_material,已有
+cost.self_reference,这张卡作为代价,常见,ref self,已有
+cost.reveal_hand,给对方观看手卡,一般,act show_cards,已有
+cost.return_to_hand,回到手卡,一般,act add_to_hand（来源为场上时措辞「回到手卡」）,已有
+cost.return_to_deck,回到卡组,一般,cost[] 里的动作,已有
+cost.return_to_extra,回到额外卡组,一般,cost[] 里的动作,已有
+cost.remove_counters,取除指示物,一般,act remove_counter,已有
+cost.multiple_required,复合代价全部支付,一般,cost 列表（全部支付）,已有
+cost.choose_payment,从多种代价中选择,一般,"cost 里的 {choose: [[…], […]]}",补充
+cost.variable_amount,任意或可变数量代价,一般,"count {min,max} + as",已有
+cost.face_down_banish,里侧除外代价,一般,"act banish, face: down",已有
+cost.different_names,代价集合的不同卡名,一般,选卡器 relation,已有
+cost.paid_information,保存已支付信息,一般,as + snapshot: cost,已有
+cost.change_position,改变表示形式作为代价,少见,cost[] 里的动作,已有
+cost.send_top_deck,卡组顶端送墓代价,少见,act send_deck_top_to_gy,已有
+cost.reveal_extra,展示额外卡组的代价,少见,act show_cards,已有
+cost.payment_replacement,代价替代或减免,少见,apply cont lp_cost_change / 替代,已有
+target.select_vs_target,取对象与选卡的区别,常见,target[]（发动时）与步骤选卡器（处理时）,已有
+target.at_activation,发动时取对象,常见,target[],已有
+target.at_resolution,处理时非取对象选卡,常见,步骤选卡器 / select,已有
+target.player_and_location,所属玩家与区域,常见,选卡器 who / owner / where,已有
+target.exact_count,固定张数,常见,count,已有
+target.up_to,最多若干张,常见,count {max},已有
+target.all_matching,全部符合条件的卡,常见,count: all,已有
+target.except_self,这张卡以外,常见,except,已有
+target.chooser,选择玩家,常见,chooser,已有
+target.self,固定为这张卡,常见,ref self,已有
+target.related_reference,那只怪兽或那些卡,常见,引用,已有
+target.revalidate,处理时对象资格再检查,常见,target[].recheck,已有
+target.at_least,至少若干张,一般,count {min},已有
+target.any_number,任意数量,一般,"count {min,max}",已有
+target.different_names,卡名不同的一组卡,一般,relation different,已有
+target.one_from_each,各一张或各若干张,一般,relation roles,已有
+target.same_property,所选卡共享属性,一般,relation same,已有
+target.different_property,所选卡属性各不相同,一般,relation different,已有
+target.sum_value,合计数值限制,一般,relation sum,已有
+target.random,随机选择,一般,选卡器 random: true,补充
+target.persistent_relation,持续对象关系,一般,target 的 keep: while_related，永续效果引用,补充
+target.all_or_partial,对象集合整体与分别处理,一般,步骤 partial: allowed / none,补充
+target.sequential_selection,分步选择不同用途的卡,一般,select 步骤,已有
+target.player,以玩家为对象,少见,"target[] {as, player}",已有
+target.retarget,改变效果对象,少见,act change_chain_target,已有
+target.opponent_choice,对方从给定集合选择,少见,chooser: opp,已有
+filter.card_type,卡片大类,常见,选卡器 filter 谓词,已有
+filter.monster_subtype,怪兽类别,常见,选卡器 filter 谓词,已有
+filter.spell_trap_subtype,魔法陷阱子类,常见,选卡器 filter 谓词,已有
+filter.race,种族,常见,选卡器 filter 谓词,已有
+filter.attribute,属性,常见,选卡器 filter 谓词,已有
+filter.level,等级比较,常见,选卡器 filter 谓词,已有
+filter.rank,阶级比较,常见,选卡器 filter 谓词,已有
+filter.link_rating,连接值比较,常见,选卡器 filter 谓词,已有
+filter.attack,攻击力比较,常见,选卡器 filter 谓词,已有
+filter.defense,守备力比较,常见,选卡器 filter 谓词,已有
+filter.name,指定卡名,常见,选卡器 filter 谓词,已有
+filter.name_contains,卡名含有指定文字,常见,选卡器 filter 谓词,已有
+filter.archetype,指定字段,常见,选卡器 filter 谓词,已有
+filter.face,表侧或里侧,常见,选卡器 filter 谓词,已有
+filter.position,攻击或守备表示,常见,选卡器 filter 谓词,已有
+filter.owner_controller,持有者或控制者,常见,选卡器 filter 谓词,已有
+filter.original_value,原本数值,常见,选卡器 filter 谓词,已有
+filter.tuner,调整与调整以外,常见,选卡器 filter 谓词,已有
+filter.summon_type,召唤方式记录,常见,选卡器 filter 谓词,已有
+filter.previous_location,移动前所在区域,常见,选卡器 filter 谓词,已有
+filter.reason,移动或破坏原因,常见,选卡器 filter 谓词,已有
+filter.can_perform_action,能够完成指定处理,常见,选卡器 filter 谓词,已有
+filter.public_information,可确认的信息范围,常见,生成器（可读信息范围）,生成器
+filter.except_named,指定卡名以外,常见,选卡器 filter 谓词,已有
+filter.logical_combination,筛选条件的且或非组合,常见,filter 的 all / any / not,已有
+filter.original_type,原本卡片种类,一般,选卡器 filter 谓词,已有
+filter.original_race_attribute,原本种族或属性,一般,选卡器 filter 谓词,已有
+filter.original_name,原本卡名,一般,选卡器 filter 谓词,已有
+filter.token,衍生物与非衍生物,一般,选卡器 filter 谓词,已有
+filter.named_in_text,有指定记述的卡,一般,选卡器 filter 谓词,已有
+filter.named_material,记述为素材的名称,一般,选卡器 filter 谓词,已有
+filter.same_as_reference,与指定卡相同的属性,一般,谓词 same_as,已有
+filter.different_from_reference,与指定卡不同的属性,一般,谓词 not + same_as,已有
+filter.level_rank_link,等级阶级连接值的并列条件,一般,选卡器 filter 谓词,已有
+filter.attack_defense_relation,攻守之间的关系,一般,选卡器 filter 谓词,已有
+filter.pendulum_scale,灵摆刻度,一般,选卡器 filter 谓词,已有
+filter.summon_location,召唤来源区域,一般,选卡器 filter 谓词,已有
+filter.reason_card_player,原因卡和原因玩家,一般,选卡器 filter 谓词,已有
+filter.linked_co_linked,连接与互相连接,一般,选卡器 filter 谓词,已有
+filter.column_zone,列、相邻与区域位置,一般,选卡器 filter 谓词,已有
+filter.equip_relation,装备关系,一般,选卡器 filter 谓词,已有
+filter.material_relation,素材关系,一般,选卡器 filter 谓词,已有
+filter.normal_treated,当作通常怪兽,一般,选卡器 filter 谓词,已有
+filter.ability_subtype,反转灵魂同盟二重等能力类别,一般,选卡器 filter 谓词,已有
+filter.counter,持有指示物,一般,选卡器 filter 谓词,已有
+filter.turn_history,本回合行动记录,一般,选卡器 filter 谓词,已有
+filter.material_count,素材数量,一般,选卡器 filter 谓词,已有
+filter.extreme_value,最高或最低数值,一般,选卡器 extreme: max / min,补充
+filter.effect_status,有效或无效状态,少见,谓词（内部）,生成器
+filter.has_effect,具有指定效果,少见,选卡器 filter 谓词,已有
+filter.unknown_value,问号数值,少见,谓词（内部）,生成器
+act.destroy,破坏,常见,do[].act,已有
+act.banish,除外,常见,do[].act,已有
+act.send_to_gy,送去墓地,常见,do[].act,已有
+act.add_to_hand,加入手卡与检索,常见,do[].act,已有
+act.return_to_deck,回到卡组,常见,do[].act,已有
+act.return_to_extra,回到额外卡组,常见,do[].act,已有
+act.special_summon,特殊召唤,常见,do[].act,已有
+act.normal_summon,进行召唤,常见,do[].act,已有
+act.set_spell_trap,盖放魔法陷阱,常见,do[].act,已有
+act.draw,抽卡,常见,do[].act,已有
+act.discard,丢弃手卡,常见,do[].act,已有
+act.release,解放,常见,do[].act,已有
+act.change_position,改变表示形式,常见,do[].act,已有
+act.update_attack,攻击力上升或下降,常见,do[].act,已有
+act.update_defense,守备力上升或下降,常见,do[].act,已有
+act.set_attack,攻击力变成指定数值,常见,do[].act,已有
+act.set_defense,守备力变成指定数值,常见,do[].act,已有
+act.negate_effect,连锁效果无效,常见,do[].act,已有
+act.negate_card_effects,卡片效果无效化,常见,do[].act,已有
+act.negate_activation,发动无效,常见,do[].act,已有
+act.change_control,得到或转移控制权,常见,do[].act,已有
+act.damage,给予效果伤害,常见,do[].act,已有
+act.recover_lp,回复基本分,常见,do[].act,已有
+act.apply_continuous,赋予持续适用内容,常见,do[].act,已有
+act.perform_summon,进行指定种类召唤,常见,do[].act,已有
+act.set_monster,盖放怪兽,一般,do[].act,已有
+act.reveal_deck,翻开卡组顶端,一般,do[].act,已有
+act.confirm_cards,确认卡片,一般,do[].act,已有
+act.show_cards,给对方观看,一般,do[].act,已有
+act.shuffle_deck,洗切卡组,一般,do[].act,已有
+act.order_top_bottom,排列卡组顶端或底端,一般,do[].act,已有
+act.send_deck_top_to_gy,卡组顶端送去墓地,一般,do[].act,已有
+act.update_level,等级上升或下降,一般,do[].act,已有
+act.set_level,等级变成指定数值,一般,do[].act,已有
+act.change_attribute,属性改变或追加,一般,do[].act,已有
+act.change_race,种族改变或追加,一般,do[].act,已有
+act.change_name,卡名改变或增加,一般,do[].act,已有
+act.scale_attack_defense,攻守翻倍或减半,一般,do[].act,已有
+act.swap_attack_defense,攻击力和守备力交换,一般,do[].act,已有
+act.equip,装备,一般,do[].act,已有
+act.attach_xyz_material,放入超量素材,一般,do[].act,已有
+act.detach_xyz_material,取除超量素材,一般,do[].act,已有
+act.add_counter,放置指示物,一般,do[].act,已有
+act.remove_counter,取除指示物,一般,do[].act,已有
+act.create_token,生成并特殊召唤衍生物,一般,do[].act,已有
+act.negate_attack,攻击无效,一般,do[].act,已有
+act.end_battle_phase,结束战斗阶段,一般,do[].act,已有
+act.move_to_spell_trap_zone,作为魔法陷阱放置,一般,do[].act,已有
+act.place_pendulum_zone,在灵摆区域放置,一般,do[].act,已有
+act.negate_summon,召唤无效,一般,do[].act,已有
+act.copy_effect,得到或复制指定效果,一般,do[].act,已有
+act.replace_effect,效果变成指定内容,一般,act + 内层 do,已有
+act.return_temporarily_banished,暂时除外后返回,一般,banish 的 return_at,补充
+act.schedule_operation,预约后续处理,一般,do[].act,已有
+act.grant_effect,使其他卡得到效果,一般,act grant_effect + 内层效果（同 granted_to）,补充
+act.return_to_gy,回到墓地,少见,do[].act,已有
+act.swap_control,交换控制权,少见,do[].act,已有
+act.set_lp,基本分变成指定数值,少见,do[].act,已有
+act.swap_lp,交换双方基本分,少见,do[].act,已有
+act.update_rank,阶级改变,少见,do[].act,已有
+act.change_scale,灵摆刻度改变,少见,do[].act,已有
+act.change_type,卡片种类改变,少见,do[].act,已有
+act.move_zone,移动到其他区域格,少见,do[].act,已有
+act.swap_zone,交换卡片所在区域格,少见,do[].act,已有
+act.announce_card,宣言卡名,少见,act（处理时宣言）+ as；发动时宣言用 declare,已有
+act.announce_property,宣言属性种族或数值,少见,act（处理时宣言）+ as；发动时宣言用 declare,已有
+act.toss_coin,投硬币,少见,do[].act,已有
+act.roll_dice,掷骰子,少见,do[].act,已有
+act.replay_random,重新投硬币或掷骰子,少见,do[].act,已有
+act.exchange_cards,交换手卡或指定卡,少见,do[].act,已有
+act.change_chain_target,改变连锁效果对象,少见,do[].act,已有
+act.change_attack_target,改变攻击对象,少见,do[].act,已有
+act.shuffle_hand,洗切手卡,少见,生成器,生成器
+act.change_chain_operation,改写连锁效果处理,少见,act + 内层 do,已有
+act.win_duel,决斗胜利,少见,do[].act,已有
+act.rock_paper_scissors,猜拳,个别,do[].act,已有
+act.exchange_deck_gy,交换卡组与墓地,个别,do[].act,已有
+act.win_match,比赛胜利,个别,do[].act,已有
+link.and_if_you_do,前项成功则后项同时处理,常见,do[].link,已有
+link.then,那之后的依赖顺次处理,常见,do[].link,已有
+link.optional_followup,可以追加的后续处理,常见,步骤 optional,已有
+link.if_success,成功时的条件分支,常见,步骤 if / branch,已有
+link.choose_mode,选择一项或多项效果,常见,modes / one_of,已有
+link.amount_from_result,按实际处理结果计算,常见,数值表达式引用 as,已有
+link.separate_effect,独立的另一个效果,常见,另一个效果,已有
+text.conjunction_punctuation,中日标点不是固定连接语义,常见,中文渲染器,渲染器
+link.also,相互独立且同时处理,一般,do[].link,已有
+link.repeat_for_each,对每个主体分别处理,一般,for_each,已有
+link.after_resolution_action,处理后立即进行行动,一般,步骤 timing: after_resolution,已有
+link.and,两项必须共同做到,少见,do[].link,已有
+link.also_after_that,相互独立的顺次处理,少见,do[].link,已有
+cont.atk_update,持续攻击力增减,常见,apply.cont,已有
+cont.def_update,持续守备力增减,常见,apply.cont,已有
+cont.atk_set,持续攻击力设定,常见,apply.cont,已有
+cont.indestructible_battle,不会被战斗破坏,常见,apply.cont,已有
+cont.indestructible_effect,不会被效果破坏,常见,apply.cont,已有
+cont.cannot_be_targeted,不能成为效果对象,常见,apply.cont,已有
+cont.immune_effect,不受效果影响,常见,apply.cont,已有
+cont.effects_disabled,效果无效化,常见,apply.cont,已有
+cont.cannot_activate,不能发动卡或效果,常见,apply.cont,已有
+cont.cannot_special_summon,不能特殊召唤,常见,apply.cont,已有
+cont.cannot_attack,不能攻击,常见,apply.cont,已有
+cont.cannot_direct_attack,不能直接攻击,常见,apply.cont,已有
+cont.direct_attack,可以直接攻击,常见,apply.cont,已有
+cont.extra_attack,增加攻击次数,常见,apply.cont,已有
+cont.piercing,贯通战斗伤害,常见,apply.cont,已有
+cont.while_face_up,表侧存在期间适用范围,常见,continuous 的默认适用范围 range,已有
+cont.until_duration,有期限的持续适用,常见,until / reset_on,已有
+cont.def_set,持续守备力设定,一般,apply.cont,已有
+cont.attack_all,向全部怪兽各攻击,一般,apply.cont,已有
+cont.cannot_normal_summon,不能召唤,一般,apply.cont,已有
+cont.cannot_flip_summon,不能反转召唤,一般,apply.cont,已有
+cont.cannot_set,不能盖放,一般,apply.cont,已有
+cont.cannot_draw,不能抽卡,一般,apply.cont,已有
+cont.cannot_add_hand,不能加入手卡,一般,apply.cont,已有
+cont.cannot_banish,不能除外,一般,apply.cont,已有
+cont.cannot_release,不能解放,一般,apply.cont,已有
+cont.cannot_use_material,不能作为指定素材,一般,apply.cont,已有
+cont.cannot_change_control,控制权不能变更,一般,apply.cont,已有
+cont.cannot_change_position,不能改变表示形式,一般,apply.cont,已有
+cont.cannot_be_attack_target,不能成为攻击对象,一般,apply.cont,已有
+cont.attack_target_restriction,攻击对象受到限制,一般,apply.cont,已有
+cont.battle_damage_zero,战斗伤害变成0,一般,apply.cont,已有
+cont.effect_damage_change,效果伤害数值变化,一般,apply.cont,已有
+cont.battle_damage_change,战斗伤害数值变化,一般,apply.cont,已有
+cont.reflect_damage,伤害由对方承受,一般,apply.cont,已有
+cont.redirect_destination,改变卡片去向,一般,apply.cont,已有
+cont.replace_destruction,代替破坏,一般,apply.cont,已有
+cont.indestructible_count,限定次数的破坏抗性,一般,apply.cont,已有
+cont.change_attribute,持续属性改变,一般,apply.cont,已有
+cont.change_race,持续种族改变,一般,apply.cont,已有
+cont.change_name,持续卡名改变,一般,apply.cont,已有
+cont.change_level,持续等级改变,一般,apply.cont,已有
+cont.additional_normal_summon,追加通常召唤机会,一般,apply.cont,已有
+cont.skip_phase,跳过阶段,一般,apply.cont,已有
+cont.disable_zone,区域不能使用,一般,apply.cont,已有
+cont.activation_cannot_negate,发动不会被无效,一般,apply.cont,已有
+cont.effect_cannot_negate,效果不会被无效,一般,apply.cont,已有
+cont.summon_cannot_negate,召唤不会被无效,一般,apply.cont,已有
+cont.trap_from_hand,陷阱可以从手卡发动,一般,apply.cont,已有
+cont.set_turn_activation,盖放回合可以发动,一般,apply.cont,已有
+cont.unique_on_field,场上只能存在指定数量,一般,apply.cont,已有
+cont.must_attack,必须攻击,一般,apply.cont,已有
+cont.self_destruct,条件不满足时自坏或送墓,一般,apply.cont,已有
+cont.counter_rules,可放置指示物及上限,一般,counters,已有
+cont.equip_limit,装备对象限制,一般,apply.cont,已有
+cont.material_permissions,持续素材使用许可,一般,summon.material_permissions 或 apply,已有
+cont.damage_to_recovery,伤害变成回复,少见,apply.cont,已有
+cont.recovery_to_damage,回复变成伤害,少见,apply.cont,已有
+cont.change_rank,持续阶级改变,少见,apply.cont,已有
+cont.change_scale,持续灵摆刻度改变,少见,apply.cont,已有
+cont.skip_turn,跳过回合,少见,apply.cont,已有
+cont.public_hand,手卡持续公开,少见,apply.cont,已有
+cont.hand_limit,手卡上限改变,少见,apply.cont,已有
+cont.draw_count,通常抽卡数量改变,少见,apply.cont,已有
+cont.lp_cost_change,基本分代价改变,少见,apply.cont,已有
+cont.quickplay_opponent_hand,对方回合手卡速攻魔法许可,少见,apply.cont,已有
+cont.defense_attack,守备表示可以攻击,少见,apply.cont,已有
+cont.both_players_damage,双方承受战斗伤害,少见,apply.cont,已有
+cont.extra_battle_phase,追加战斗阶段,少见,apply.cont,已有
+cont.spirit_return_exception,灵魂怪兽返回的特例,少见,apply.cont,已有
+cont.cannot_use_as_cost,不能作为代价使用,少见,apply.cont,已有
+cont.cannot_send_or_return,不能送墓或返回,少见,apply.cont,已有
+cont.summon_count_limit,召唤总次数限制,少见,apply.cont,已有
+cont.forbidden_named_card,指定卡不能使用,少见,apply.cont,已有
+cont.battle_damage_as_effect,战斗伤害当作效果伤害,个别,apply.cont,已有
+cont.replace_damage,用其他动作代替伤害,个别,apply.cont,已有
+cont.reverse_stat_update,攻守增减反转,个别,apply.cont,已有
+cont.reverse_deck,卡组表里翻转,个别,apply.cont,已有
+summon.normal,通常召唤,常见,引擎（通常召唤规则）,引擎
+summon.tribute,上级召唤,常见,引擎（上级召唤规则）,引擎
+summon.set,通常盖放,常见,引擎,引擎
+summon.flip,反转召唤,常见,引擎,引擎
+summon.special_procedure,不入连锁的特殊召唤手续,常见,procedures kind: special,已有
+summon.ritual,仪式召唤,常见,act perform_summon method ritual,已有
+summon.fusion,融合召唤,常见,summon.materials method fusion,已有
+summon.synchro,同调召唤,常见,summon.materials method synchro,已有
+summon.xyz,超量召唤,常见,summon.materials method xyz,已有
+summon.pendulum,灵摆召唤,常见,引擎 + card.scale,引擎
+summon.link,连接召唤,常见,summon.materials method link,已有
+summon.cannot_normal,不能通常召唤,常见,summon.normal_summon: false,已有
+summon.must_first,必须先用指定方法出场,常见,summon.proper: must_first,已有
+summon.must_only,只能用指定方法出场,常见,summon.proper: only,已有
+summon.revive_limit,苏生限制与正规出场记录,常见,生成器（由 proper 推出）,生成器
+summon.material_named,指定卡名素材,常见,materials 里的 name,已有
+summon.material_filtered,指定性质素材,常见,materials 里的 filter,已有
+summon.material_count,素材张数范围,常见,materials 里的 count / min / max,已有
+summon.material_destination,素材处理去向,常见,procedures / perform_summon 的 destination,已有
+summon.ritual_level_rule,仪式等级计算方式,常见,perform_summon 的 value,已有
+summon.link_material_value,连接素材按1或连接值计算,常见,引擎,引擎
+summon.extra_destination,额外卡组出场区域,常见,引擎,引擎
+summon.position_and_player,出场表示与出场方,常见,special_summon 的 position / player,已有
+summon.ignore_condition,无视召唤条件,一般,special_summon 的 ignore_condition,已有
+summon.treated_as_method,当作指定召唤处理,一般,special_summon 的 as_method,已有
+summon.material_distinct,素材不同名或同属性关系,一般,选卡器 relation,已有
+summon.material_from_other_zone,使用其他区域的素材,一般,materials 的 where,已有
+summon.opponent_material,使用对方场上的素材,一般,summon.material_permissions,已有
+summon.fusion_substitute,融合素材代用,一般,rules: fusion_substitute,已有
+summon.contact_fusion,接触式出场手续,一般,procedures kind: contact,已有
+summon.synchro_tuner_rule,同调的调整条件,一般,materials 的 tuner / nontuner,已有
+summon.material_level_override,作为素材时的等级特例,一般,rules: material_level,已有
+summon.xyz_overlay_alternative,在怪兽上重叠超量召唤,一般,procedures kind: xyz_overlay,已有
+summon.xyz_rank_up,升阶等超量召唤,一般,perform_summon method xyz + on,已有
+summon.group_simultaneous,多只同时特殊召唤,一般,special_summon 的 count,已有
+summon.summon_after_resolution,效果处理后进行召唤,一般,步骤 timing: after_resolution,已有
+summon.material_restriction,素材用途限制,一般,summon.restrictions,已有
+summon.tribute_count_override,减少或免除解放,一般,procedures kind: normal（召唤手续）,补充
+summon.multiple_tribute_value,一只当作多只解放,一般,procedures kind: normal（召唤手续）,补充
+summon.must_use_material,必须使用指定素材,少见,perform_summon 的 must_use,已有
+summon.gemini_resummon,二重怪兽再度召唤,少见,rules: gemini（能力类别）,已有
+summon.spell_trap_tribute,以魔法陷阱等作为解放,少见,procedures kind: normal（召唤手续）,补充
+summon.pendulum_extra_permission,追加灵摆召唤机会,少见,apply cont（灵摆召唤许可）,已有
+summon.pendulum_scale_exception,灵摆刻度与可召唤范围特例,少见,apply cont（灵摆刻度特例）,已有
+summon.tuner_or_non_tuner,作为调整或非调整使用,少见,rules: material_role,已有
+summon.extra_material_identity,作为素材时的卡名属性特例,少见,rules: material_identity,已有
+summon.double_xyz_material,一只当作两只超量素材,少见,rules: double_xyz_material,已有
+summon.overlay_as_ritual_material,超量素材用于仪式召唤,少见,rules（少见）,已有
+summon.without_level_material,无等级怪兽作为同调素材,少见,rules（少见）,已有
+timing.when_vs_if,时与场合,常见,timing,已有
+timing.last_event,最后发生的事件,常见,生成器,引擎
+timing.damage_step_permission,伤害步骤发动资格,常见,window.damage_step,已有
+timing.trigger_location,诱发效果的发动所在区域,常见,生成器,引擎
+timing.direct_chain,必须直接连锁,常见,on 的 direct（「……发动时」默认直接连锁）,已有
+timing.simultaneous_triggers,同时满足的诱发效果,常见,生成器,引擎
+state.face_down,里侧状态,常见,选卡器 face,已有
+state.face_up,表侧状态,常见,选卡器 face,已有
+state.battle_position,怪兽战斗表示,常见,选卡器 position,已有
+state.owner_controller,持有者与控制者,常见,选卡器 who / owner,已有
+state.xyz_material,超量素材状态,常见,引用 overlay,已有
+state.card_identity_after_move,移动后卡的状态重置,常见,生成器（移动后的重置）,生成器
+rule.cost_vs_effect,代价与效果处理,常见,cost 与 do 分开,已有
+rule.activation_vs_application,发动与适用,常见,type 与 apply_continuous 分开,已有
+rule.category_operation_info,效果分类与处理预告,常见,生成器,生成器
+rule.action_result,实际处理结果,常见,步骤 as（实际成功的卡）,已有
+rule.snapshot_values,取值时点与原状态,常见,引用的 snapshot,已有
+rule.value_expression,数值计算表达式,常见,数值表达式,已有
+text.colon_semicolon,PSCT冒号与分号,常见,中文渲染器,渲染器
+text.optional_mandatory,可以发动与必须发动,常见,optional（措辞由渲染器选）,渲染器
+text.effect_number,效果编号与项目符号,常见,中文渲染器,渲染器
+text.reference_binding,这张卡那只怪兽等指代,常见,引用（措辞由渲染器选）,渲染器
+text.material_line,素材行文本,常见,summon.materials（措辞由渲染器选）,渲染器
+text.language_alignment,三语模板参数对应,常见,中文渲染器,渲染器
+rule.reset_duration,持续期限和重置事件,常见,until / reset_on,已有
+state.face_up_extra_pendulum,额外卡组表侧灵摆,一般,选卡器 where: extra + face: up,已有
+state.temporary_banish,暂时除外状态,一般,banish 的 return_at,补充
+state.equip_relation,装备与被装备状态,一般,谓词 / 引用 equip_target,已有
+state.link_relation,连接端与互相连接状态,一般,谓词 linked / co_linked,已有
+state.token,衍生物状态,一般,谓词 token / create_token,已有
+state.trap_monster,陷阱怪兽状态,一般,谓词 + special_summon 的 as_monster,已有
+rule.rounding,比例及舍入处理,一般,数值表达式的 round,已有
+rule.counter_kind,指示物种类,一般,counters,已有
+rule.counter_transfer,指示物与卡移动的关系,一般,引擎,引擎
+rule.name_always_treated,规则上也当作指定卡名,一般,card.rule_names,已有
+rule.name_deck_limit,同名与卡组投入数量,一般,引擎（构筑检查）,引擎
+text.current_errata,勘误后现行文本,一般,原文回放,渲染器
+rule.no_chain_internal_listener,内部监听与卡文效果区别,一般,生成器,生成器
+rule.name_archetype_exception,字段归属例外,少见,card.archetype_exceptions,补充
+rule.declaration_domain,宣言合法范围,少见,declare 的 domain,已有
+rule.random_outcome,随机结果及重投记录,少见,toss_coin / roll_dice 的 as,已有
+rule.special_victory,特殊胜利条件,少见,rules: special_victory,已有
+rule.maintenance_payment,维持支付,少见,rules: maintenance,已有
+rule.gemini_state,二重怪兽的通常与效果状态,少见,rules: gemini（能力类别）,已有
+rule.union_relation,同盟装备与解除,少见,rules: union（能力类别）,已有
+rule.spirit_return,灵魂怪兽返回处理,少见,rules: spirit（能力类别）,已有
+rule.field_environment,当作指定场地存在,少见,rules: treated_as_field,已有
+rule.match_victory_eligibility,比赛胜利效果的卡片资格,个别,lint（卡片资格）,生成器

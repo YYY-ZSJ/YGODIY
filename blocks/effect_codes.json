@@ -1,0 +1,1819 @@
+{
+ "来源": "MDPro3 script/constant.lua（萌卡一系 ygopro-scripts）",
+ "条数": 259,
+ "codes": [
+  {
+   "name": "EFFECT_UPDATE_ATTACK",
+   "value": 100,
+   "zh": "增减攻击力",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_UPDATE_DEFENSE",
+   "value": 104,
+   "zh": "增减守备力",
+   "category": "攻守数值",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SET_ATTACK",
+   "value": 101,
+   "zh": "设置自身攻击力、攻击力变成X特殊召唤、持续改变攻击力",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SET_ATTACK_FINAL",
+   "value": 102,
+   "zh": "暂时改变攻击力（所有置入连锁的效果）",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SET_DEFENSE",
+   "value": 105,
+   "zh": "设置自身守备力、守备力变成X特殊召唤、持续改变守备力",
+   "category": "攻守数值",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SET_BASE_ATTACK",
+   "value": 103,
+   "zh": "设置自身原本攻击力、持续改变原本攻击力",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_UPDATE_LEVEL",
+   "value": 130,
+   "zh": "改变等级",
+   "category": "等级·阶级·刻度·连接",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_LEVEL",
+   "value": 131,
+   "zh": "设置等级",
+   "category": "等级·阶级·刻度·连接",
+   "common": true
+  },
+  {
+   "name": "EFFECT_INDESTRUCTABLE_BATTLE",
+   "value": 42,
+   "zh": "不会被战斗破坏",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_INDESTRUCTABLE_EFFECT",
+   "value": 41,
+   "zh": "不会被效果破坏",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_INDESTRUCTABLE_COUNT",
+   "value": 47,
+   "zh": "一回合几次不会被破坏",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_EFFECT_TARGET",
+   "value": 71,
+   "zh": "不能成为效果对象",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_IMMUNE_EFFECT",
+   "value": 1,
+   "zh": "效果免疫",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_ATTACK",
+   "value": 85,
+   "zh": "不能攻击",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_ATTACK_ANNOUNCE",
+   "value": 86,
+   "zh": "不能攻击宣言",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_DIRECT_ATTACK",
+   "value": 73,
+   "zh": "不能直接攻击",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_DIRECT_ATTACK",
+   "value": 74,
+   "zh": "可以直接攻击",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_PIERCE",
+   "value": 203,
+   "zh": "贯穿伤害",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_EXTRA_ATTACK",
+   "value": 194,
+   "zh": "增加攻击次数",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_ATTACK_ALL",
+   "value": 193,
+   "zh": "可以攻击所有怪兽",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_BATTLE_TARGET",
+   "value": 70,
+   "zh": "不能成为攻击对象",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_DISABLE",
+   "value": 2,
+   "zh": "效果无效（技能抽取）",
+   "category": "发动与无效",
+   "common": true
+  },
+  {
+   "name": "EFFECT_DISABLE_EFFECT",
+   "value": 8,
+   "zh": "效果无效（聖杯）",
+   "category": "发动与无效",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_ACTIVATE",
+   "value": 6,
+   "zh": "玩家不能发动效果",
+   "category": "发动与无效",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_SPECIAL_SUMMON",
+   "value": 22,
+   "zh": "不能特殊召唤怪兽",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_SUMMON",
+   "value": 20,
+   "zh": "不能召唤怪兽",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_TRIGGER",
+   "value": 7,
+   "zh": "卡不能发动效果",
+   "category": "发动与无效",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_CHANGE_POSITION",
+   "value": 14,
+   "zh": "不能改变表示形式",
+   "category": "其他",
+   "common": true
+  },
+  {
+   "name": "EFFECT_LEAVE_FIELD_REDIRECT",
+   "value": 60,
+   "zh": "离场时重新指定去向",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_TO_GRAVE_REDIRECT",
+   "value": 63,
+   "zh": "去墓地时重新指定去向",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_SYNCHRO_MATERIAL",
+   "value": 236,
+   "zh": "不能做同调素材",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_XYZ_MATERIAL",
+   "value": 238,
+   "zh": "不能做超量素材",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_LINK_MATERIAL",
+   "value": 239,
+   "zh": "不能做连接素材",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_BE_FUSION_MATERIAL",
+   "value": 235,
+   "zh": "不能做融合素材",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_UNRELEASABLE_SUM",
+   "value": 43,
+   "zh": "不能做上级召唤的祭品",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_UNRELEASABLE_NONSUM",
+   "value": 44,
+   "zh": "不能做上级召唤以外的祭品",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_CODE",
+   "value": 114,
+   "zh": "改变卡名",
+   "category": "卡名·种族·属性·种类",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_RACE",
+   "value": 122,
+   "zh": "改变种族",
+   "category": "卡名·种族·属性·种类",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_ATTRIBUTE",
+   "value": 127,
+   "zh": "改变属性",
+   "category": "卡名·种族·属性·种类",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_DAMAGE",
+   "value": 82,
+   "zh": "改变伤害数值",
+   "category": "伤害与基本分",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CHANGE_BATTLE_DAMAGE",
+   "value": 208,
+   "zh": "改变此卡给予的战斗伤害、改变玩家受到的战斗伤害",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_AVOID_BATTLE_DAMAGE",
+   "value": 201,
+   "zh": "不会对自己造成战斗伤害",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_REFLECT_BATTLE_DAMAGE",
+   "value": 202,
+   "zh": "战斗伤害由对方代为承受",
+   "category": "攻击与战斗",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SKIP_DP",
+   "value": 180,
+   "zh": "跳过抽卡阶段",
+   "category": "阶段与回合",
+   "common": true
+  },
+  {
+   "name": "EFFECT_SKIP_BP",
+   "value": 183,
+   "zh": "跳过战斗阶段",
+   "category": "阶段与回合",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_DRAW",
+   "value": 25,
+   "zh": "不能抽卡",
+   "category": "移动与去向",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_TO_HAND",
+   "value": 65,
+   "zh": "不能加入手牌",
+   "category": "破坏与抗性",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_SSET",
+   "value": 24,
+   "zh": "不能覆盖魔陷",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_MSET",
+   "value": 23,
+   "zh": "不能覆盖怪兽",
+   "category": "召唤与素材",
+   "common": true
+  },
+  {
+   "name": "EFFECT_CANNOT_DISABLE",
+   "value": 3,
+   "zh": "卡的效果不能被无效",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_CONTROL",
+   "value": 4,
+   "zh": "设置控制权",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_CHANGE_CONTROL",
+   "value": 5,
+   "zh": "不能改变控制权",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DISABLE_CHAIN",
+   "value": 9,
+   "zh": "在連鎖串中無效(processor.cpp)",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DISABLE_TRAPMONSTER",
+   "value": 10,
+   "zh": "陷阱怪兽无效",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_INACTIVATE",
+   "value": 12,
+   "zh": "发动不能被无效",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISEFFECT",
+   "value": 13,
+   "zh": "发动的效果不能被无效",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TRAP_ACT_IN_HAND",
+   "value": 15,
+   "zh": "陷阱可以从手牌发动",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TRAP_ACT_IN_SET_TURN",
+   "value": 16,
+   "zh": "陷阱可以在盖放的回合发动",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMAIN_FIELD",
+   "value": 17,
+   "zh": "X回合内留在场上（光之护封剑等）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MONSTER_SSET",
+   "value": 18,
+   "zh": "怪兽可以在魔陷区放置",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_FLIP_SUMMON",
+   "value": 21,
+   "zh": "不能翻转召唤怪兽",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISABLE_SUMMON",
+   "value": 26,
+   "zh": "召唤不会无效",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISABLE_SPSUMMON",
+   "value": 27,
+   "zh": "特殊召唤不会无效",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_SUMMON_COUNT_LIMIT",
+   "value": 28,
+   "zh": "设置每回合召唤次数",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_SUMMON_COUNT",
+   "value": 29,
+   "zh": "增加召唤（通常召唤）次数",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPSUMMON_CONDITION",
+   "value": 30,
+   "zh": "特殊召唤条件",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVIVE_LIMIT",
+   "value": 31,
+   "zh": "有苏生限制的怪獸(Card.EnableReviveLimit())",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SUMMON_PROC",
+   "value": 32,
+   "zh": "召唤规则效果",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LIMIT_SUMMON_PROC",
+   "value": 33,
+   "zh": "召唤规则限制",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPSUMMON_PROC",
+   "value": 34,
+   "zh": "特殊召唤规则",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_SET_COUNT",
+   "value": 35,
+   "zh": "增加盖放（通常召唤）次数",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_PROC",
+   "value": 36,
+   "zh": "放置（通常召唤）规则",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LIMIT_SET_PROC",
+   "value": 37,
+   "zh": "放置（通常召唤）规则限制",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DIVINE_LIGHT",
+   "value": 38,
+   "zh": "神圣光辉",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISABLE_FLIP_SUMMON",
+   "value": 39,
+   "zh": "翻转召唤不会无效",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_INDESTRUCTABLE",
+   "value": 40,
+   "zh": "不会被破坏",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DESTROY_SUBSTITUTE",
+   "value": 45,
+   "zh": "必選的代替破壞(此卡被破壞時用其他卡代替)",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_RELEASE",
+   "value": 46,
+   "zh": "不能进行解放行为",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UNRELEASABLE_EFFECT",
+   "value": 48,
+   "zh": "不能被解放",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DESTROY_REPLACE",
+   "value": 50,
+   "zh": "可選的代替破壞(將破壞改成其他動作)",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_RELEASE_REPLACE",
+   "value": 51,
+   "zh": "代替解放",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SEND_REPLACE",
+   "value": 52,
+   "zh": "可以不送去XX而送去OO（甜点城堡等）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISCARD_HAND",
+   "value": 55,
+   "zh": "不能丢弃手牌",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_DISCARD_DECK",
+   "value": 56,
+   "zh": "不能把卡组的卡送去墓地",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_USE_AS_COST",
+   "value": 57,
+   "zh": "不能作为COST使用",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_PLACE_COUNTER",
+   "value": 58,
+   "zh": "不能放置counter",
+   "category": "指示物",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_TO_GRAVE_AS_COST",
+   "value": 59,
+   "zh": "不能作为COST送去墓地",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TO_HAND_REDIRECT",
+   "value": 61,
+   "zh": "回手牌时重新指定去向",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TO_DECK_REDIRECT",
+   "value": 62,
+   "zh": "回卡组时重新指定去向",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_REDIRECT",
+   "value": 64,
+   "zh": "除外时重新指定去向",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_TO_DECK",
+   "value": 66,
+   "zh": "不能回卡组",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_REMOVE",
+   "value": 67,
+   "zh": "不能除外",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_TO_GRAVE",
+   "value": 68,
+   "zh": "不能去墓地",
+   "category": "破坏与抗性",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_TURN_SET",
+   "value": 69,
+   "zh": "不能变里侧",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_IGNORE_BATTLE_TARGET",
+   "value": 72,
+   "zh": "不能成为攻击对象-鶸型（传说的渔人）",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DUAL_STATUS",
+   "value": 75,
+   "zh": "二重状态",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EQUIP_LIMIT",
+   "value": 76,
+   "zh": "装备对象限制",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DUAL_SUMMONABLE",
+   "value": 77,
+   "zh": "可以再度召唤",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UNION_LIMIT",
+   "value": 78,
+   "zh": "union_limit",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVERSE_DAMAGE",
+   "value": 80,
+   "zh": "伤害变回复",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVERSE_RECOVER",
+   "value": 81,
+   "zh": "回复变伤害",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REFLECT_DAMAGE",
+   "value": 83,
+   "zh": "反射伤害",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_CHANGE_POS_E",
+   "value": 87,
+   "zh": "不会被卡的效果变成守备表示（攻击性云魔物）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ACTIVATE_COST",
+   "value": 90,
+   "zh": "发动代价（魔力之枷）",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SUMMON_COST",
+   "value": 91,
+   "zh": "召唤代价",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPSUMMON_COST",
+   "value": 92,
+   "zh": "特殊召唤代价（暴君龙）",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_FLIPSUMMON_COST",
+   "value": 93,
+   "zh": "翻转召唤代价",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MSET_COST",
+   "value": 94,
+   "zh": "怪兽放置代价",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SSET_COST",
+   "value": 95,
+   "zh": "魔陷放置代价",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ATTACK_COST",
+   "value": 96,
+   "zh": "攻击代价（霞之谷猎鹰）",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_DEFENSE_FINAL",
+   "value": 106,
+   "zh": "暂时改变守备力（所有置入连锁的效果）",
+   "category": "攻守数值",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_BASE_DEFENSE",
+   "value": 107,
+   "zh": "设置自身原本守备力、持续改变原本守备力",
+   "category": "攻守数值",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVERSE_UPDATE",
+   "value": 108,
+   "zh": "倒置增减攻击力、防御力（天邪鬼）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SWAP_AD",
+   "value": 109,
+   "zh": "交换攻守(超級漏洞人)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SWAP_BASE_AD",
+   "value": 110,
+   "zh": "交换原本攻守",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_BASE_ATTACK_FINAL",
+   "value": 111,
+   "zh": "暂时改变原本攻击力",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_BASE_DEFENSE_FINAL",
+   "value": 112,
+   "zh": "暂时改变原本防御力",
+   "category": "攻守数值",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_CODE",
+   "value": 113,
+   "zh": "增加卡名",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_TYPE",
+   "value": 115,
+   "zh": "增加卡片种类（types）",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_TYPE",
+   "value": 116,
+   "zh": "删除卡片种类",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_TYPE",
+   "value": 117,
+   "zh": "改变卡片种类",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_RACE",
+   "value": 120,
+   "zh": "增加种族",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_RACE",
+   "value": 121,
+   "zh": "删除种族",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_ATTRIBUTE",
+   "value": 125,
+   "zh": "增加属性",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_ATTRIBUTE",
+   "value": 126,
+   "zh": "删除属性",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UPDATE_RANK",
+   "value": 132,
+   "zh": "改变阶级",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_RANK",
+   "value": 133,
+   "zh": "设置阶级",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UPDATE_LSCALE",
+   "value": 134,
+   "zh": "改变左刻度",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_LSCALE",
+   "value": 135,
+   "zh": "设置左刻度",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UPDATE_RSCALE",
+   "value": 136,
+   "zh": "改变右刻度",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_RSCALE",
+   "value": 137,
+   "zh": "设置右刻度",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_POSITION",
+   "value": 140,
+   "zh": "設定表示形式",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SELF_DESTROY",
+   "value": 141,
+   "zh": "不入連鎖的破壞（罪系列等）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SELF_TOGRAVE",
+   "value": 142,
+   "zh": "不入連鎖的送墓",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DOUBLE_TRIBUTE",
+   "value": 150,
+   "zh": "可以作为2个祭品",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DECREASE_TRIBUTE",
+   "value": 151,
+   "zh": "减少祭品",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DECREASE_TRIBUTE_SET",
+   "value": 152,
+   "zh": "减少放置怪兽的祭品",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_RELEASE",
+   "value": 153,
+   "zh": "必須使用的代替解放（灵魂交错）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TRIBUTE_LIMIT",
+   "value": 154,
+   "zh": "祭品限制",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_RELEASE_SUM",
+   "value": 155,
+   "zh": "代替召唤解放（帝王的烈旋）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TRIPLE_TRIBUTE",
+   "value": 156,
+   "zh": "N/A",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_EXTRA_TRIBUTE",
+   "value": 157,
+   "zh": "增加可使用的祭品（真龙）",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_RELEASE_NONSUM",
+   "value": 158,
+   "zh": "代替效果COST的解放（闇黒世界）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_PUBLIC",
+   "value": 160,
+   "zh": "公开手牌",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LPCOST_CHANGE",
+   "value": 170,
+   "zh": "改变生命值代价數值",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LPCOST_REPLACE",
+   "value": 171,
+   "zh": "以其他動作代替生命值代价",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SKIP_SP",
+   "value": 181,
+   "zh": "跳过准备阶段",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SKIP_M1",
+   "value": 182,
+   "zh": "跳过主要阶段1",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SKIP_M2",
+   "value": 184,
+   "zh": "跳过主要阶段2",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_BP",
+   "value": 185,
+   "zh": "不能进入战斗阶段",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_M2",
+   "value": 186,
+   "zh": "不能进入主要阶段2",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_EP",
+   "value": 187,
+   "zh": "不能进入结束阶段",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SKIP_TURN",
+   "value": 188,
+   "zh": "跳过整个回合",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DEFENSE_ATTACK",
+   "value": 190,
+   "zh": "可以守备表示攻击",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_ATTACK",
+   "value": 191,
+   "zh": "必须攻击",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_FIRST_ATTACK",
+   "value": 192,
+   "zh": "必须第一个攻击",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_BE_ATTACKED",
+   "value": 195,
+   "zh": "N/A",
+   "category": "攻守数值",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ONLY_BE_ATTACKED",
+   "value": 196,
+   "zh": "只能攻击此卡",
+   "category": "攻守数值",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ATTACK_DISABLED",
+   "value": 197,
+   "zh": "攻击已被無效(Duel.NegateAttack()成功的標記)",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_NO_BATTLE_DAMAGE",
+   "value": 200,
+   "zh": "不会给对方造成战斗伤害",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_BATTLE_DESTROY_REDIRECT",
+   "value": 204,
+   "zh": "战斗破坏时重新指定去向",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_BATTLE_DAMAGE_TO_EFFECT",
+   "value": 205,
+   "zh": "战斗伤害视为效果伤害",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_BOTH_BATTLE_DAMAGE",
+   "value": 206,
+   "zh": "战斗伤害由双方承受",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ALSO_BATTLE_DAMAGE",
+   "value": 207,
+   "zh": "对自己的战斗伤害让对方也承受",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TOSS_COIN_REPLACE",
+   "value": 220,
+   "zh": "重新抛硬币",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TOSS_DICE_REPLACE",
+   "value": 221,
+   "zh": "重新掷骰子",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_FUSION_MATERIAL",
+   "value": 230,
+   "zh": "指定融合素材的條件",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHAIN_MATERIAL",
+   "value": 231,
+   "zh": "改变融合素材选取方法（连锁素材、电子融合支援）",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_SYNCHRO_MATERIAL",
+   "value": 232,
+   "zh": "在手卡或对方场上也可以当作自己的同调素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_XYZ_MATERIAL",
+   "value": 233,
+   "zh": "在对方场上也可以当作自己的超量素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_FUSION_SUBSTITUTE",
+   "value": 234,
+   "zh": "代替融合素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SYNCHRO_MATERIAL_CUSTOM",
+   "value": 237,
+   "zh": "自定义Tuner的同调过程",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SYNCHRO_LEVEL",
+   "value": 240,
+   "zh": "做同调素材时的等级",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_RITUAL_LEVEL",
+   "value": 241,
+   "zh": "做仪式祭品时的等级",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_XYZ_LEVEL",
+   "value": 242,
+   "zh": "做超量素材时的等级",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_RITUAL_MATERIAL",
+   "value": 243,
+   "zh": "在墓地当做仪式祭品",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_NONTUNER",
+   "value": 244,
+   "zh": "同调召唤时可以当作调整以外的怪兽（幻影王 幽骑）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_OVERLAY_REMOVE_REPLACE",
+   "value": 245,
+   "zh": "代替去除超量素材",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SCRAP_CHIMERA",
+   "value": 246,
+   "zh": "废铁奇美拉",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TUNE_MAGICIAN_X",
+   "value": 247,
+   "zh": "调弦之魔术师超量素材限制",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TUNE_MAGICIAN_F",
+   "value": 248,
+   "zh": "调弦之魔术师融合素材限制",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_PRE_MONSTER",
+   "value": 250,
+   "zh": "可存取怪獸的各項數值(Card.AddMonsterAttribute()專用)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MATERIAL_CHECK",
+   "value": 251,
+   "zh": "检查素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DISABLE_FIELD",
+   "value": 260,
+   "zh": "无效区域（扰乱王等）",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_USE_EXTRA_MZONE",
+   "value": 261,
+   "zh": "怪兽区域封锁",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_USE_EXTRA_SZONE",
+   "value": 262,
+   "zh": "魔法区域封锁",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MAX_MZONE",
+   "value": 263,
+   "zh": "怪獸区格數上限",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MAX_SZONE",
+   "value": 264,
+   "zh": "魔陷区格數上限",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_USE_MZONE",
+   "value": 265,
+   "zh": "必须使用怪兽区的格子",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_HAND_LIMIT",
+   "value": 270,
+   "zh": "手牌数量限制",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DRAW_COUNT",
+   "value": 271,
+   "zh": "抽卡阶段的抽卡数",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPIRIT_DONOT_RETURN",
+   "value": 280,
+   "zh": "灵魂怪兽不返回手牌",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPIRIT_MAYNOT_RETURN",
+   "value": 281,
+   "zh": "灵魂怪兽可以不返回手牌",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_ENVIRONMENT",
+   "value": 290,
+   "zh": "改变场地",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_NECRO_VALLEY",
+   "value": 291,
+   "zh": "王家长眠之谷",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_FORBIDDEN",
+   "value": 292,
+   "zh": "不能Play(禁止令)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_NECRO_VALLEY_IM",
+   "value": 293,
+   "zh": "不受「王家长眠之谷」的影响",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVERSE_DECK",
+   "value": 294,
+   "zh": "翻转卡组",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_BRAINWASHING",
+   "value": 295,
+   "zh": "洗脑解除",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_BP_TWICE",
+   "value": 296,
+   "zh": "2次战斗阶段",
+   "category": "阶段与回合",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UNIQUE_CHECK",
+   "value": 297,
+   "zh": "場上只能存在1張(Card.SetUniqueOnField()專用)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MATCH_KILL",
+   "value": 300,
+   "zh": "Match胜利(胜利龙)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SYNCHRO_CHECK",
+   "value": 310,
+   "zh": "基因组斗士",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_QP_ACT_IN_NTPHAND",
+   "value": 311,
+   "zh": "对方回合从自己手卡发动（失乐的圣女）",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_BE_SMATERIAL",
+   "value": 312,
+   "zh": "必须作为同调素材（波动龙 声子龙）",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TO_GRAVE_REDIRECT_CB",
+   "value": 313,
+   "zh": "重新指定去向(寶玉獸)",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_INVOLVING_BATTLE_DAMAGE",
+   "value": 314,
+   "zh": "改变此卡的战斗产生的战斗伤害",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_RANK_FINAL",
+   "value": 315,
+   "zh": "N/A",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_BE_FMATERIAL",
+   "value": 316,
+   "zh": "必须作为融合素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_BE_XMATERIAL",
+   "value": 317,
+   "zh": "必须作为超量素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_BE_LMATERIAL",
+   "value": 318,
+   "zh": "必须作为连接素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPSUMMON_PROC_G",
+   "value": 320,
+   "zh": "P召唤规则",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SPSUMMON_COUNT_LIMIT",
+   "value": 330,
+   "zh": "特殊召唤次数限制",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LEFT_SPSUMMON_COUNT",
+   "value": 331,
+   "zh": "剩餘召喚次數(召喚限制網)",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_SELECT_BATTLE_TARGET",
+   "value": 332,
+   "zh": "對手不能選擇為攻擊對象",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CANNOT_SELECT_EFFECT_TARGET",
+   "value": 333,
+   "zh": "對手不能選擇為效果對象",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_SETCODE",
+   "value": 334,
+   "zh": "视为「XX」字段的效果",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_NO_EFFECT_DAMAGE",
+   "value": 335,
+   "zh": "玩家已受到\"效果傷害變成0\"的效果影響（只用于检查，实际免伤仍需要EFFECT_CHANGE_DAMAGE等）",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UNSUMMONABLE_CARD",
+   "value": 336,
+   "zh": "N/A",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DISABLE_CHAIN_FIELD",
+   "value": 337,
+   "zh": "N/A",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DISCARD_COST_CHANGE",
+   "value": 338,
+   "zh": "反制陷阱捨棄手牌的代價改變(解放之阿里阿德涅)",
+   "category": "移动与去向",
+   "common": false
+  },
+  {
+   "name": "EFFECT_HAND_SYNCHRO",
+   "value": 339,
+   "zh": "用手牌的怪獸當作同步素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_FUSION_CODE",
+   "value": 340,
+   "zh": "作为融合素材时可以当作某一卡名(融合识别)",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_FUSION_SETCODE",
+   "value": 341,
+   "zh": "作为融合素材时可以当作某一字段(魔玩具改造)",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_RISE_TO_FULL_HEIGHT",
+   "value": 342,
+   "zh": "N/A",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ONLY_ATTACK_MONSTER",
+   "value": 343,
+   "zh": "只能攻擊X",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MUST_ATTACK_MONSTER",
+   "value": 344,
+   "zh": "若攻擊則必須攻擊X",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_PATRICIAN_OF_DARKNESS",
+   "value": 345,
+   "zh": "由對手選擇攻擊對象(黑暗貴族)",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_ATTACK_MONSTER",
+   "value": 346,
+   "zh": "對怪獸攻擊X次",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_UNION_STATUS",
+   "value": 347,
+   "zh": "同盟状态",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_OLDUNION_STATUS",
+   "value": 348,
+   "zh": "旧同盟状态",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_FUSION_ATTRIBUTE",
+   "value": 349,
+   "zh": "reserve",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REMOVE_FUSION_ATTRIBUTE",
+   "value": 350,
+   "zh": "reserve",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_FUSION_ATTRIBUTE",
+   "value": 351,
+   "zh": "用作融合素材时的属性",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_FUSION_MATERIAL",
+   "value": 352,
+   "zh": "增加融合素材(万溶炼金师)",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TUNER_MATERIAL_LIMIT",
+   "value": 353,
+   "zh": "同调素材限制",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_LINK_CODE",
+   "value": 354,
+   "zh": "用作连接素材时的卡名",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_LINK_SETCODE",
+   "value": 355,
+   "zh": "reserve",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_LINK_ATTRIBUTE",
+   "value": 356,
+   "zh": "用作连接素材时的属性",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ADD_LINK_RACE",
+   "value": 357,
+   "zh": "用作连接素材时的种族",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_LINK_MATERIAL",
+   "value": 358,
+   "zh": "手卡的连接素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_QP_ACT_IN_SET_TURN",
+   "value": 359,
+   "zh": "速攻魔法可以在盖放的回合发动",
+   "category": "发动与无效",
+   "common": false
+  },
+  {
+   "name": "EFFECT_EXTRA_PENDULUM_SUMMON",
+   "value": 360,
+   "zh": "extra pendulum summon",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_MATERIAL_LIMIT",
+   "value": 361,
+   "zh": "material_limit",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_BATTLE_ATTACK",
+   "value": 362,
+   "zh": "战斗的伤害计算用设置的攻击力进行",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SET_BATTLE_DEFENSE",
+   "value": 363,
+   "zh": "战斗的伤害计算用设置的守备力进行",
+   "category": "攻击与战斗",
+   "common": false
+  },
+  {
+   "name": "EFFECT_OVERLAY_RITUAL_MATERIAL",
+   "value": 364,
+   "zh": "此卡的超量素材也能用于仪式召唤",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_GRAVE_ATTRIBUTE",
+   "value": 365,
+   "zh": "墓地的卡将会改变属性（升级转变）",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_CHANGE_GRAVE_RACE",
+   "value": 366,
+   "zh": "墓地的卡将会改变种族（升级转变）",
+   "category": "卡名·种族·属性·种类",
+   "common": false
+  },
+  {
+   "name": "EFFECT_ACTIVATION_COUNT_LIMIT",
+   "value": 367,
+   "zh": "reserve",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_LIMIT_SPECIAL_SUMMON_POSITION",
+   "value": 368,
+   "zh": "不能以特定表示形式特殊召唤",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_TUNER",
+   "value": 369,
+   "zh": "同调召唤时可以当作调整（百檎龙-苹果鳞虫）",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_KAISER_COLOSSEUM",
+   "value": 370,
+   "zh": "皇帝斗技场",
+   "category": "其他",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REPLACE_DAMAGE",
+   "value": 371,
+   "zh": "伤害由特定行动代替",
+   "category": "伤害与基本分",
+   "common": false
+  },
+  {
+   "name": "EFFECT_XYZ_MIN_COUNT",
+   "value": 372,
+   "zh": "只能用在X只以上的超量召唤",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_SYNCHRO_LEVEL_EX",
+   "value": 373,
+   "zh": "支持使用没有等级的怪兽作为同调素材",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_RITUAL_LEVEL_EX",
+   "value": 374,
+   "zh": "支持使用没有等级的怪兽作为仪式素材",
+   "category": "等级·阶级·刻度·连接",
+   "common": false
+  },
+  {
+   "name": "EFFECT_DOUBLE_XMATERIAL",
+   "value": 375,
+   "zh": "召唤需3只以上作素材的超量怪兽时可以作为2只数量的素材",
+   "category": "召唤与素材",
+   "common": false
+  },
+  {
+   "name": "EFFECT_REVEAL_ONFIELD",
+   "value": 376,
+   "zh": "场上里侧表示卡片处于可以确认信息状态（看透心灵之眼）",
+   "category": "其他",
+   "common": false
+  }
+ ]
+}

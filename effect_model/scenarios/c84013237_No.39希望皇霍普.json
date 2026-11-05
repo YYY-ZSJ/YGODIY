@@ -1,0 +1,27 @@
+{
+  "card": 84013237,
+  "scenarios": [
+    {
+      "name": "霍普：取除素材无效攻击；没有素材时被选为攻击对象就自我破坏",
+      "field": {
+        "0": {"mzone": [{"code": 84013237, "materials": [91152256, 69140098]}]},
+        "1": {"mzone": [89631139, 46986414, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "battle"},
+        {"mark": true},
+        {"player": 1, "do": "attack", "card": 89631139, "target": 84013237},
+        {"player": 0, "do": "activate", "card": 84013237},
+        {"check": "overlay", "player": 0, "card": 84013237, "eq": 1},
+        {"check": "event", "name": "attack_disabled", "eq": 1},
+        {"player": 1, "do": "attack", "card": 46986414, "target": 84013237},
+        {"player": 0, "do": "activate", "card": 84013237},
+        {"check": "overlay", "player": 0, "card": 84013237, "eq": 0},
+        {"check": "lp", "player": 0, "eq": 8000},
+        {"player": 1, "do": "attack", "card": 89631139, "target": 84013237},
+        {"check": "count", "player": 0, "in": "grave", "card": 84013237, "eq": 1}
+      ]
+    }
+  ]
+}

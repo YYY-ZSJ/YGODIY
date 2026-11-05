@@ -1,0 +1,48 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009757,
+  "name": "积木·二重",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "monster_trait",
+   "trait": "gemini",
+   "filter": []
+  },
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [
+    {
+     "block": "gemini_state"
+    }
+   ],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "damage",
+     "player": "opp",
+     "amount": [
+      {
+       "block": "num",
+       "value": 500
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

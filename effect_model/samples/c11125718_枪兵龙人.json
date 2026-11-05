@@ -1,0 +1,23 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 11125718,
+  "name": "枪兵龙人",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "piercing",
+    "affects": {
+     "ref": "self"
+    }
+   }
+  }
+ ]
+}

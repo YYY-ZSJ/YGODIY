@@ -1,0 +1,73 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009729,
+  "name": "积木·破坏烧伤",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "destroy",
+     "cards": [
+      {
+       "block": "all",
+       "who": "opp",
+       "where": "mzone",
+       "filter": []
+      }
+     ]
+    },
+    {
+     "block": "after",
+     "how": "then",
+     "body": [
+      {
+       "block": "damage",
+       "player": "opp",
+       "amount": [
+        {
+         "block": "math",
+         "op": "*",
+         "left": [
+          {
+           "block": "count_of",
+           "cards": [
+            {
+             "block": "operated",
+             "filter": []
+            }
+           ]
+          }
+         ],
+         "right": [
+          {
+           "block": "num",
+           "value": 500
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

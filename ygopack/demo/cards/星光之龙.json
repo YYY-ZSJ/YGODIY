@@ -1,0 +1,18 @@
+{
+  "name": "星光之龙",
+  "card_type": 0,
+  "call_way": 4,
+  "extra1": 0,
+  "extra2": 0,
+  "race": 0,
+  "level": 8,
+  "rank": 0,
+  "attribute": "光",
+  "ATK": "2800",
+  "DEF": "2000",
+  "link_status": [false, false, false, false, false, false, false, false],
+  "effect_text": "调整＋调整以外的怪兽1只以上\n①：1回合1次，以对方场上1张卡为对象才能发动。那张卡破坏。",
+  "lb_text": "",
+  "lb_level": "",
+  "cardpass": "100001300"
+}

@@ -1,0 +1,41 @@
+{
+  "scenarios": [
+    {
+      "name": "星光探索者：召唤成功时检索「星光」怪兽（陷阱卡不在可选范围里）",
+      "field": {
+        "0": {"hand": [100001000], "deck": [100001200, 100001100, 15025844]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "summon", "card": 100001000},
+        {"player": 0, "do": "activate", "card": 100001000},
+        {"player": 0, "do": "select", "cards": [100001100]},
+        {"check": "count", "player": 0, "in": "hand", "card": 100001100, "eq": 1},
+        {"check": "count", "player": 0, "in": "deck", "card": 100001200, "eq": 1}
+      ]
+    },
+    {
+      "name": "星光裁决：对方发动效果时，那个发动无效并破坏",
+      "field": {"0": {"hand": [55144522]}, "1": {"szone": [100001200]}},
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 55144522},
+        {"player": 1, "do": "activate", "card": 100001200},
+        {"check": "event", "name": "chain_negated", "eq": 1},
+        {"check": "drawn", "player": 0, "eq": 0},
+        {"check": "count", "player": 1, "in": "grave", "card": 100001200, "eq": 1}
+      ]
+    },
+    {
+      "name": "星光之龙：1回合1次，以对方场上1张卡为对象破坏",
+      "field": {"0": {"mzone": [100001300]}, "1": {"mzone": [15025844, 89631139]}},
+      "actions": [
+        {"player": 0, "do": "activate", "card": 100001300},
+        {"player": 0, "do": "select", "cards": [89631139]},
+        {"check": "count", "player": 1, "in": "grave", "card": 89631139, "eq": 1},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 1},
+        {"check": "offered", "card": 100001300, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

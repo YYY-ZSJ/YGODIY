@@ -1,0 +1,38 @@
+{
+  "card": 10045474,
+  "scenarios": [
+    {
+      "name": "无限泡影：自己场上没有卡时从手卡发动，对方怪兽的效果无效",
+      "field": {"0": {"hand": [26202165]}, "1": {"hand": [10045474]}},
+      "actions": [
+        {"player": 0, "do": "summon", "card": 26202165},
+        {"player": 1, "do": "activate", "card": 10045474},
+        {"player": 1, "do": "select", "cards": [26202165]},
+        {"check": "disabled", "player": 0, "card": 26202165, "eq": true},
+        {"check": "count", "player": 1, "in": "grave", "card": 10045474, "eq": 1}
+      ]
+    },
+    {
+      "name": "无限泡影：自己场上有卡时不能从手卡发动",
+      "field": {"0": {"hand": [26202165]}, "1": {"hand": [10045474], "mzone": [15025844]}},
+      "actions": [
+        {"player": 0, "do": "summon", "card": 26202165},
+        {"check": "offered", "player": 1, "card": 10045474, "as": "chain", "eq": false}
+      ]
+    },
+    {
+      "name": "无限泡影：盖放发动时，同一纵列的其他魔法·陷阱卡效果也无效",
+      "field": {
+        "0": {"hand": [26202165], "szone": [{"code": 4542651, "seq": 2, "pos": "faceup"}]},
+        "1": {"szone": [{"code": 10045474, "seq": 2}]}
+      },
+      "actions": [
+        {"player": 0, "do": "summon", "card": 26202165},
+        {"player": 1, "do": "activate", "card": 10045474},
+        {"player": 1, "do": "select", "cards": [26202165]},
+        {"check": "disabled", "player": 0, "card": 26202165, "eq": true},
+        {"check": "disabled", "player": 0, "card": 4542651, "in": "szone", "eq": true}
+      ]
+    }
+  ]
+}

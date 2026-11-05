@@ -1,0 +1,21 @@
+{
+  "card": 44095762,
+  "scenarios": [
+    {
+      "name": "反射镜力：对方攻击宣言时发动，对方攻击表示怪兽全部破坏，守备表示的留下",
+      "field": {
+        "0": {"mzone": [89631139, 46986414, {"code": 15025844, "pos": "defense"}]},
+        "1": {"szone": [44095762]}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 89631139},
+        {"player": 1, "do": "activate", "card": 44095762},
+        {"check": "count", "player": 0, "in": "mzone", "eq": 1},
+        {"check": "count", "player": 0, "in": "mzone", "card": 15025844, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "eq": 2},
+        {"check": "lp", "player": 1, "eq": 8000}
+      ]
+    }
+  ]
+}

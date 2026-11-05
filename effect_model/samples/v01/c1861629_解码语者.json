@@ -1,0 +1,17 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 1861629, "name": "解码语者", "kind": "monster", "subtypes": ["effect", "link"]},
+  "summon": {"method": "link", "filter": [{"subtype": "effect"}], "min": 2},
+  "effects": [
+    {"type": "continuous",
+     "apply": {"what": "atk_change", "affects": {"ref": "self"}, "value": {"per": "linked_monsters", "times": 500}}},
+    {"type": "quick",
+     "on": {"event": "activation", "by": "opp", "kinds": ["spell", "trap", "monster"],
+            "targets": {"who": "you", "where": ["field"]}},
+     "cost": [{"act": "release", "what": {"who": "you", "where": ["linked"], "filter": [{"card_type": "monster"}], "count": 1}}],
+     "do": [
+       {"act": "negate_activation", "what": {"ref": "chain"}},
+       {"act": "destroy", "link": "and", "what": {"ref": "chain"}}
+     ]}
+  ]
+}

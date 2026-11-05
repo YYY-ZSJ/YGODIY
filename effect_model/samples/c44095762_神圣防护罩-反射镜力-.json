@@ -1,0 +1,39 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 44095762,
+  "name": "神圣防护罩 -反射镜力-",
+  "kind": "trap",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "on": {
+    "event": "attack_declared",
+    "by": "opp"
+   },
+   "timing": "when",
+   "do": [
+    {
+     "act": "destroy",
+     "what": {
+      "who": "opp",
+      "where": [
+       "mzone"
+      ],
+      "filter": [
+       {
+        "position": "attack"
+       }
+      ],
+      "count": "all"
+     }
+    }
+   ]
+  }
+ ]
+}

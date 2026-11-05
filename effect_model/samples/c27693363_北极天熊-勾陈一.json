@@ -1,0 +1,158 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 27693363,
+  "name": "北极天熊-勾陈一",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "synchro"
+  ]
+ },
+ "summon": {
+  "cannot": [
+   "synchro"
+  ],
+  "proper": "only",
+  "procedures": [
+   {
+    "id": "p1",
+    "kind": "special",
+    "from": [
+     "extra"
+    ],
+    "cost": [
+     {
+      "act": "send_to_gy",
+      "what": {
+       "who": "you",
+       "where": [
+        "mzone"
+       ],
+       "count": 2,
+       "relation": {
+        "roles": [
+         {
+          "filter": [
+           {
+            "subtype": "tuner"
+           }
+          ],
+          "count": 1
+         },
+         {
+          "filter": [
+           {
+            "not": {
+             "subtype": "tuner"
+            }
+           }
+          ],
+          "count": 1
+         }
+        ],
+        "diff": {
+         "stat": "level",
+         "value": 1
+        }
+       }
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "limits": {
+  "l1": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  },
+  "l2": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "trigger",
+   "limit": "l1",
+   "on": {
+    "event": "special_summon_success",
+    "subject": {
+     "ref": "self"
+    }
+   },
+   "timing": "if",
+   "do": [
+    {
+     "act": "activate_from_deck",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "name": 89264428
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "ignition",
+   "limit": "l2",
+   "cost": [
+    {
+     "act": "release",
+     "what": {
+      "who": "you",
+      "where": [
+       "mzone"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "level": [
+         ">=",
+         7
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "one_of",
+     "acts": [
+      "add_to_hand",
+      "special_summon"
+     ],
+     "what": {
+      "who": "you",
+      "where": [
+       "grave"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "set": "北极天熊",
+        "setcode": "0x163"
+       },
+       {
+        "card_type": "monster"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

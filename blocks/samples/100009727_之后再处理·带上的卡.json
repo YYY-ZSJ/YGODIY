@@ -1,0 +1,67 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009727,
+  "name": "积木·一时苏生",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "special_summon",
+     "position": "faceup",
+     "to": "you",
+     "ignore": "",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "grave",
+       "count": 1,
+       "upto": "",
+       "different": "",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ],
+       "count_n": []
+      }
+     ]
+    },
+    {
+     "block": "delay",
+     "when": "this_end",
+     "carry": "yes",
+     "body": [
+      {
+       "block": "destroy",
+       "cards": [
+        {
+         "block": "carried"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

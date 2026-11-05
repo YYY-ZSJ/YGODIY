@@ -1,0 +1,26 @@
+{
+  "card": 72302403,
+  "scenarios": [
+    {
+      "name": "光之护封剑：里侧怪兽翻开、对方不能攻击、对方第3个结束阶段破坏",
+      "field": {
+        "0": {"hand": [72302403]},
+        "1": {"mzone": [{"code": 15025844, "pos": "facedown_defense"}, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 72302403},
+        {"check": "faceup", "player": 1, "card": 15025844, "eq": true},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "battle"},
+        {"check": "offered", "card": 89631139, "as": "attack", "eq": false},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "szone", "card": 72302403, "eq": 1},
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "grave", "card": 72302403, "eq": 1}
+      ]
+    }
+  ]
+}

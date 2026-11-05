@@ -1,0 +1,50 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009719,
+  "name": "积木·卡名不同检索",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "to_hand",
+     "to": "",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "deck",
+       "count": 2,
+       "upto": "",
+       "different": "yes",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ],
+       "count_n": []
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

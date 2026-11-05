@@ -1,0 +1,79 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009711,
+  "name": "积木·双方除外陷阱",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "quick_o",
+   "event": "free",
+   "event_player": "any",
+   "range": "hand",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [
+    {
+     "block": "all_of",
+     "items": [
+      {
+       "block": "turn",
+       "player": "opp"
+      },
+      {
+       "block": "phase",
+       "phase": "main"
+      }
+     ]
+    }
+   ],
+   "cost": [
+    {
+     "block": "discard",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ]
+    }
+   ],
+   "target": [],
+   "operation": [
+    {
+     "block": "each_player",
+     "body": [
+      {
+       "block": "banish",
+       "face": "up",
+       "temp": "",
+       "cards": [
+        {
+         "block": "pick",
+         "who": "you",
+         "where": "deck",
+         "count": 1,
+         "upto": "",
+         "different": "",
+         "filter": [
+          {
+           "block": "f_kind",
+           "kind": "trap"
+          }
+         ],
+         "count_n": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

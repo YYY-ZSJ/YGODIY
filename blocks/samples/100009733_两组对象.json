@@ -1,0 +1,75 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009733,
+  "name": "积木·一换一",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [
+    {
+     "block": "take_target",
+     "count": 1,
+     "as": "A",
+     "source": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "mzone",
+       "filter": []
+      }
+     ]
+    },
+    {
+     "block": "take_target",
+     "count": 1,
+     "as": "B",
+     "source": [
+      {
+       "block": "all",
+       "who": "opp",
+       "where": "mzone",
+       "filter": []
+      }
+     ]
+    }
+   ],
+   "operation": [
+    {
+     "block": "to_hand",
+     "to": "",
+     "cards": [
+      {
+       "block": "target",
+       "name": "A"
+      }
+     ]
+    },
+    {
+     "block": "destroy",
+     "cards": [
+      {
+       "block": "target",
+       "name": "B"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

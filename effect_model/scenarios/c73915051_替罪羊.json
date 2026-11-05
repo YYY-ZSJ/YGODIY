@@ -1,0 +1,28 @@
+{
+  "card": 73915051,
+  "scenarios": [
+    {
+      "name": "替罪羊：守备表示特殊召唤4只羊衍生物，这个回合不能召唤",
+      "field": {
+        "0": {"hand": [73915051, 76812113]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 73915051},
+        {"check": "count", "player": 0, "in": "mzone", "eq": 4},
+        {"check": "offered", "card": 76812113, "as": "summon", "eq": false}
+      ]
+    },
+    {
+      "name": "替罪羊：召唤过的回合不能发动",
+      "field": {
+        "0": {"hand": [73915051, 76812113]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "summon", "card": 76812113},
+        {"check": "offered", "card": 73915051, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

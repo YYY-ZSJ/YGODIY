@@ -1,0 +1,31 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009761,
+  "name": "积木·接触融合",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "fusion_materials",
+   "count": 1,
+   "more": "",
+   "contact": "deck",
+   "first": [
+    {
+     "block": "f_name",
+     "code": 756652,
+     "name": ""
+    }
+   ],
+   "second": [
+    {
+     "block": "f_name",
+     "code": 549481,
+     "name": ""
+    }
+   ],
+   "third": []
+  }
+ ]
+}

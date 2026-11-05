@@ -1,0 +1,36 @@
+{
+  "card": 40605147,
+  "scenarios": [
+    {
+      "name": "神之通告：怪兽效果发动时支付1500，那个发动无效",
+      "field": {
+        "0": {"hand": [74117290], "szone": [40605147]},
+        "1": {"hand": [14558127]}
+      },
+      "actions": [
+        {"mark": true},
+        {"player": 0, "do": "activate", "card": 74117290},
+        {"player": 1, "do": "activate", "card": 14558127},
+        {"player": 0, "do": "activate", "card": 40605147},
+        {"check": "event", "name": "chain_negated", "eq": 1},
+        {"check": "lp", "player": 0, "eq": 6500},
+        {"check": "drawn", "player": 0, "eq": 1}
+      ]
+    },
+    {
+      "name": "神之通告：特殊召唤之际，那次特殊召唤无效，那只怪兽破坏",
+      "field": {
+        "0": {"szone": [40605147], "mzone": [89631139]},
+        "1": {"hand": [70095154]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "spsummon", "card": 70095154},
+        {"player": 0, "do": "activate", "card": 40605147},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 0},
+        {"check": "count", "player": 1, "in": "grave", "card": 70095154, "eq": 1},
+        {"check": "lp", "player": 0, "eq": 6500}
+      ]
+    }
+  ]
+}

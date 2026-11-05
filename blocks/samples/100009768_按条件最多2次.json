@@ -1,0 +1,57 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009768,
+  "name": "积木·两次",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "card",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [
+    {
+     "block": "exists",
+     "cards": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "mzone",
+       "filter": [
+        {
+         "block": "f_name",
+         "code": 756652,
+         "name": ""
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "damage",
+     "player": "opp",
+     "amount": [
+      {
+       "block": "num",
+       "value": 100
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

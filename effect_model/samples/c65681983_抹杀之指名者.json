@@ -1,0 +1,85 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 65681983,
+  "name": "抹杀之指名者",
+  "kind": "spell",
+  "subtypes": [
+   "quickplay"
+  ]
+ },
+ "limits": {
+  "l1": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1,
+   "unit": "activate_card"
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "limit": "l1",
+   "declare": [
+    {
+     "as": "named",
+     "kind": "card_name",
+     "domain": {
+      "who": "you",
+      "where": [
+       "deck"
+      ]
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "banish",
+     "as": "x",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "name": {
+         "ref": "named"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "act": "apply_continuous",
+     "until": "end_of_turn",
+     "apply": {
+      "cont": "effects_disabled",
+      "scope": "dynamic",
+      "affects": {
+       "any": [
+        {
+         "ref": "x"
+        },
+        {
+         "who": "both",
+         "filter": [
+          {
+           "original_name": {
+            "same_as": {
+             "ref": "x"
+            }
+           }
+          }
+         ]
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

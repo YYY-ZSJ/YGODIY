@@ -1,0 +1,61 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 70791313,
+  "name": "王立魔法图书馆",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "counters": {
+  "spell": {
+   "max": 3
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "on": {
+    "event": "effect_activated",
+    "what": "card",
+    "kinds": [
+     "spell"
+    ],
+    "by": "both"
+   },
+   "do": [
+    {
+     "act": "add_counter",
+     "counter": "spell",
+     "count": 1,
+     "what": {
+      "ref": "self"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "ignition",
+   "cost": [
+    {
+     "act": "remove_counter",
+     "counter": "spell",
+     "count": 3,
+     "from": {
+      "ref": "self"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "draw",
+     "player": "you",
+     "count": 1
+    }
+   ]
+  }
+ ]
+}

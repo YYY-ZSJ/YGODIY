@@ -1,0 +1,101 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 71625222,
+  "name": "时间魔术师",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "limits": {
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "ignition",
+   "limit": "l1",
+   "do": [
+    {
+     "act": "toss_coin",
+     "count": 1,
+     "call": true,
+     "as": "coin"
+    },
+    {
+     "act": "branch",
+     "cases": [
+      {
+       "if": {
+        "cond": "die_coin_result",
+        "of": {
+         "ref": "coin"
+        },
+        "called_right": true
+       },
+       "do": [
+        {
+         "act": "destroy",
+         "what": {
+          "who": "opp",
+          "where": [
+           "mzone"
+          ],
+          "count": "all"
+         }
+        }
+       ]
+      },
+      {
+       "if": {
+        "cond": "die_coin_result",
+        "of": {
+         "ref": "coin"
+        },
+        "called_right": false
+       },
+       "do": [
+        {
+         "act": "destroy",
+         "what": {
+          "who": "you",
+          "where": [
+           "mzone"
+          ],
+          "count": "all"
+         },
+         "as": "d"
+        },
+        {
+         "act": "damage",
+         "link": "and_if_you_do",
+         "player": "you",
+         "amount": {
+          "half": {
+           "sum": "atk",
+           "of": {
+            "ref": "d",
+            "filter": [
+             {
+              "previous": {
+               "face": "up"
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

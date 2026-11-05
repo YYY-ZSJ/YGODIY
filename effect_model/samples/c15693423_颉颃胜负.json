@@ -1,0 +1,89 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 15693423,
+  "name": "颉颃胜负",
+  "kind": "trap",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "rules": [
+  {
+   "rule": "activate_from_hand",
+   "condition": [
+    {
+     "cond": "card_count",
+     "sel": {
+      "who": "you",
+      "where": [
+       "field"
+      ]
+     },
+     "cmp": [
+      "==",
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "on": {
+    "event": "phase_end",
+    "phase": "battle",
+    "turn": "any"
+   },
+   "timing": "when",
+   "condition": [
+    {
+     "cond": "value_compare",
+     "left": {
+      "count": {
+       "who": "opp",
+       "where": [
+        "field"
+       ]
+      }
+     },
+     "op": ">",
+     "right": {
+      "count": {
+       "who": "you",
+       "where": [
+        "field"
+       ]
+      }
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "banish",
+     "face": "down",
+     "by": "opp",
+     "what": {
+      "who": "opp",
+      "where": [
+       "field"
+      ],
+      "chooser": "opp",
+      "count": {
+       "until_equal": {
+        "count": {
+         "who": "you",
+         "where": [
+          "field"
+         ]
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

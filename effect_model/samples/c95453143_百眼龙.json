@@ -1,0 +1,131 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 95453143,
+  "name": "百眼龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "synchro"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "synchro",
+   "tuner": {
+    "count": 1,
+    "filter": [
+     {
+      "attribute": "dark"
+     }
+    ]
+   },
+   "nontuner": {
+    "min": 1,
+    "filter": [
+     {
+      "race": "fiend"
+     }
+    ]
+   }
+  }
+ },
+ "limits": {
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "ignition",
+   "limit": "l1",
+   "cost": [
+    {
+     "act": "banish",
+     "as": "paid",
+     "what": {
+      "who": "you",
+      "where": [
+       "grave"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "level": [
+         "<=",
+         6
+        ]
+       },
+       {
+        "attribute": "dark"
+       },
+       {
+        "subtype": "effect"
+       }
+      ]
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "copy_effect",
+     "to": {
+      "ref": "self"
+     },
+     "from": {
+      "ref": "paid",
+      "snapshot": "cost"
+     },
+     "fields": [
+      "name",
+      "effects"
+     ],
+     "original": true,
+     "until": "end_phase"
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "trigger",
+   "optional": false,
+   "range": [
+    "grave"
+   ],
+   "on": {
+    "event": "sent_to_gy",
+    "subject": {
+     "ref": "self"
+    },
+    "reason": [
+     "destroyed"
+    ]
+   },
+   "timing": "if",
+   "do": [
+    {
+     "act": "add_to_hand",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "set": "地缚神",
+        "setcode": "0x1021"
+       },
+       {
+        "card_type": "monster"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

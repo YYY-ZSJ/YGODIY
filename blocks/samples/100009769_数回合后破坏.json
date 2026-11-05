@@ -1,0 +1,68 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009769,
+  "name": "积木·倒数",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "listener",
+   "event": "end",
+   "event_player": "opp",
+   "range": "szone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "set_flag",
+     "on": "card",
+     "name": 1,
+     "reset": "permanent"
+    },
+    {
+     "block": "if",
+     "cond": [
+      {
+       "block": "compare",
+       "op": ">=",
+       "left": [
+        {
+         "block": "flag_count",
+         "on": "card",
+         "name": 1
+        }
+       ],
+       "right": [
+        {
+         "block": "num",
+         "value": 2
+        }
+       ]
+      }
+     ],
+     "then": [
+      {
+       "block": "destroy",
+       "cards": [
+        {
+         "block": "this_card"
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ ]
+}

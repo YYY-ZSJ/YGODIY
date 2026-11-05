@@ -1,0 +1,32 @@
+{
+  "card": 36717258,
+  "scenarios": [
+    {
+      "name": "朱罗纪单脊龙：可以向对方怪兽全部各作1次攻击",
+      "field": {
+        "0": {"mzone": [36717258]},
+        "1": {"mzone": [756652, 756652]}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 36717258, "target": 756652},
+        {"player": 0, "do": "attack", "card": 36717258, "target": 756652},
+        {"check": "count", "player": 1, "in": "grave", "eq": 2},
+        {"check": "lp", "player": 1, "eq": 6800}
+      ]
+    },
+    {
+      "name": "朱罗纪单脊龙：对方没有怪兽时不能直接攻击第2次（只能向怪兽各攻击1次）",
+      "field": {
+        "0": {"mzone": [36717258]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 36717258},
+        {"check": "offered", "card": 36717258, "as": "attack", "eq": false},
+        {"check": "lp", "player": 1, "eq": 6500}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 44508094, "name": "星尘龙", "kind": "monster", "subtypes": ["effect", "synchro"]},
+  "summon": {"method": "synchro", "min": 1},
+  "effects": [
+    {"id": "negate", "type": "quick",
+     "on": {"event": "activation", "kinds": ["spell", "trap", "monster"], "destroys_on_field": true},
+     "cost": [{"act": "release", "what": {"ref": "self"}}],
+     "do": [
+       {"act": "negate_activation", "what": {"ref": "chain"}},
+       {"act": "destroy", "link": "and", "what": {"ref": "chain"}}
+     ]},
+    {"type": "trigger", "optional": true, "from": ["grave"],
+     "on": {"event": "phase", "phase": "end"},
+     "condition": [{"applied_this_turn": "negate"}],
+     "do": [{"act": "special_summon", "what": {"ref": "self"}}]}
+  ]
+}

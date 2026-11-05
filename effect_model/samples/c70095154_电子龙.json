@@ -1,0 +1,48 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 70095154,
+  "name": "电子龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "procedure",
+   "range": [
+    "hand"
+   ],
+   "condition": [
+    {
+     "cond": "card_count",
+     "sel": {
+      "who": "you",
+      "where": [
+       "mzone"
+      ]
+     },
+     "cmp": [
+      "==",
+      0
+     ]
+    },
+    {
+     "cond": "card_count",
+     "sel": {
+      "who": "opp",
+      "where": [
+       "mzone"
+      ]
+     },
+     "cmp": [
+      ">=",
+      1
+     ]
+    }
+   ]
+  }
+ ]
+}

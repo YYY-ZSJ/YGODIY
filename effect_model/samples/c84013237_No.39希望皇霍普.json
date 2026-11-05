@@ -1,0 +1,80 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 84013237,
+  "name": "No.39 希望皇 霍普",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "xyz"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "xyz",
+   "level": 4,
+   "count": 2
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "trigger",
+   "range": [
+    "mzone"
+   ],
+   "optional": true,
+   "on": {
+    "event": "attack_declared",
+    "by": "any"
+   },
+   "timing": "when",
+   "cost": [
+    {
+     "act": "detach_xyz_material",
+     "count": 1,
+     "from": {
+      "ref": "self"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "negate_attack"
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "trigger",
+   "optional": false,
+   "on": {
+    "event": "becomes_attack_target",
+    "subject": {
+     "ref": "self"
+    }
+   },
+   "timing": "if",
+   "condition": [
+    {
+     "cond": "material_possession",
+     "what": {
+      "ref": "self"
+     },
+     "cmp": [
+      "==",
+      0
+     ]
+    }
+   ],
+   "do": [
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "self"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,153 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 10443957,
+  "name": "电子龙·无限",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "xyz"
+  ]
+ },
+ "summon": {
+  "materials": {
+   "method": "xyz",
+   "filter": [
+    {
+     "race": "machine"
+    },
+    {
+     "attribute": "light"
+    }
+   ],
+   "level": 6,
+   "count": 3
+  },
+  "procedures": [
+   {
+    "id": "p1",
+    "kind": "xyz_overlay",
+    "limit": "l0",
+    "on": {
+     "who": "you",
+     "where": [
+      "mzone"
+     ],
+     "face": "up",
+     "filter": [
+      {
+       "name": 58069384
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "limits": {
+  "l0": {
+   "scope": "name",
+   "per": "turn",
+   "n": 1,
+   "unit": "procedure"
+  },
+  "l1": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  },
+  "l2": {
+   "scope": "card",
+   "per": "turn",
+   "n": 1
+  }
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "atk_update",
+    "affects": {
+     "ref": "self"
+    },
+    "value": {
+     "mul": [
+      {
+       "count": {
+        "ref": "overlay"
+       }
+      },
+      200
+     ]
+    }
+   }
+  },
+  {
+   "id": "e2",
+   "type": "ignition",
+   "limit": "l1",
+   "target": [
+    {
+     "as": "t",
+     "sel": {
+      "who": "both",
+      "where": [
+       "mzone"
+      ],
+      "position": "faceup_attack",
+      "count": 1
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "attach_xyz_material",
+     "what": {
+      "ref": "t"
+     },
+     "to": {
+      "ref": "self"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e3",
+   "type": "quick",
+   "limit": "l2",
+   "on": {
+    "event": "effect_activated",
+    "kinds": [
+     "spell",
+     "trap",
+     "monster"
+    ]
+   },
+   "timing": "when",
+   "cost": [
+    {
+     "act": "detach_xyz_material",
+     "from": {
+      "ref": "self"
+     },
+     "count": 1
+    }
+   ],
+   "do": [
+    {
+     "act": "negate_activation",
+     "what": {
+      "ref": "chain"
+     }
+    },
+    {
+     "act": "destroy",
+     "what": {
+      "ref": "chain.card"
+     },
+     "link": "and_if_you_do"
+    }
+   ]
+  }
+ ]
+}

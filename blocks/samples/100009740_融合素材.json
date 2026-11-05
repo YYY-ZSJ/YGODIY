@@ -1,0 +1,29 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009740,
+  "name": "积木·龙骑士",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "fusion_materials",
+   "count": 1,
+   "more": "",
+   "contact": "",
+   "first": [
+    {
+     "block": "f_race",
+     "race": "warrior"
+    }
+   ],
+   "second": [
+    {
+     "block": "f_race",
+     "race": "dragon"
+    }
+   ],
+   "third": []
+  }
+ ]
+}

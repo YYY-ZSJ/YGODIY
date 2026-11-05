@@ -1,0 +1,19 @@
+{
+  "card": 21015833,
+  "scenarios": [
+    {
+      "name": "隼骑士：同1次的战斗阶段中可以作2次攻击",
+      "field": {
+        "0": {"mzone": [21015833]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "attack", "card": 21015833},
+        {"player": 0, "do": "attack", "card": 21015833},
+        {"check": "lp", "player": 1, "eq": 6000},
+        {"check": "offered", "card": 21015833, "as": "attack", "eq": false}
+      ]
+    }
+  ]
+}

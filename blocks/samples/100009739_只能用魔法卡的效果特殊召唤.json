@@ -1,0 +1,21 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009739,
+  "name": "积木·魔法苏生限定",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "summon_rule",
+   "normal": "no",
+   "special": "by_cards",
+   "by": [
+    {
+     "block": "f_kind",
+     "kind": "spell"
+    }
+   ]
+  }
+ ]
+}

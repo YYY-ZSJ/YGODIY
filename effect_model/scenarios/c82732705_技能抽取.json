@@ -1,0 +1,18 @@
+{
+  "card": 82732705,
+  "scenarios": [
+    {
+      "name": "技能抽取：支付1000发动，场上的表侧表示怪兽的效果无效",
+      "field": {
+        "0": {"szone": [82732705], "mzone": [70791313]},
+        "1": {"mzone": [26202165]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 82732705},
+        {"check": "lp", "player": 0, "eq": 7000},
+        {"check": "disabled", "player": 1, "card": 26202165, "eq": true},
+        {"check": "disabled", "player": 0, "card": 70791313, "eq": true}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 46052429,
+  "name": "高等仪式术",
+  "kind": "spell",
+  "subtypes": [
+   "ritual"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "do": [
+    {
+     "act": "perform_summon",
+     "method": "ritual",
+     "monster": {
+      "who": "you",
+      "where": [
+       "hand"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "subtype": "ritual"
+       },
+       {
+        "card_type": "monster"
+       }
+      ]
+     },
+     "materials": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "filter": [
+       {
+        "subtype": "normal"
+       },
+       {
+        "card_type": "monster"
+       }
+      ],
+      "destination": "grave"
+     },
+     "value": {
+      "stat": "level",
+      "op": "=="
+     }
+    }
+   ]
+  }
+ ]
+}

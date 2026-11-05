@@ -1,0 +1,19 @@
+{
+  "card": 81674782,
+  "scenarios": [
+    {
+      "name": "次元的裂缝：被送去墓地的怪兽不去墓地而除外",
+      "field": {
+        "0": {"hand": [81674782, 12580477]},
+        "1": {"mzone": [89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 81674782},
+        {"player": 0, "do": "activate", "card": 12580477},
+        {"check": "count", "player": 1, "in": "banished", "eq": 2},
+        {"check": "count", "player": 1, "in": "grave", "eq": 0},
+        {"check": "count", "player": 0, "in": "grave", "card": 12580477, "eq": 1}
+      ]
+    }
+  ]
+}

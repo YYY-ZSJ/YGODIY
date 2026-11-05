@@ -1,0 +1,51 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 10118318,
+  "name": "休战增援",
+  "kind": "trap",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "restrict": [
+    {
+     "span": "whole_turn",
+     "forbid": [
+      "battle_phase"
+     ]
+    }
+   ],
+   "do": [
+    {
+     "act": "special_summon",
+     "what": {
+      "who": "you",
+      "where": [
+       "deck"
+      ],
+      "count": 1,
+      "filter": [
+       {
+        "card_type": "monster"
+       },
+       {
+        "level": [
+         "<=",
+         2
+        ]
+       },
+       {
+        "race": "warrior"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

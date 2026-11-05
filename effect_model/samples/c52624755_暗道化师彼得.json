@@ -1,0 +1,53 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 52624755,
+  "name": "暗道化师 彼得",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "trigger",
+   "range": [
+    "grave"
+   ],
+   "on": {
+    "event": "sent_to_gy",
+    "subject": {
+     "ref": "self"
+    }
+   },
+   "timing": "when",
+   "cost": [
+    {
+     "act": "banish",
+     "what": {
+      "ref": "self"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "special_summon",
+     "what": {
+      "who": "you",
+      "where": [
+       "hand",
+       "deck"
+      ],
+      "filter": [
+       {
+        "name": 52624755
+       }
+      ],
+      "count": 1
+     }
+    }
+   ]
+  }
+ ]
+}

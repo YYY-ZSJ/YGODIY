@@ -1,0 +1,33 @@
+{
+  "card": 44508094,
+  "scenarios": [
+    {
+      "name": "星尘龙：解放自身无效破坏效果；结束阶段从墓地回来",
+      "field": {
+        "0": {"mzone": [44508094], "szone": [55144522], "hand": [69140098]},
+        "1": {"szone": [5318639]}
+      },
+      "actions": [
+        {"player": 0, "do": "summon", "card": 69140098},
+        {"player": 1, "do": "activate", "card": 5318639},
+        {"player": 1, "do": "select", "cards": [55144522]},
+        {"player": 0, "do": "activate", "card": 44508094},
+        {"check": "count", "player": 1, "in": "grave", "card": 5318639, "eq": 1},
+        {"check": "count", "player": 0, "in": "szone", "card": 55144522, "eq": 1},
+        {"check": "count", "player": 0, "in": "grave", "card": 44508094, "eq": 1},
+        {"player": 0, "do": "end_turn"},
+        {"player": 0, "do": "activate", "card": 44508094},
+        {"check": "count", "player": 0, "in": "mzone", "card": 44508094, "eq": 1}
+      ]
+    },
+    {
+      "name": "星尘龙：①没有适用过的回合，结束阶段不会回来",
+      "field": {"0": {"hand": [53129443], "mzone": [44508094]}, "1": {"mzone": [15025844]}},
+      "actions": [
+        {"player": 0, "do": "activate", "card": 53129443},
+        {"player": 0, "do": "end_turn"},
+        {"check": "count", "player": 0, "in": "grave", "card": 44508094, "eq": 1}
+      ]
+    }
+  ]
+}

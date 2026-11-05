@@ -1,0 +1,44 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009763,
+  "name": "积木·偷天换日",
+  "kind": "trap"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "chaining",
+   "event_player": "opp",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "change_chain_effect",
+     "body": [
+      {
+       "block": "recover",
+       "player": "you",
+       "amount": [
+        {
+         "block": "num",
+         "value": 1000
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

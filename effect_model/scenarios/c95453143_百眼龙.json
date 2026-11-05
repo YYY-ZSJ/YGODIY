@@ -1,0 +1,31 @@
+{
+  "card": 95453143,
+  "scenarios": [
+    {
+      "name": "百眼龙①：除外墓地的暗属性效果怪兽，得到它的卡名和效果",
+      "field": {
+        "0": {"mzone": [95453143], "grave": [13093792]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 95453143},
+        {"check": "count", "player": 0, "in": "banished", "card": 13093792, "eq": 1},
+        {"check": "offered", "card": 95453143, "as": "activate", "eq": true},
+        {"player": 0, "do": "activate", "card": 95453143},
+        {"check": "offered", "card": 95453143, "as": "activate", "eq": false}
+      ]
+    },
+    {
+      "name": "百眼龙②：被破坏送去墓地时，从卡组把地缚神怪兽加入手卡",
+      "field": {
+        "0": {"mzone": [95453143], "deck": [5267507]},
+        "1": {"hand": [12580477]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "activate", "card": 12580477},
+        {"check": "count", "player": 0, "in": "hand", "card": 5267507, "eq": 1}
+      ]
+    }
+  ]
+}

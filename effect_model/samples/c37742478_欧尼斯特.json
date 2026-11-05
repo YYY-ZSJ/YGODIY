@@ -1,0 +1,74 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 37742478,
+  "name": "欧尼斯特",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "ignition",
+   "do": [
+    {
+     "act": "add_to_hand",
+     "what": {
+      "ref": "self"
+     }
+    }
+   ]
+  },
+  {
+   "id": "e2",
+   "type": "quick",
+   "range": [
+    "hand"
+   ],
+   "window": {
+    "phase": "damage_step",
+    "from": "start",
+    "to": "before_calc"
+   },
+   "condition": [
+    {
+     "cond": "battle_participant",
+     "side": "you",
+     "filter": [
+      {
+       "attribute": "light"
+      }
+     ]
+    }
+   ],
+   "cost": [
+    {
+     "act": "send_to_gy",
+     "what": {
+      "ref": "self"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "apply_continuous",
+     "until": "end_of_turn",
+     "apply": {
+      "cont": "atk_update",
+      "affects": {
+       "ref": "battle.you"
+      },
+      "value": {
+       "stat": "atk",
+       "of": {
+        "ref": "battle.opp"
+       }
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

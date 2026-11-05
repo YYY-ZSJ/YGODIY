@@ -1,0 +1,15 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "card": {"code": 26202165, "name": "三眼怪", "kind": "monster", "subtypes": ["effect"]},
+  "effects": [
+    {"type": "trigger", "optional": false,
+     "on": {"event": "sent_to_gy", "subject": "self", "from": ["field"]},
+     "limit": {"scope": "name"},
+     "do": [
+       {"act": "add_to_hand", "as": "added",
+        "what": {"who": "you", "where": ["deck"], "filter": [{"card_type": "monster"}, {"atk": ["<=", 1500]}], "count": 1}},
+       {"act": "apply", "link": "also", "duration": "this_turn",
+        "effect": {"what": "cannot_activate", "player": "you", "affects": {"same_name_as": "added"}}}
+     ]}
+  ]
+}

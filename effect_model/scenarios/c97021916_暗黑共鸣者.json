@@ -1,0 +1,20 @@
+{
+  "card": 97021916,
+  "scenarios": [
+    {
+      "name": "暗黑共鸣者：1回合只有1次不会被战斗破坏，第2次战斗被破坏",
+      "field": {
+        "0": {"mzone": [97021916]},
+        "1": {"mzone": [89631139, 89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"player": 1, "do": "battle"},
+        {"player": 1, "do": "attack", "card": 89631139, "target": 97021916},
+        {"check": "count", "player": 0, "in": "mzone", "card": 97021916, "eq": 1},
+        {"player": 1, "do": "attack", "card": 89631139, "target": 97021916},
+        {"check": "count", "player": 0, "in": "grave", "card": 97021916, "eq": 1}
+      ]
+    }
+  ]
+}

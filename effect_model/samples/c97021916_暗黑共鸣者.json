@@ -1,0 +1,28 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 97021916,
+  "name": "暗黑共鸣者",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "tuner"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "indestructible_count",
+    "affects": {
+     "ref": "self"
+    },
+    "by": [
+     "battle"
+    ],
+    "n": 1
+   }
+  }
+ ]
+}

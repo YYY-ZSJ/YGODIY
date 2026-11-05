@@ -1,0 +1,24 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 36717258,
+  "name": "朱罗纪单脊龙",
+  "kind": "monster",
+  "subtypes": [
+   "effect",
+   "tuner"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "attack_all",
+    "affects": {
+     "ref": "self"
+    }
+   }
+  }
+ ]
+}

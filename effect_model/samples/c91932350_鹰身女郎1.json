@@ -1,0 +1,35 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 91932350,
+  "name": "鹰身女郎1",
+  "kind": "monster",
+  "subtypes": [
+   "effect"
+  ],
+  "rule_names": [
+   76812113
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "continuous",
+   "apply": {
+    "cont": "atk_update",
+    "affects": {
+     "who": "both",
+     "where": [
+      "mzone"
+     ],
+     "filter": [
+      {
+       "attribute": "wind"
+      }
+     ]
+    },
+    "value": 300
+   }
+  }
+ ]
+}

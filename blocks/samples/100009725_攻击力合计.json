@@ -1,0 +1,47 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009725,
+  "name": "积木·合计伤害",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "damage",
+     "player": "opp",
+     "amount": [
+      {
+       "block": "sum_of",
+       "stat": "atk",
+       "cards": [
+        {
+         "block": "all",
+         "who": "you",
+         "where": "mzone",
+         "filter": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

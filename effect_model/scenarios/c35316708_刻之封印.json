@@ -1,0 +1,21 @@
+{
+  "card": 35316708,
+  "scenarios": [
+    {
+      "name": "刻之封印：下次的对方抽卡阶段跳过",
+      "field": {
+        "0": {"szone": [35316708]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "activate", "card": 35316708},
+        {"mark": true},
+        {"player": 0, "do": "end_turn"},
+        {"check": "drawn", "player": 1, "eq": 0},
+        {"player": 1, "do": "end_turn"},
+        {"player": 0, "do": "end_turn"},
+        {"check": "drawn", "player": 1, "eq": 1}
+      ]
+    }
+  ]
+}

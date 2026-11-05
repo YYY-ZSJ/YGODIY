@@ -1,0 +1,38 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009759,
+  "name": "积木·追加召唤",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "normal_summon",
+     "filter": [
+      {
+       "block": "f_race",
+       "race": "warrior"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

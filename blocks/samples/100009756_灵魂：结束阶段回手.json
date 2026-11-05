@@ -1,0 +1,15 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009756,
+  "name": "积木·灵魂",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "monster_trait",
+   "trait": "spirit",
+   "filter": []
+  }
+ ]
+}

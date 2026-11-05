@@ -1,0 +1,62 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 73915051,
+  "name": "替罪羊",
+  "kind": "spell",
+  "subtypes": [
+   "quickplay"
+  ]
+ },
+ "effects": [
+  {
+   "id": "e1",
+   "type": "activation",
+   "restrict": [
+    {
+     "span": "whole_turn",
+     "who": "you",
+     "forbid": [
+      "summon",
+      "flip_summon",
+      "special_summon"
+     ],
+     "except": {
+      "by_effect": "this_card"
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "create_token",
+     "count": 4,
+     "player": "you",
+     "position": "defense",
+     "as": "tokens",
+     "token": {
+      "code": 73915052,
+      "name": "羊衍生物",
+      "race": "beast",
+      "attribute": "earth",
+      "level": 1,
+      "atk": 0,
+      "def": 0
+     }
+    },
+    {
+     "act": "apply_continuous",
+     "until": "permanent",
+     "apply": {
+      "cont": "cannot_release",
+      "affects": {
+       "ref": "tokens"
+      },
+      "for": [
+       "tribute_summon"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

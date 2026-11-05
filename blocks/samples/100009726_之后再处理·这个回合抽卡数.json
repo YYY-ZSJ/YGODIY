@@ -1,0 +1,78 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009726,
+  "name": "积木·贪欲的代价",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "draw",
+     "player": "you",
+     "count": 2,
+     "count_n": []
+    },
+    {
+     "block": "delay",
+     "when": "this_end",
+     "carry": "",
+     "body": [
+      {
+       "block": "banish",
+       "face": "down",
+       "temp": "",
+       "cards": [
+        {
+         "block": "deck_top",
+         "who": "you",
+         "count": 1,
+         "count_n": [
+          {
+           "block": "turn_count",
+           "player": "you",
+           "what": "draw"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "block": "fail",
+       "body": [
+        {
+         "block": "draw",
+         "player": "opp",
+         "count": 1,
+         "count_n": [
+          {
+           "block": "turn_count",
+           "player": "you",
+           "what": "draw"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

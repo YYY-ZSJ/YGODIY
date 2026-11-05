@@ -1,0 +1,79 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009703,
+  "name": "积木·贪婪的观星者",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "trigger_f",
+   "event": "draw",
+   "event_player": "opp",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "register",
+     "code": "EFFECT_UPDATE_ATTACK",
+     "reset": "permanent",
+     "against": "any",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ],
+     "value": [
+      {
+       "block": "num",
+       "value": 100
+      }
+     ],
+     "value_cards": []
+    },
+    {
+     "block": "if",
+     "cond": [
+      {
+       "block": "compare",
+       "op": ">=",
+       "left": [
+        {
+         "block": "atk_of",
+         "card": [
+          {
+           "block": "this_card"
+          }
+         ]
+        }
+       ],
+       "right": [
+        {
+         "block": "num",
+         "value": 3000
+        }
+       ]
+      }
+     ],
+     "then": [
+      {
+       "block": "win",
+       "player": "you"
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ ]
+}

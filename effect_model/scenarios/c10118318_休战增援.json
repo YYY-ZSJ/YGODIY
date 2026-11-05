@@ -1,0 +1,30 @@
+{
+  "card": 10118318,
+  "scenarios": [
+    {
+      "name": "休战增援：从卡组特殊召唤2星以下的战士族怪兽，这个回合不能进行战斗阶段",
+      "field": {
+        "0": {"szone": [10118318], "deck": [76812113, 756652]},
+        "1": {}
+      },
+      "actions": [
+        {"check": "offered", "as": "battle_phase", "eq": true},
+        {"player": 0, "do": "activate", "card": 10118318},
+        {"check": "count", "player": 0, "in": "mzone", "card": 756652, "eq": 1},
+        {"check": "offered", "as": "battle_phase", "eq": false}
+      ]
+    },
+    {
+      "name": "休战增援：已经进行过战斗阶段的回合不能发动",
+      "field": {
+        "0": {"szone": [10118318], "deck": [756652]},
+        "1": {}
+      },
+      "actions": [
+        {"player": 0, "do": "battle"},
+        {"player": 0, "do": "main2"},
+        {"check": "offered", "card": 10118318, "as": "activate", "eq": false}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+ "schema": "ygodiy-effect/0.2",
+ "card": {
+  "code": 10045474,
+  "name": "无限泡影",
+  "kind": "trap",
+  "subtypes": [
+   "normal"
+  ]
+ },
+ "rules": [
+  {
+   "id": "e1",
+   "rule": "activate_from_hand",
+   "condition": [
+    {
+     "cond": "card_count",
+     "sel": {
+      "who": "you",
+      "where": [
+       "field"
+      ]
+     },
+     "cmp": [
+      "==",
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "id": "e2",
+   "type": "activation",
+   "target": [
+    {
+     "as": "t",
+     "sel": {
+      "who": "opp",
+      "where": [
+       "mzone"
+      ],
+      "filter": [
+       {
+        "position": "faceup"
+       }
+      ],
+      "count": 1
+     }
+    }
+   ],
+   "do": [
+    {
+     "act": "negate_card_effects",
+     "what": {
+      "ref": "t"
+     },
+     "until": "end_of_turn"
+    },
+    {
+     "act": "raw",
+     "link": "also",
+     "if": [
+      {
+       "cond": "self_location",
+       "where": [
+        "szone"
+       ],
+       "activated_from": "set"
+      }
+     ],
+     "zh": "再在这个回合中让和这张卡相同纵列的其他的魔法·陷阱卡的效果无效化",
+     "lua": [
+      "local e4=Effect.CreateEffect(c)",
+      "e4:SetType(EFFECT_TYPE_FIELD)",
+      "e4:SetCode(EFFECT_DISABLE)",
+      "e4:SetTargetRange(LOCATION_SZONE,LOCATION_SZONE)",
+      "e4:SetTarget(s.coldistg)",
+      "e4:SetReset(RESET_PHASE+PHASE_END)",
+      "e4:SetLabel(c:GetSequence(),c:GetFieldID())",
+      "Duel.RegisterEffect(e4,tp)",
+      "local e5=Effect.CreateEffect(c)",
+      "e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)",
+      "e5:SetCode(EVENT_CHAIN_SOLVING)",
+      "e5:SetOperation(s.coldisop)",
+      "e5:SetReset(RESET_PHASE+PHASE_END)",
+      "e5:SetLabel(c:GetSequence())",
+      "Duel.RegisterEffect(e5,tp)",
+      "local e6=Effect.CreateEffect(c)",
+      "e6:SetType(EFFECT_TYPE_FIELD)",
+      "e6:SetCode(EFFECT_DISABLE_TRAPMONSTER)",
+      "e6:SetTargetRange(LOCATION_MZONE,LOCATION_MZONE)",
+      "e6:SetTarget(s.coldistg)",
+      "e6:SetReset(RESET_PHASE+PHASE_END)",
+      "e6:SetLabel(c:GetSequence())",
+      "Duel.RegisterEffect(e6,tp)",
+      "Duel.Hint(HINT_ZONE,tp,0x1<<(c:GetSequence()+8))"
+     ],
+     "lua_functions": [
+      "function s.coldistg(e,c)",
+      "\tlocal seq,fid=e:GetLabel()",
+      "\tlocal tp=e:GetHandlerPlayer()",
+      "\treturn c:IsType(TYPE_SPELL+TYPE_TRAP) and aux.GetColumn(c,tp)==seq and c:GetFieldID()~=fid",
+      "end",
+      "function s.coldisop(e,tp,eg,ep,ev,re,r,rp)",
+      "\tlocal tseq=e:GetLabel()",
+      "\tlocal controller,loc,seq=Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_CONTROLER,CHAININFO_TRIGGERING_LOCATION,CHAININFO_TRIGGERING_SEQUENCE)",
+      "\tif loc&LOCATION_SZONE~=0 and seq<=4 and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)",
+      "\t\tand ((controller==tp and seq==tseq) or (controller==1-tp and seq==4-tseq)) then",
+      "\t\tDuel.NegateEffect(ev)",
+      "\tend",
+      "end"
+     ]
+    }
+   ]
+  }
+ ]
+}

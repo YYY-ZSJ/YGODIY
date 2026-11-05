@@ -1,0 +1,73 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009704,
+  "name": "积木·丢弃破坏",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [
+    {
+     "block": "discard",
+     "cards": [
+      {
+       "block": "pick",
+       "who": "you",
+       "where": "hand",
+       "count": 1,
+       "upto": "",
+       "different": "",
+       "filter": [],
+       "count_n": []
+      }
+     ]
+    }
+   ],
+   "target": [
+    {
+     "block": "take_target",
+     "count": 1,
+     "as": "T",
+     "source": [
+      {
+       "block": "all",
+       "who": "opp",
+       "where": "mzone",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "operation": [
+    {
+     "block": "destroy",
+     "cards": [
+      {
+       "block": "target",
+       "name": "T"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

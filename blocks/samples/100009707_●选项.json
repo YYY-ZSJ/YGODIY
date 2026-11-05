@@ -1,0 +1,77 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009707,
+  "name": "积木·二选一",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "choose",
+     "player": "you",
+     "options": [
+      {
+       "block": "option",
+       "text": "自己抽1张卡",
+       "cond": [],
+       "body": [
+        {
+         "block": "draw",
+         "player": "you",
+         "count": 1,
+         "count_n": []
+        }
+       ]
+      },
+      {
+       "block": "option",
+       "text": "给与对方500伤害",
+       "cond": [
+        {
+         "block": "exists",
+         "cards": [
+          {
+           "block": "all",
+           "who": "opp",
+           "where": "mzone",
+           "filter": []
+          }
+         ]
+        }
+       ],
+       "body": [
+        {
+         "block": "damage",
+         "player": "opp",
+         "amount": [
+          {
+           "block": "num",
+           "value": 500
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

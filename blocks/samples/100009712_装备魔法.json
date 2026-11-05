@@ -1,0 +1,89 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009712,
+  "name": "积木·装备之剑",
+  "kind": "spell",
+  "subtypes": [
+   "equip"
+  ]
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [
+    {
+     "block": "take_target",
+     "count": 1,
+     "as": "T",
+     "source": [
+      {
+       "block": "all",
+       "who": "both",
+       "where": "mzone",
+       "filter": [
+        {
+         "block": "f_position",
+         "position": "faceup"
+        },
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "operation": [
+    {
+     "block": "equip",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ],
+     "to": [
+      {
+       "block": "target",
+       "name": "T"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "block": "continuous",
+   "mode": "equipped",
+   "code": "EFFECT_UPDATE_ATTACK",
+   "range": "mzone",
+   "who": "you",
+   "where": "mzone",
+   "player": "you",
+   "against": "any",
+   "part": "monster",
+   "condition": [],
+   "value": [
+    {
+     "block": "num",
+     "value": 500
+    }
+   ],
+   "filter": [],
+   "value_cards": []
+  }
+ ]
+}

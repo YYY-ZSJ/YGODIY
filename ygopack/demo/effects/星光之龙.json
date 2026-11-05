@@ -1,0 +1,9 @@
+{
+  "schema": "ygodiy-effect/0.1",
+  "summon": {"method": "synchro", "min": 1},
+  "effects": [
+    {"type": "ignition", "limit": {"scope": "card"},
+     "target": [{"as": "t", "who": "opp", "where": ["field"], "count": 1}],
+     "do": [{"act": "destroy", "what": {"ref": "t"}}]}
+  ]
+}

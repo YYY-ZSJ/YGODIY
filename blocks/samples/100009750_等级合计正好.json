@@ -1,0 +1,67 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009750,
+  "name": "积木·等级合计",
+  "kind": "spell"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "activate",
+   "event": "free",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "select",
+     "player": "you",
+     "count": 1,
+     "as": "A",
+     "upto": "",
+     "different": "",
+     "sum": "level_eq",
+     "source": [
+      {
+       "block": "all",
+       "who": "you",
+       "where": "deck",
+       "filter": [
+        {
+         "block": "f_kind",
+         "kind": "monster"
+        }
+       ]
+      }
+     ],
+     "count_n": [],
+     "sum_n": [
+      {
+       "block": "num",
+       "value": 6
+      }
+     ]
+    },
+    {
+     "block": "send_to_gy",
+     "cards": [
+      {
+       "block": "var",
+       "name": "A"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

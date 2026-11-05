@@ -1,0 +1,30 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009732,
+  "name": "积木·魔法免疫",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "continuous",
+   "mode": "self",
+   "code": "EFFECT_INDESTRUCTABLE_EFFECT",
+   "range": "mzone",
+   "who": "you",
+   "where": "mzone",
+   "player": "you",
+   "against": "any",
+   "part": "monster",
+   "condition": [],
+   "value": [],
+   "filter": [],
+   "value_cards": [
+    {
+     "block": "f_kind",
+     "kind": "spell"
+    }
+   ]
+  }
+ ]
+}

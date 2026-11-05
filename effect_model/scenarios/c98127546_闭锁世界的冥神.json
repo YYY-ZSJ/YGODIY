@@ -1,0 +1,34 @@
+{
+  "card": 98127546,
+  "scenarios": [
+    {
+      "name": "冥神：用对方1只怪兽作连接素材，①对方场上的表侧表示怪兽效果无效",
+      "field": {
+        "0": {"mzone": [14558127, 37742478, 71625222, 70095154], "extra": [98127546]},
+        "1": {"mzone": [32841045, 70791313]}
+      },
+      "actions": [
+        {"player": 0, "do": "spsummon", "card": 98127546},
+        {"player": 0, "do": "select", "cards": [{"code": 14558127, "player": 0}, {"code": 37742478, "player": 0}, {"code": 71625222, "player": 0}, {"code": 70095154, "player": 0}, {"code": 32841045, "player": 1}]},
+        {"check": "count", "player": 0, "in": "mzone", "card": 98127546, "eq": 1},
+        {"check": "count", "player": 1, "in": "grave", "card": 32841045, "eq": 1},
+        {"check": "disabled", "player": 1, "card": 70791313, "eq": true}
+      ]
+    },
+    {
+      "name": "冥神③：对方发动包含从墓地特殊召唤的效果时，那个发动无效",
+      "field": {
+        "0": {"mzone": [98127546]},
+        "1": {"hand": [83764718], "grave": [89631139]}
+      },
+      "actions": [
+        {"player": 0, "do": "end_turn"},
+        {"mark": true},
+        {"player": 1, "do": "activate", "card": 83764718},
+        {"player": 0, "do": "activate", "card": 98127546},
+        {"check": "event", "name": "chain_negated", "eq": 1},
+        {"check": "count", "player": 1, "in": "mzone", "eq": 0}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+ "schema": "ygodiy-blocks/0.3",
+ "card": {
+  "code": 100009774,
+  "name": "积木·特召回合结束送墓",
+  "kind": "monster"
+ },
+ "effects": [
+  {
+   "block": "effect",
+   "type": "ignition",
+   "event": "free",
+   "event_player": "any",
+   "range": "hand",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "special_summon",
+     "position": "faceup",
+     "to": "you",
+     "ignore": "",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "block": "effect",
+   "type": "listener",
+   "event": "spsummon",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "set_flag",
+     "on": "card",
+     "name": 1,
+     "reset": "end_of_turn"
+    }
+   ]
+  },
+  {
+   "block": "effect",
+   "type": "trigger_f",
+   "event": "end",
+   "event_player": "any",
+   "range": "mzone",
+   "limit": "",
+   "limit_n": 1,
+   "damage_step": "",
+   "chain_limit": "",
+   "unstoppable": "",
+   "part": "monster",
+   "twice_when": [],
+   "condition": [
+    {
+     "block": "has_flag",
+     "on": "card",
+     "name": 1
+    }
+   ],
+   "cost": [],
+   "target": [],
+   "operation": [
+    {
+     "block": "send_to_gy",
+     "cards": [
+      {
+       "block": "this_card"
+      }
+     ]
+    },
+    {
+     "block": "after",
+     "how": "then",
+     "body": [
+      {
+       "block": "may",
+       "ask": "是否从墓地把战士族怪兽加入手卡？",
+       "body": [
+        {
+         "block": "to_hand",
+         "to": "",
+         "cards": [
+          {
+           "block": "pick",
+           "who": "you",
+           "where": "grave",
+           "count": 1,
+           "upto": "",
+           "different": "",
+           "filter": [
+            {
+             "block": "f_race",
+             "race": "warrior"
+            },
+            {
+             "block": "f_kind",
+             "kind": "monster"
+            }
+           ],
+           "count_n": []
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
