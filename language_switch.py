@@ -32,10 +32,14 @@ def _preload_translation_model():
     try:
         import ygo_translator
 
-        if ygo_translator.USE_NEURAL and not ygo_translator.neural.preload():
-            reason = ygo_translator.neural.last_reason()
-            if reason:
-                _tab_log("神经翻译模型未载入，改用实例翻译模型：" + reason)
+        if not ygo_translator.USE_NEURAL:
+            return
+        if ygo_translator.neural.preload():
+            _tab_log("神经翻译模型已载入")
+            return
+        reason = ygo_translator.neural.last_reason()
+        if reason:
+            _tab_log("神经翻译模型未载入，改用实例翻译模型：" + reason)
     except Exception:
         _tab_log("预载神经翻译模型失败:\n" + traceback.format_exc())
 

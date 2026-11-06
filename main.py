@@ -1,9 +1,10 @@
 import sys
 import os
 from runtime_paths import prepare_runtime, rpath
+from sandbox import WORKER_ARGUMENT
 
 
-if __name__ == "__main__" and sys.argv[1:2] == ["--sandbox-worker"]:
+if __name__ == "__main__" and sys.argv[1:2] == [WORKER_ARGUMENT]:
     from sandbox.worker import main as sandbox_main
 
     sandbox_main(sys.argv[2], sys.argv[3])

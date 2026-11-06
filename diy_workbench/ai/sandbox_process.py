@@ -12,6 +12,7 @@ import threading
 import time
 
 from PyQt5.QtCore import QThread, pyqtSignal
+from sandbox import WORKER_ARGUMENT
 
 from sandbox.test_data import digest, revision
 from sandbox.test_templates import apply_template
@@ -39,7 +40,7 @@ def command(source, target):
     if executable:
         return [str(executable), "-c", BOOTSTRAP, str(root), str(source), str(target)]
     if getattr(sys, "frozen", False):
-        return [sys.executable, "--sandbox-worker", str(source), str(target)]
+        return [sys.executable, WORKER_ARGUMENT, str(source), str(target)]
     return [sys.executable, "-m", "sandbox.worker", str(source), str(target)]
 
 

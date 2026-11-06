@@ -13,7 +13,8 @@ datas.extend([(str(root / "LICENSE"), "."), (str(root / "THIRD_PARTY.md"), ".")]
 datas.append((str(root / "licenses" / "Qwen3-LICENSE"), "licenses"))
 
 analysis = Analysis([str(root / "main.py")], pathex=[str(root)], datas=datas,
-                    hiddenimports=["sandbox.worker"], excludes=["tkinter"])
+                    hiddenimports=["sandbox.worker"], excludes=["tkinter"],
+                    runtime_hooks=[str(root / "scripts" / "preload_translation.py")])
 archive = PYZ(analysis.pure)
 executable = EXE(archive, analysis.scripts, [], exclude_binaries=True,
                  name="YGODIY", console=False, upx=False)
