@@ -10,12 +10,8 @@ import io
 import pickle
 import requests
 import re
+from runtime_paths import rpath
 
-
-def rpath(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
 
 def clean_filename(filename: str):
     forbidden_chars = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
@@ -109,8 +105,7 @@ def runtime_resource_exists(path):
         return False
     if os.path.exists(value):
         return True
-    runtime_dir = getattr(sys, '_MEIPASS', '')
-    return bool(runtime_dir and os.path.exists(os.path.join(runtime_dir, value)))
+    return os.path.exists(rpath(value))
 
 
 def runtime_resource_path(path):
@@ -118,9 +113,8 @@ def runtime_resource_path(path):
     value = str(path or '')
     if not value or os.path.isabs(value) or os.path.exists(value):
         return path
-    runtime_dir = getattr(sys, '_MEIPASS', '')
-    candidate = os.path.join(runtime_dir, value) if runtime_dir else ''
-    return candidate if candidate and os.path.exists(candidate) else path
+    candidate = rpath(value)
+    return candidate if os.path.exists(candidate) else path
 
 
 def _resolve_runtime_path(func):

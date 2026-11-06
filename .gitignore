@@ -22,3 +22,11 @@ _test_output/
 _tools/*_report.json
 _tools/*_result.json
 _tools/*.png
+
+# 本地构建环境、单独下载的运行资源和用户数据。
+.venv/
+build/
+dist/
+resources/
+data/
+.cache/

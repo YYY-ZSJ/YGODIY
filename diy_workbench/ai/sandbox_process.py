@@ -35,8 +35,12 @@ main(sys.argv[2],sys.argv[3])
 
 def command(source, target):
     root = Path(sys.prefix)
-    executable = next(root.glob("YGODIY_*.app.exe"))
-    return [str(executable), "-c", BOOTSTRAP, str(root), str(source), str(target)]
+    executable = next(root.glob("YGODIY_*.app.exe"), None)
+    if executable:
+        return [str(executable), "-c", BOOTSTRAP, str(root), str(source), str(target)]
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--sandbox-worker", str(source), str(target)]
+    return [sys.executable, "-m", "sandbox.worker", str(source), str(target)]
 
 
 def _read(path):
@@ -64,7 +68,7 @@ class SandboxWorker(QThread):
         env = {k: v for k, v in os.environ.items() if not any(p in k.upper() for p in ("API_KEY", "APIKEY", "SECRET", "TOKEN"))}
         started = time.monotonic()
         with tempfile.TemporaryFile() as error_log:
-            process = subprocess.Popen(command(source, target), env=env, stdin=subprocess.DEVNULL,
+            process = subprocess.Popen(command(source, target), env=env, cwd=Path(__file__).resolve().parents[2], stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL, stderr=error_log, creationflags=subprocess.CREATE_NO_WINDOW)
             stopped = None
             try:

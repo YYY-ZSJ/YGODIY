@@ -7,6 +7,7 @@ import copy
 import io
 import os
 import sys
+from runtime_paths import app_dir as _app_dir
 
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QPixmap
@@ -97,11 +98,6 @@ _ABILITY_FILTERS = (
     ("特殊召唤", 0x2000000),
     ("效果以外", 0),
 )
-
-
-def _app_dir():
-    """程序目录（日志、标签页状态、设置文件都放在这里）。fast_launch 用 YGODIY_APP_DIR 告诉源码。"""
-    return os.environ.get("YGODIY_APP_DIR") or os.path.dirname(os.path.abspath(sys.executable))
 
 
 def _freeze_cache_value(value):

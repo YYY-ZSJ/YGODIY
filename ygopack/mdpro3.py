@@ -21,6 +21,7 @@ import os
 import string
 import struct
 import sys
+from runtime_paths import app_dir
 
 EXE = "MDPro3.exe"
 SETTINGS_FILE = "平台设置.json"
@@ -28,18 +29,6 @@ SETTINGS_KEY = "expansions_dir"
 
 
 # ---------------------------------------------------------------- 设置
-
-def app_dir():
-    """程序目录。fast_launch 用 YGODIY_APP_DIR 告诉源码；直接在源码目录里运行时用旁边的 YGODIY_2.1.0。"""
-    env = os.environ.get("YGODIY_APP_DIR")
-    if env:
-        return env
-    src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sibling = os.path.join(os.path.dirname(src), "YGODIY_2.1.0")
-    if os.path.isdir(sibling):
-        return sibling
-    return os.path.dirname(os.path.abspath(sys.executable))
-
 
 def settings_path():
     return os.path.join(app_dir(), SETTINGS_FILE)
@@ -62,6 +51,7 @@ def save_settings(**changes):
         else:
             data[k] = v
     path = settings_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)

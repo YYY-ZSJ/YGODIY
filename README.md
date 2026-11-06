@@ -29,9 +29,26 @@ YGODIY 是一个 Windows 桌面的游戏王 DIY 工具：做卡面、用积木�
 
 ## 安装和运行
 
-这个仓库只有**源码**。程序还需要运行环境和资源（Python 3.12、PyQt5、卡面素材、字体、离线卡库等），这些文件体积很大，部分素材也不适合公开分发，所以没有放进仓库。只下载源码无法直接运行。
+在 **64 位 Windows 和 Python 3.12** 下，可以从仓库准备运行环境并构建独立程序。首次准备会下载约 1.56 GiB 的运行资源，包含卡框、字体、默认配置和本地翻译模型。
 
-有完整程序目录的话，把本仓库放到程序目录 `YGODIY_2.1.0` 旁边，文件夹命名为 `YGODIY_src`，再运行程序目录里的 `启动YGODIY.bat` 即可使用这份源码。目录结构和开发细节见 [源码说明](docs/源码说明.md)。
+构建环境请放在纯英文路径，例如 `D:/YGODIY`。在该位置打开 PowerShell，运行下面的命令。
+
+```powershell
+git clone https://github.com/YYY-ZSJ/YGODIY.git
+cd YGODIY
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
+.\.venv\Scripts\python.exe scripts/prepare_resources.py
+.\.venv\Scripts\python.exe main.py
+```
+
+构建独立程序时运行下面的命令，结果位于 `dist/YGODIY/YGODIY.exe`，分享时需要保留整个 `dist/YGODIY` 文件夹。
+
+```powershell
+.\.venv\Scripts\python.exe scripts/build.py
+```
+
+资源包支持离线导入，也可以从已有程序目录导入。离线卡库和 MDPro3 的准备方式、构建排错及资源授权说明见 [构建说明](docs/构建说明.md)。模块结构见 [源码说明](docs/源码说明.md)。
 
 ## 快速上手
 
@@ -82,7 +99,7 @@ YGODIY 是一个 Windows 桌面的游戏王 DIY 工具：做卡面、用积木�
 
 ## 作者与协作
 
-- 项目作者：[yy1040309551-cmd](https://github.com/yy1040309551-cmd)。
+- 项目作者：[YYY-ZSJ](https://github.com/YYY-ZSJ)。
 - AI 协作：GPT、Claude、DeepSeek。
 
 ## 第三方资料

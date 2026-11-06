@@ -1,5 +1,13 @@
 import sys
 import os
+from runtime_paths import prepare_runtime, rpath
+
+
+if __name__ == "__main__" and sys.argv[1:2] == ["--sandbox-worker"]:
+    from sandbox.worker import main as sandbox_main
+
+    sandbox_main(sys.argv[2], sys.argv[3])
+    raise SystemExit(0)
 
 
 def _preload_translation_model():
@@ -53,12 +61,6 @@ def clean_filename(filename: str):
     for char in forbidden_chars:
         filename = filename.replace(char, '')
     return filename
-
-def rpath(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
-
 
 class YuGiOhApp(QWidget):
     def __init__(self):
@@ -412,12 +414,15 @@ class YuGiOhApp(QWidget):
         return filter.clicked
 
 def main():
+    prepare_runtime()
     app_window._install_application_identity()
     language_switch._preload_translation_model()  # 翻译模型没载入时把原因记到日志
     applog.install_crash_guard()
     if not startup.single_instance_guard():
         startup.notify_already_running()
         return
+    qt_plugins = os.path.join(os.path.dirname(QtCore.__file__), "Qt5", "plugins")
+    QtCore.QCoreApplication.addLibraryPath(qt_plugins)
     app = QApplication(sys.argv)
     app.setFont(QFont('Microsoft YaHei', 10))
     yugioh = startup.build_with_splash(YuGiOhApp)

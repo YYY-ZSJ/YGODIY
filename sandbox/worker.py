@@ -78,3 +78,9 @@ def main(source, target):
         value = {"status": "环境异常", "errors": [type(error).__name__ + "：" + str(error)[:1000]],
                  "checks": [], "unreached_assertions": []}
     Path(target).write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8", newline="\n")
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(sys.argv[1], sys.argv[2])

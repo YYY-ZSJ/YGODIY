@@ -11,16 +11,12 @@ import sys
 import threading
 import time
 import traceback
+from runtime_paths import app_dir
 
 LOG_NAME = "制卡器标签页.log"
 CRASH_LOG_NAME = "崩溃记录.log"
 _EXCEPTION_LOG_LIMIT = 200  # 同一次运行最多记录的异常数，防止异常风暴把日志撑爆
 _state = {"count": 0, "file": None}
-
-
-def app_dir():
-    """程序目录：由启动器 fast_launch.py 通过环境变量告知，否则取解释器所在目录。"""
-    return os.environ.get("YGODIY_APP_DIR") or os.path.dirname(os.path.abspath(sys.executable))
 
 
 def log(message):
