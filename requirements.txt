@@ -8,7 +8,9 @@ beautifulsoup4==4.14.2
 opencc-python-reimplemented==0.1.7
 
 # 固定已验证的传递依赖，便于重现运行环境。
-PyQt5-Qt5==5.15.2
+# PyQt5-Qt5 5.15.2 只有 Windows/Linux 的 wheel，macOS 需用 5.15.11。
+PyQt5-Qt5==5.15.2; sys_platform == "win32"
+PyQt5-Qt5==5.15.11; sys_platform != "win32"
 PyQt5-sip==12.20.0
 cffi==2.1.1
 certifi==2026.10.23
