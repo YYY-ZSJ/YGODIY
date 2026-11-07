@@ -397,10 +397,11 @@ def _name_font_family(editor, path):
     family = _NAME_FONT_FAMILIES.get(path)
     if family is None:
         from PyQt5.QtGui import QFontDatabase
+        from utils import add_application_font
 
         module = sys.modules.get(type(editor).__module__)
         resolve = getattr(module, "rpath", None) or (lambda value: value)
-        families = QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(resolve(path)))
+        families = QFontDatabase.applicationFontFamilies(add_application_font(resolve(path)))
         family = families[0] if families else ""
         _NAME_FONT_FAMILIES[path] = family
     return family

@@ -1,5 +1,6 @@
 import sys
 import os
+import hashlib
 from PIL import Image
 from PyQt5.QtGui import QPixmap, QImage, QFont, QFontDatabase, QPainter, QBrush
 from PyQt5.QtSvg import QGraphicsSvgItem, QSvgRenderer
@@ -28,6 +29,54 @@ def filter_strings(string_list: list[str]):
         if s.isdigit() and len(s) <= 8
     ]
     return filtered_list
+
+_FONT_AAT_STRIP_CACHE = {}
+
+
+def _without_vertical_forms(font_data: bytes) -> bytes:
+    """剥掉字体里的 AAT morx/mort/feat 表后返回新的字体数据；没有这些表则原样返回。
+
+    打包的部分日文字体（如 Yu-Gi-Oh!DFGLeisho4.ttf）带有 AAT morx 表：里面的非上下文
+    替换在默认特性位开启时把 【】（）、。 等全角标点映射到竖排形态的字形。Windows 的
+    渲染引擎忽略 morx、直接按 cmap 渲染横排字形，而 macOS 的 CoreText 会应用 morx，
+    导致同样的文本在 macOS 上标点变竖排。剥掉这些表后 macOS 与 Windows 渲染一致。
+    """
+    key = hashlib.sha1(font_data).digest()
+    if key in _FONT_AAT_STRIP_CACHE:
+        return _FONT_AAT_STRIP_CACHE[key]
+    result = font_data
+    try:
+        from fontTools.ttLib import TTFont
+
+        font = TTFont(io.BytesIO(font_data))
+        if any(tag in font for tag in ("morx", "mort", "feat")):
+            for tag in ("morx", "mort", "feat"):
+                if tag in font:
+                    del font[tag]
+            output = io.BytesIO()
+            font.save(output)
+            result = output.getvalue()
+    except Exception:
+        result = font_data
+    _FONT_AAT_STRIP_CACHE[key] = result
+    return result
+
+
+def add_application_font(path):
+    """QFontDatabase.addApplicationFont 的跨平台封装。
+
+    macOS 上先把字体数据剥掉 AAT 竖排替换表（见 _without_vertical_forms）再注册，
+    避免 CoreText 把全角标点渲染成竖排形态；其他平台行为与直接调用一致。
+    """
+    if sys.platform == "darwin":
+        try:
+            with open(path, "rb") as font_file:
+                font_data = _without_vertical_forms(font_file.read())
+            return QFontDatabase.addApplicationFontFromData(font_data)
+        except Exception:
+            pass
+    return QFontDatabase.addApplicationFont(path)
+
 
 def pillow_img_to_pixmap(pil_image: Image.Image) -> QPixmap:
     width, height = pil_image.size
@@ -172,7 +221,8 @@ def decrypt_font(input_encrypted_path) -> QFont:
         encrypted_data = encrypted_file.read()
     decrypted_data = cipher_suite.decrypt(encrypted_data)
     font_data = io.BytesIO(decrypted_data)
-    font_id = QFontDatabase.addApplicationFontFromData(font_data.read())
+    font_id = QFontDatabase.addApplicationFontFromData(
+        _without_vertical_forms(decrypted_data) if sys.platform == "darwin" else decrypted_data)
     if font_id == -1:
         print('Failed to load font.')
         return None

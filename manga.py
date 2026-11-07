@@ -65,8 +65,9 @@ def _manga_font_family(relative_path):
     try:
         import OTCG_widget
         from PyQt5.QtGui import QFontDatabase
+        from utils import add_application_font
 
-        font_id = QFontDatabase.addApplicationFont(OTCG_widget.rpath(relative_path))
+        font_id = add_application_font(OTCG_widget.rpath(relative_path))
         families = QFontDatabase.applicationFontFamilies(font_id) if font_id >= 0 else []
         family = families[0] if families else ""
     except Exception:

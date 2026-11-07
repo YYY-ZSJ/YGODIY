@@ -1,4 +1,5 @@
 import os
+import sys
 from CompressText import CompressText
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGraphicsPixmapItem, QFileDialog, QColorDialog, QComboBox, QToolTip, QLabel, QSizePolicy, QSpacerItem, QGraphicsLineItem, QGraphicsDropShadowEffect, QSlider, QMessageBox, QGraphicsTextItem, QGraphicsRectItem
 
@@ -22,7 +23,7 @@ from opencc import OpenCC
 import io
 import base64
 import traceback
-from utils import clean_filename, remove_leading_zeros, pillow_img_to_pixmap, qpixmap_to_pillow, rpath, crop_square_image, apply_fade_to_alpha, remove_annotation
+from utils import clean_filename, remove_leading_zeros, pillow_img_to_pixmap, qpixmap_to_pillow, rpath, crop_square_image, apply_fade_to_alpha, remove_annotation, add_application_font
 
 import card_library
 import card_tabs
@@ -39,6 +40,37 @@ from common import _tab_log
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from main import YuGiOhApp
+
+
+# ---------------------------------------------------------------------------
+# macOS 渲染微调：CoreText 与 Windows 的字形位置、视觉大小有差异，卡名与注音按平台修正。
+# Windows 走原始配置，行为不变。
+# ---------------------------------------------------------------------------
+_MACOS_NAME_Y_OFFSET = 14       # 卡名文本整体下移（像素）
+_MACOS_RUBY_SIZE_SCALE = 0.88   # 注音字号缩放比例
+_MACOS_RUBY_FONT = 'mold/font/FOT-Rodin Pro.ttf'  # 注音常规字重（rt_font_path 指向的 DB 是粗体）
+
+
+def _load_rt_font(config):
+    """注音字体。macOS 换常规字重的 FOT-Rodin Pro（CoreText 下 DB 偏粗、视觉偏大）。"""
+    path = config.rt_font_path
+    if sys.platform == 'darwin' and os.path.isfile(rpath(_MACOS_RUBY_FONT)):
+        path = _MACOS_RUBY_FONT
+    return QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(path)))[0])
+
+
+def _rt_ratio(ratio: float) -> float:
+    """注音字号比例：macOS 上略缩小，其他平台原样。"""
+    return ratio * _MACOS_RUBY_SIZE_SCALE if sys.platform == 'darwin' else ratio
+
+
+def _name_pos(config, language):
+    """卡名文本位置：macOS 上整体下移少许，其他平台用配置原值。"""
+    x = config.card_name_posx[language]
+    y = config.card_name_posy[language]
+    if sys.platform == 'darwin':
+        y += _MACOS_NAME_Y_OFFSET
+    return x, y
 
 
 class OTCGWidget(QWidget):
@@ -948,10 +980,9 @@ class OTCGWidget(QWidget):
         self.anniversary_item.setVisible(False)
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
-        rtfont = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
-            rpath(self.config.rt_font_path)))[0])
+        rtfont = _load_rt_font(self.config)
         self.name_compresstor = CompressText()
         self.name_compresstor.setRtFont(rtfont)
         self.name_compresstor.setRtFontSize(14)
@@ -959,21 +990,21 @@ class OTCGWidget(QWidget):
         self.name_compresstor.setFontSize(self.config.card_name_size[self.language])
         self.name_compresstor.width = self.config.NAME_WIDTH
         self.name_compresstor.firstLineCompress = True
-        self.name_compresstor.rtRatio = 0.2037037037037037
+        self.name_compresstor.rtRatio = _rt_ratio(0.2037037037037037)
         self.name_compresstor.rtTop = 1
 
         self.name_text_group = NameGroup()
         self.name_text_group.setRubyFont(font)
         self.name_text_group.setRtFont(rtfont)
         self.parent_app.scene.addItem(self.name_text_group)
-        self.name_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.name_text_group.setPos(*_name_pos(self.config, self.language))
         self.name_text_group.setRubyFontSize(self.config.card_name_size[self.language])
 
         self.mixname_text_group = MixNameGroup()
         self.mixname_text_group.setRubyFont(font)
         self.mixname_text_group.setRtFont(rtfont)
         self.parent_app.scene.addItem(self.mixname_text_group)
-        self.mixname_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.mixname_text_group.setPos(*_name_pos(self.config, self.language))
         self.mixname_text_group.setRubyFontSize(self.config.card_name_size[self.language])
         self.mixname_text_group.setVisible(False)
 
@@ -1039,10 +1070,9 @@ class OTCGWidget(QWidget):
         self.icon_item.setVisible(False)
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
-        rtfont = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
-            rpath(self.config.rt_font_path)))[0])
+        rtfont = _load_rt_font(self.config)
         self.detail_compresstor = CompressText()
         self.detail_compresstor.setRtFont(rtfont)
         self.detail_compresstor.setRtFontSize(14)
@@ -1050,7 +1080,7 @@ class OTCGWidget(QWidget):
         self.detail_compresstor.setFontSize(self.config.detail_size[self.language])
         self.detail_compresstor.width = self.config.detail_width[self.language]
         self.detail_compresstor.firstLineCompress = True
-        self.detail_compresstor.rtRatio = 0.30434782608695654
+        self.detail_compresstor.rtRatio = _rt_ratio(0.30434782608695654)
         self.detail_compresstor.rtTop = -2.5
 
         self.detail_text_group = TextGroup()
@@ -1061,7 +1091,7 @@ class OTCGWidget(QWidget):
         self.detail_text_group.setRubyFontSize(self.config.detail_size[self.language])
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         self.compresstor = CompressText()
         self.compresstor.setRtFont(rtfont)
@@ -1070,7 +1100,7 @@ class OTCGWidget(QWidget):
         self.compresstor.setFontSize(self.config.text_size[self.language])
         self.compresstor.width = self.config.rect_width
         self.compresstor.height = self.config.rect_height_monster
-        self.compresstor.rtRatio = 0.34210526315789475
+        self.compresstor.rtRatio = _rt_ratio(0.34210526315789475)
         self.compresstor.rtTop = -3.6
 
         self.text_group = TextGroup()
@@ -1087,7 +1117,7 @@ class OTCGWidget(QWidget):
         self.lb_compresstor.setFontSize(self.config.lb_text_size[self.language])
         self.lb_compresstor.width = self.config.lb_text_width
         self.lb_compresstor.height = self.config.lb_text_height
-        self.lb_compresstor.rtRatio = 0.3333333333333333
+        self.lb_compresstor.rtRatio = _rt_ratio(0.3333333333333333)
         self.lb_compresstor.rtTop = -3.6
 
         self.lb_text_group = TextGroup()
@@ -1099,7 +1129,7 @@ class OTCGWidget(QWidget):
 
 
 
-        lb_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        lb_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.ATK_DEF_font_path)))[0])
         lb_font.setPixelSize(self.config.lb_level_font_size)
 
@@ -1128,7 +1158,7 @@ class OTCGWidget(QWidget):
         self.parent_app.scene.addItem(self.line_item)
         self.line_item.setVisible(False)
 
-        fz_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        fz_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.fz_font_path)))[0])
         fz_font.setPixelSize(self.config.fz_font_size)
         self.cn_ATK_item = MixTextItem('攻 /')
@@ -1163,11 +1193,11 @@ class OTCGWidget(QWidget):
         self.parent_app.scene.addItem(self.ATK_LINK_item)
         self.ATK_LINK_item.setVisible(False)
 
-        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.ATK_DEF_font_path)))[0])
         ATK_DEF_font.setPixelSize(self.config.ATK_DEF_font_size)
 
-        LINK_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.link_font_path)))[0])
+        LINK_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.link_font_path)))[0])
         LINK_font.setPixelSize(self.config.LINK_font_size)
         LINK_font.setStretch(self.config.LINK_font_stretch)
 
@@ -1215,7 +1245,7 @@ class OTCGWidget(QWidget):
         self.LINK_number_item.setVisible(False)
 
 
-        pass_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path)))[0])
+        pass_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path)))[0])
         pass_font.setPixelSize(self.config.pass_font_size)
         self.card_pass_item = MixTextItem('')
         self.card_pass_item.setDefaultTextColor(Qt.black)
@@ -1224,7 +1254,7 @@ class OTCGWidget(QWidget):
         self.card_pass_item.setPos(self.config.ocard_pass_x, self.config.ocard_pass_y)
         self.parent_app.scene.addItem(self.card_pass_item)
 
-        pack_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path)))[0])
+        pack_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path)))[0])
         pack_font.setPixelSize(self.config.pack_font_size)
         pack_font.setStretch(self.config.pack_font_stretch)
         self.card_pack_item = MixTextItem('')
@@ -1641,22 +1671,22 @@ class OTCGWidget(QWidget):
         self.switch_info()
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.language])
         self.name_compresstor.setRubyFont(font)
         self.name_text_group.setRubyFont(font)
         self.name_compresstor.setFontSize(self.config.card_name_size[self.language])
         self.name_text_group.setRubyFontSize(self.config.card_name_size[self.language])
-        self.name_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.name_text_group.setPos(*_name_pos(self.config, self.language))
         self.mixname_text_group.setRubyFont(font)
         self.mixname_text_group.setRubyFontSize(self.config.card_name_size[self.language])
-        self.mixname_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.mixname_text_group.setPos(*_name_pos(self.config, self.language))
 
 
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
         font.setPixelSize(self.config.detail_size[self.language])
         self.detail_compresstor.setRubyFont(font)
@@ -1668,7 +1698,7 @@ class OTCGWidget(QWidget):
 
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         self.compresstor.setRubyFont(font)
         self.text_group.setRubyFont(font)
@@ -3105,26 +3135,26 @@ class OTCGWidget(QWidget):
         self.tc_type = self.tc_type_selector.currentIndex()
         self.language = '简体中文' if self.tc_type == 0 else '简体中文2'
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.language])
         self.name_compresstor.setRubyFont(font)
         self.name_text_group.setRubyFont(font)
         self.name_compresstor.setFontSize(self.config.card_name_size[self.language])
         self.name_text_group.setRubyFontSize(self.config.card_name_size[self.language])
-        self.name_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.name_text_group.setPos(*_name_pos(self.config, self.language))
         self.mixname_text_group.setRubyFont(font)
         self.mixname_text_group.setRubyFontSize(self.config.card_name_size[self.language])
-        self.mixname_text_group.setPos(self.config.card_name_posx[self.language], self.config.card_name_posy[self.language])
+        self.mixname_text_group.setPos(*_name_pos(self.config, self.language))
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         self.compresstor.setRubyFont(font)
         self.text_group.setRubyFont(font)
         self.lb_compresstor.setRubyFont(font)
         self.lb_text_group.setRubyFont(font)
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
         font.setPixelSize(self.config.detail_size[self.language])
         self.detail_compresstor.setRubyFont(font)
@@ -3139,7 +3169,7 @@ class OTCGWidget(QWidget):
         effect_text = self.text_input.toPlainText()
         lb_text = self.LB_text_edit.toPlainText()
 
-        name_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        name_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         name_font.setPixelSize(self.config.card_name_size[self.language])
 
