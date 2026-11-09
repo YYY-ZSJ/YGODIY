@@ -414,6 +414,41 @@ class YuGiOhApp(QWidget):
         widget.installEventFilter(filter)
         return filter.clicked
 
+def _force_light_style(app):
+    """macOS 固定浅色外观：不跟系统深浅切换。
+
+    Qt 的 macOS 原生风格默认跟随系统外观，系统为深色时窗口、菜单和调色板都会变深，
+    与界面各处写死的浅色配色冲突。这里把 NSApplication 的 appearance 固定为
+    Aqua（浅色），再把调色板重置为 Fusion 的浅色标准调色板。非 macOS 不处理。"""
+    if sys.platform != "darwin":
+        return
+    try:
+        import ctypes
+        from ctypes.util import find_library
+
+        objc = ctypes.CDLL(find_library("objc"))
+        objc.objc_msgSend.restype = ctypes.c_void_p
+        objc.objc_msgSend.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        objc.objc_getClass.restype = ctypes.c_void_p
+        objc.sel_registerName.restype = ctypes.c_void_p
+
+        def send(receiver, selector, arg=0):
+            return objc.objc_msgSend(receiver, objc.sel_registerName(selector), arg)
+
+        name = send(objc.objc_getClass(b"NSString"), b"stringWithUTF8String:",
+                    ctypes.cast(ctypes.create_string_buffer(b"NSAppearanceNameAqua"), ctypes.c_void_p))
+        aqua = send(objc.objc_getClass(b"NSAppearance"), b"appearanceNamed:", name)
+        send(send(objc.objc_getClass(b"NSApplication"), b"sharedApplication"), b"setAppearance:", aqua)
+    except Exception:
+        pass
+    try:
+        from PyQt5.QtWidgets import QStyleFactory
+
+        app.setPalette(QStyleFactory.create("Fusion").standardPalette())
+    except Exception:
+        pass
+
+
 def main():
     prepare_runtime()
     app_window._install_application_identity()
@@ -425,6 +460,7 @@ def main():
     qt_plugins = os.path.join(os.path.dirname(QtCore.__file__), "Qt5", "plugins")
     QtCore.QCoreApplication.addLibraryPath(qt_plugins)
     app = QApplication(sys.argv)
+    _force_light_style(app)
     app.setFont(QFont('Microsoft YaHei', 10))
     yugioh = startup.build_with_splash(YuGiOhApp)
     yugioh.show()

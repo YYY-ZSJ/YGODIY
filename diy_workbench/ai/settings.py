@@ -1,4 +1,9 @@
-"""AI 服务设置与 Windows 本机密钥保护，不接触制卡器的全局设置。"""
+"""AI 服务设置与本机密钥保护，不接触制卡器的全局设置。
+
+Windows 用 DPAPI（CryptProtectData）保护 API Key；其他平台用项目自带的
+mold/secret.key 做 Fernet 对称加密。两种格式互不兼容，跨平台打开时按
+「无法在本机解密」处理，重新填写即可。
+"""
 
 import base64
 import ctypes
@@ -52,6 +57,8 @@ class _Blob(ctypes.Structure):
 
 
 def _crypt(data, protect):
+    if os.name != "nt":
+        return _crypt_fernet(data, protect)
     crypt32 = ctypes.WinDLL("crypt32", use_last_error=True)
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     buffer = ctypes.create_string_buffer(data)
@@ -76,6 +83,19 @@ def _crypt(data, protect):
         return ctypes.string_at(target.data, target.size)
     finally:
         kernel32.LocalFree(target.data)
+
+
+def _crypt_fernet(data, protect):
+    """macOS / Linux：用项目自带的 mold/secret.key 做 Fernet 加解密。"""
+    from cryptography.fernet import Fernet, InvalidToken
+
+    from runtime_paths import rpath
+    with open(rpath("mold/secret.key"), "rb") as key_file:
+        cipher = Fernet(key_file.read())
+    try:
+        return cipher.encrypt(data) if protect else cipher.decrypt(data)
+    except InvalidToken as error:
+        raise OSError("无法使用本机密钥保护，请重填 API Key") from error
 
 
 def upgrade_settings_data(data):

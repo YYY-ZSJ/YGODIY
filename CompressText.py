@@ -419,6 +419,21 @@ class CompressText:
         pass
 
 
+    def _darwin_rt_y(self, ruby: MixText, rt: MixText):
+        """macOS：按墨迹边界给正文和注音之间留出固定小空隙。
+
+        rtTop 常数是在 Windows 上目视调好的；macOS 的 CoreText 对同一字体给出的
+        字形上缘位置不同（日文字形在 em 盒里偏高），沿用同一常数会算出负间隙，
+        注音直接压在正文上。这里用 tightBoundingRect 量出正文墨迹上缘和注音
+        墨迹下缘的实际位置，反推注音原点的纵向坐标。失败时退回 rtTop 常数。"""
+        try:
+            gap = self.fontSize * 0.03
+            ruby_top = self.metric.ascent() + self.metric.tightBoundingRect(ruby.text).top()
+            rt_bottom = self.rtmetric.ascent() + self.rtmetric.tightBoundingRect(rt.text).bottom()
+            return ruby.y + ruby_top - gap - rt_bottom * self.rtZoomRatio
+        except Exception:
+            return ruby.y + self.rtTop * self.rtZoomRatio
+
     def positionRt(self, item: TextItem):
         rtStretchRate = 0.9
         rtCompressRate = 0.6
@@ -430,6 +445,8 @@ class CompressText:
             rubyWidth = ruby.width + paddingLeft + paddingRight
             rt.x = ruby.x + rubyWidth / 2 - paddingLeft
             rt.y = ruby.y + self.rtTop * self.rtZoomRatio
+            if sys.platform == "darwin":
+                rt.y = self._darwin_rt_y(ruby, rt)
             if not self.rtFontScaleX == 1:
                 rt.scaleX = self.rtFontScaleX
             elif rubyWidth == 0:

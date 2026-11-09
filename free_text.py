@@ -10,6 +10,7 @@ import traceback
 from PyQt5.QtCore import Qt
 
 from common import _app_dir, _attach_editor_button, _tab_log, _widget_scene
+from utils import add_application_font
 
 
 # ---------------------------------------------------------------------------
@@ -112,7 +113,7 @@ def _free_text_family(editor, index):
     path = _free_text_asset_path(entry)
     if path:
         try:
-            font_id = QFontDatabase.addApplicationFont(path)
+            font_id = add_application_font(path)
             families = QFontDatabase.applicationFontFamilies(font_id)
             if families:
                 family = families[0]

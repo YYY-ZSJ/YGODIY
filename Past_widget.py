@@ -19,7 +19,7 @@ import requests
 from opencc import OpenCC
 import io
 import base64
-from utils import clean_filename, remove_leading_zeros, pillow_img_to_pixmap, qpixmap_to_pillow, rpath, crop_square_image, apply_fade_to_alpha, decrypt_image_qpixmap, runtime_resource_exists
+from utils import clean_filename, remove_leading_zeros, pillow_img_to_pixmap, qpixmap_to_pillow, rpath, crop_square_image, apply_fade_to_alpha, decrypt_image_qpixmap, runtime_resource_exists, add_application_font
 
 import card_library
 import customization
@@ -993,7 +993,7 @@ class PastWidget(QWidget):
 
         self.card_name_item = MixTextItem()
         self.card_name_item.setDefaultTextColor(Qt.black)
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.template_index][self.language])
         self.card_name_item.setFont(font)
@@ -1014,7 +1014,7 @@ class PastWidget(QWidget):
 
         self.mix_name_item = MixTextItem(duplicate=True)
         self.mix_name_item.setDefaultTextColor(Qt.transparent)
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.template_index][self.language])
         self.mix_name_item.setFont(font)
@@ -1068,7 +1068,7 @@ class PastWidget(QWidget):
         self.parent_app.past_scene.addItem(self.ATK_label_item)
         self.parent_app.past_scene.addItem(self.DEF_label_item)
 
-        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.ATK_DEF_font_path[self.template_index])))[0])
         ATK_DEF_font.setPixelSize(self.config.ATK_DEF_font_size[self.template_index])
 
@@ -1098,7 +1098,7 @@ class PastWidget(QWidget):
         self.detail_info_item = MixTextItem('')
         self.detail_info_item.enableOutline(False)
         self.detail_info_item.setDefaultTextColor(Qt.black)
-        info_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        info_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
         info_font.setPixelSize(self.config.detail_size[self.template_index][self.language])
         self.detail_info_item.setFont(info_font)
@@ -1117,7 +1117,7 @@ class PastWidget(QWidget):
 
         self.text_item = MixTextItem('')
         self.text_item.setDefaultTextColor(Qt.black)
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         font.setPixelSize(self.config.text_size[self.language])
         self.text_item.setFont(font)
@@ -1146,7 +1146,7 @@ class PastWidget(QWidget):
 
         self.lb_text_item = MixTextItem('')
         self.lb_text_item.setDefaultTextColor(Qt.black)
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         font.setPixelSize(self.config.lb_text_size[self.language])
         self.lb_text_item.setFont(font)
@@ -1166,7 +1166,7 @@ class PastWidget(QWidget):
         self.lb_text_item.setVisible(False)
 
 
-        lb_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        lb_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.ATK_DEF_font_path[6])))[0])
         lb_font.setPixelSize(self.config.lb_level_font_size)
 
@@ -1194,7 +1194,7 @@ class PastWidget(QWidget):
             item.setVisible(False)
         self.arrow_status_list = [False, False, False, False, False, False, False, False]
 
-        LINK_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.link_font_path)))[0])
+        LINK_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.link_font_path)))[0])
         LINK_font.setPixelSize(self.config.LINK_font_size)
         LINK_font.setStretch(self.config.LINK_font_stretch)
         self.LINK_number_item = MixTextItem('')
@@ -1206,7 +1206,7 @@ class PastWidget(QWidget):
         self.parent_app.past_scene.addItem(self.LINK_number_item)
         self.LINK_number_item.setVisible(False)
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path[self.template_index])))[0])
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path[self.template_index])))[0])
         font.setPixelSize(self.config.pass_font_size[self.template_index])
         self.card_pass_item = MixTextItem('', outline_enabled=True, outline_thickness=0.5)
         self.card_pass_item.setDefaultTextColor(Qt.black)
@@ -1215,7 +1215,7 @@ class PastWidget(QWidget):
         self.card_pass_item.setPos(self.config.card_pass_x[self.template_index], self.config.card_pass_y[self.template_index])
         self.parent_app.past_scene.addItem(self.card_pass_item)
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path[self.template_index])))[0])
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path[self.template_index])))[0])
         font.setPixelSize(self.config.pack_font_size[self.template_index])
         self.card_pack_item = MixTextItem('', outline_enabled=True, outline_thickness=0.5)
         self.card_pack_item.setDefaultTextColor(Qt.black)
@@ -2206,7 +2206,7 @@ class PastWidget(QWidget):
             self.update_text_size()
         else:
             self.text_size_slider.setEnabled(False)
-            font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+            font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
                 rpath(self.config.text_item_font[self.language])))[0])
             font.setPixelSize(self.config.text_size[self.language])
             self.text_item.setFont(font)
@@ -2220,7 +2220,7 @@ class PastWidget(QWidget):
     def update_text_size(self):
         change_size = self.text_size_slider.value()
         self.text_size_label.setText(str(change_size))
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.text_item_font[self.language])))[0])
         base_size = self.config.text_size[self.language]
         font.setPixelSize(base_size + change_size)
@@ -2502,7 +2502,7 @@ class PastWidget(QWidget):
             self.DEF_label_item.setPos(self.config.DEF_label_posx[self.template_index], self.config.DEF_label_posy[self.template_index])
             self.DEF_label_item.setScale(self.config.ATK_DEF_label_scale[self.template_index])
             pass
-        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        ATK_DEF_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.ATK_DEF_font_path[self.template_index])))[0])
         ATK_DEF_font.setPixelSize(self.config.ATK_DEF_font_size[self.template_index])
         self.ATK_number_item.setFont(ATK_DEF_font)
@@ -2691,7 +2691,7 @@ class PastWidget(QWidget):
         self.on_cardpass_return()
 
     def update_cardpass_status(self):
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path[self.template_index])))[0])
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path[self.template_index])))[0])
         font.setPixelSize(self.config.pass_font_size[self.template_index])
         self.card_pass_item.setFont(font)
         if ( self.card_type == '怪兽卡' and self.detail_call_way == '超量' and
@@ -2732,7 +2732,7 @@ class PastWidget(QWidget):
         self.card_pack_item.setPlainText(text)
 
     def update_cardpack_status(self):
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(rpath(self.config.pass_font_path[self.template_index])))[0])
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(rpath(self.config.pass_font_path[self.template_index])))[0])
         font.setPixelSize(self.config.pack_font_size[self.template_index])
         if self.template_index > 1:
             font.setStretch(self.config.pack_font_stretch)
@@ -2900,7 +2900,7 @@ class PastWidget(QWidget):
         self.switch_base_image()
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.template_index][self.language])
         self.card_name_item.setFont(font)
@@ -2977,7 +2977,7 @@ class PastWidget(QWidget):
         self.update_ATK_DEF_status()
 
 
-        info_font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        info_font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
         info_font.setPixelSize(self.config.detail_size[self.template_index][self.language])
         self.detail_info_item.setFont(info_font)
@@ -3082,7 +3082,7 @@ class PastWidget(QWidget):
         self.switch_info()
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.card_name_font[self.language])))[0])
         font.setPixelSize(self.config.card_name_size[self.template_index][self.language])
         card_name_posy = self.config.card_name_posy[self.template_index]
@@ -3104,7 +3104,7 @@ class PastWidget(QWidget):
             self.mix_name_list[i].setGradientEdge(edge_points[0], edge_points[1])
 
 
-        font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+        font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
             rpath(self.config.detail_info_font[self.language])))[0])
         font.setPixelSize(self.config.detail_size[self.template_index][self.language])
         self.detail_info_item.setFont(font)
@@ -3115,7 +3115,7 @@ class PastWidget(QWidget):
         if self.text_sizeable:
             self.update_text_size()
         else:
-            font = QFont(QFontDatabase.applicationFontFamilies(QFontDatabase.addApplicationFont(
+            font = QFont(QFontDatabase.applicationFontFamilies(add_application_font(
                 rpath(self.config.text_item_font[self.language])))[0])
             font.setPixelSize(self.config.text_size[self.language])
             self.text_item.setFont(font)

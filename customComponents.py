@@ -16,7 +16,7 @@ from mixTextItem import MixTextItem
 from collections import defaultdict
 from infoFetcher import CardNameFetcher
 from PIL import Image
-from utils import pillow_img_to_pixmap
+from utils import pillow_img_to_pixmap, add_application_font
 from CompressText import MixText, TextItem
 from typing import TYPE_CHECKING, List
 
@@ -1156,9 +1156,9 @@ class ColorAdvancedDialog(QDialog):
         bold_font.setBold(True)
         font_metrics = QFontMetrics(font)
         self.cn_font = QFont(QFontDatabase.applicationFontFamilies(
-            QFontDatabase.addApplicationFont(rpath('mold/font/cn.ttf')))[0])
+            add_application_font(rpath('mold/font/cn.ttf')))[0])
         self.en_font = QFont(QFontDatabase.applicationFontFamilies(
-            QFontDatabase.addApplicationFont(rpath('mold/font/en_name.ttf')))[0])
+            add_application_font(rpath('mold/font/en_name.ttf')))[0])
 
         self.outline_enabled = outline_enabled
         self.outline_color = outline_color
