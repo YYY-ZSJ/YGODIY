@@ -6,9 +6,9 @@ YGODIY 4.1.0 是一款游戏王 DIY 桌面工具。你可以制作卡面、用�
 
 ## Windows 桌面版
 
-[下载 4.1.0 中文安装向导（64 位 Windows）](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64-Setup.exe) · [14,275 张高清原图库](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-HD-Art.zip) · [版本说明和校验文件](https://github.com/YYY-ZSJ/YGODIY/releases/tag/v4.1.0)
+**4.1.0 完整离线安装包（64 位 Windows）** 内置主程序和原 4.0.0 的全部 14,275 张高清卡图。GitHub 提供两个分卷，请把两卷下载到同一文件夹，用 7-Zip 或 WinRAR 打开第一卷，解压出 `YGODIY_4.1.0.exe`（3.29 GiB）。双击即可离线安装，转发给朋友时只需发送这一个 EXE。[下载分卷一](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY_4.1.0-Full.7z.001) · [下载分卷二](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY_4.1.0-Full.7z.002) · [SHA-256 校验文件](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY_4.1.0-Full.sha256)
 
-双击安装向导即可安装主程序和高清卡图。离线安装时，把上面的原图库 ZIP 和安装向导放在同一文件夹，保留两个文件的原名。只下载安装向导时，它会从本项目的 GitHub 发行页下载并核验图库。完整安装约占 3.62 GiB。
+另有较小的安装向导（1.38 GiB），安装时会联网下载图库。也可事先把原图库 ZIP 与它放在同一文件夹，保留原名后离线安装。完整安装约占 3.62 GiB。[小型安装向导](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64-Setup.exe) · [单独下载原图库](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-HD-Art.zip)
 
 也可以使用[便携版主程序 ZIP](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64.zip)。先完整解压程序，再把高清原图库 ZIP 解压到 `YGODIY.exe` 所在目录，卡图会落在 `离线卡库/卡图/`。这一套与原 4.0.0 的 14,275 张卡图逐文件一致。程序内含 Python、卡框、字体、本地翻译模型和离线卡片文字库。
 

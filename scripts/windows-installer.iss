@@ -13,7 +13,6 @@
 #define ProductVersion GetStringFileInfo(SourcePath + "..\dist\YGODIY\YGODIY.exe", "ProductVersion")
 #define Bundle "YGODIY-" + ProductVersion + "-Windows-x64"
 #define ArtArchive "YGODIY-" + ProductVersion + "-HD-Art.zip"
-#define ArtURL "https://github.com/YYY-ZSJ/YGODIY/releases/download/v" + ProductVersion + "/" + ArtArchive
 [Setup]
 AppId=YGODIY.Desktop.{#ProductVersion}
 AppName=YGODIY
@@ -30,7 +29,11 @@ AllowNoIcons=yes
 UninstallDisplayIcon={app}\{#Bundle}\YGODIY.exe
 SetupIconFile=..\YGODIY.ico
 OutputDir={#ArchiveDir}
+#ifdef FullOffline
+OutputBaseFilename=YGODIY_{#ProductVersion}
+#else
 OutputBaseFilename={#Bundle}-Setup
+#endif
 VersionInfoVersion={#ProductVersion}
 VersionInfoProductVersion={#ProductVersion}
 ArchiveExtraction=full
@@ -45,8 +48,14 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 [Files]
 Source: "{#ArchiveDir}\{#Bundle}.zip"; DestDir: "{tmp}"; Flags: ignoreversion nocompression deleteafterinstall
 Source: "{tmp}\{#Bundle}.zip"; DestDir: "{app}"; ExternalSize: {#InstalledBytes}; Flags: external extractarchive recursesubdirs createallsubdirs ignoreversion
+#ifdef FullOffline
+Source: "{#ArchiveDir}\{#ArtArchive}"; DestDir: "{tmp}"; Flags: ignoreversion nocompression deleteafterinstall
+Source: "{tmp}\{#ArtArchive}"; DestDir: "{app}\{#Bundle}"; ExternalSize: {#ArtBytes}; Hash: "{#ArtHash}"; Flags: external extractarchive recursesubdirs ignoreversion
+#else
+#define ArtURL "https://github.com/YYY-ZSJ/YGODIY/releases/download/v" + ProductVersion + "/" + ArtArchive
 Source: "{src}\{#ArtArchive}"; DestDir: "{app}\{#Bundle}"; ExternalSize: {#ArtBytes}; Hash: "{#ArtHash}"; Flags: external extractarchive recursesubdirs ignoreversion; Check: LocalArtwork
 Source: "{#ArtURL}"; DestName: "{#ArtArchive}"; DestDir: "{app}\{#Bundle}"; ExternalSize: {#ArtBytes}; Hash: "{#ArtHash}"; Flags: external download extractarchive recursesubdirs ignoreversion; Check: not LocalArtwork
+#endif
 
 [Icons]
 Name: "{group}\YGODIY {#ProductVersion}"; Filename: "{app}\{#Bundle}\YGODIY.exe"; WorkingDir: "{app}\{#Bundle}"
@@ -55,8 +64,10 @@ Name: "{autodesktop}\YGODIY {#ProductVersion}"; Filename: "{app}\{#Bundle}\YGODI
 [Run]
 Filename: "{app}\{#Bundle}\YGODIY.exe"; WorkingDir: "{app}\{#Bundle}"; Description: "{cm:LaunchProgram,YGODIY}"; Flags: postinstall nowait skipifsilent
 
+#ifndef FullOffline
 [Code]
 function LocalArtwork: Boolean;
 begin
   Result := FileExists(ExpandConstant('{src}\{#ArtArchive}'));
 end;
+#endif
