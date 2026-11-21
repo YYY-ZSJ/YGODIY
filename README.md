@@ -6,11 +6,13 @@ YGODIY 4.1.0 是一款游戏王 DIY 桌面工具。你可以制作卡面、用�
 
 ## Windows 桌面版
 
-[下载 4.1.0 便携版（64 位 Windows）](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64.zip) · [版本说明和校验文件](https://github.com/YYY-ZSJ/YGODIY/releases/tag/v4.1.0)
+[下载 4.1.0 中文安装向导（64 位 Windows）](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64-Setup.exe) · [14,275 张高清原图库](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-HD-Art.zip) · [版本说明和校验文件](https://github.com/YYY-ZSJ/YGODIY/releases/tag/v4.1.0)
 
-将 ZIP 完整解压到有写入权限的新文件夹，双击里面的 `YGODIY.exe` 即可启动。便携版自带 Python、卡框、字体、本地翻译模型和离线卡片文字库。
+双击安装向导即可安装主程序和高清卡图。离线安装时，把上面的原图库 ZIP 和安装向导放在同一文件夹，保留两个文件的原名。只下载安装向导时，它会从本项目的 GitHub 发行页下载并核验图库。完整安装约占 3.62 GiB。
 
-从 4.0.0 升级时，先关闭旧版。在首次启动新版前，将旧目录里的 `制卡器标签页.json` 和 `制卡器标签页资源` 一起复制到新版 `YGODIY.exe` 旁，即可继续编辑原有卡包。已下载的卡图可以复制到新版的 `离线卡库/卡图/`。
+也可以使用[便携版主程序 ZIP](https://github.com/YYY-ZSJ/YGODIY/releases/download/v4.1.0/YGODIY-4.1.0-Windows-x64.zip)。先完整解压程序，再把高清原图库 ZIP 解压到 `YGODIY.exe` 所在目录，卡图会落在 `离线卡库/卡图/`。这一套与原 4.0.0 的 14,275 张卡图逐文件一致。程序内含 Python、卡框、字体、本地翻译模型和离线卡片文字库。
+
+从 4.0.0 迁移自己的卡包时，先关闭旧版。在首次启动新版前，将旧目录里的 `制卡器标签页.json` 和 `制卡器标签页资源` 一起复制到新版 `YGODIY.exe` 旁，即可继续编辑原有卡包。
 
 ## 安卓横屏版
 
