@@ -73,7 +73,7 @@ class EffectPage(QWidget):
         self.summary = QLabel()
         self.summary.setWordWrap(True)
         self.summary.setTextFormat(Qt.RichText)
-        edit_card = QPushButton("在 OCG/TCG 模式里改卡片资料")
+        edit_card = QPushButton("修改卡面信息")
         edit_card.clicked.connect(self.edit_card_requested.emit)
         self.setcode_button = _button("字段：无", CHIP)
         self.setcode_button.clicked.connect(self.setcodes_requested.emit)
@@ -139,14 +139,14 @@ class EffectPage(QWidget):
         self.lua_view.setFont(QFont("Consolas", 10))
         self.lua_view.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.tabs.addTab(self.lua_view, "Lua（只读）")
-        check_page = QWidget()
-        cp = QVBoxLayout(check_page)
+        self.check_page = QWidget()
+        cp = QVBoxLayout(self.check_page)
         self.check_list = QListWidget()
         cp.addWidget(self.check_list, 1)
         sandbox = QPushButton("在测试沙盒里检查这张卡")
         sandbox.clicked.connect(self.check_requested.emit)
         cp.addLayout(_flow(sandbox))
-        self.tabs.addTab(check_page, "检查")
+        self.tabs.addTab(self.check_page, "检查")
         self.tabs.setMinimumHeight(110)
         self.split.addWidget(self.tabs)
         self.split.setStretchFactor(0, 1)
@@ -212,7 +212,10 @@ class EffectPage(QWidget):
         self.model = model
         if not same:
             self.editor.load(dict(copy.deepcopy(model), card=card))
-        self._materials(rec)
+        if any(n.get("block") == "ls_program" for n in model.get("effects", [])):
+            self.material_box.hide()
+        else:
+            self._materials(rec)
         self._preview(result, card_text_same)
 
     def _edited(self):
@@ -257,7 +260,7 @@ class EffectPage(QWidget):
     def add_check_lines(self, lines):
         for mark, text in lines:
             self._check_line(mark, text, {"√": "#2c6e2f", "×": "#b3261e"}.get(mark, "#9a5a00"))
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentWidget(self.check_page)
 
     # ------------------------------------------------------------ 素材与出场限制（summon，不在积木里）
 

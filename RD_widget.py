@@ -464,6 +464,7 @@ class RDWidget(QWidget):
         self.rd_layout.addLayout(self.color_vbox)
         self.rd_layout.addLayout(self.upload_btn_hbox)
         self.rd_layout.addLayout(self.detail_info_hbox)
+        self.rd_layout.addLayout(self.MT_type_hbox)
         self.rd_layout.addLayout(self.attribute_hbox)
         self.rd_layout.addLayout(self.level_box)
         self.rd_layout.addLayout(self.ATK_DEF_hbox)
@@ -758,20 +759,17 @@ class RDWidget(QWidget):
         self.card_type = selected_key
         self.switch_base_image()
         if self.card_type == '怪兽卡':
-            self.rd_layout.removeItem(self.MT_type_hbox)
             self.MT_type_label.setVisible(False)
             self.MT_type_selector.setVisible(False)
             self.MT_text_item.setVisible(False)
             self.icon_item.setVisible(False)
-            self.reappear_monster_items()
+            self._show_monster_items(True)
             self.attribute_item.setPixmap(decrypt_image_qpixmap(self.config.attribute_imgs[self.current_attribute]))
         else:
-            self.hide_monster_items()
-            if not self.MT_type_hbox.parent():
-                self.rd_layout.insertLayout(3, self.MT_type_hbox)
-                self.MT_type_label.setVisible(True)
-                self.MT_type_selector.setVisible(True)
-                self.MT_text_item.setVisible(True)
+            self._show_monster_items(False)
+            self.MT_type_label.setVisible(True)
+            self.MT_type_selector.setVisible(True)
+            self.MT_text_item.setVisible(True)
             if self.card_type == '魔法卡':
                 self.attribute_item.setPixmap(decrypt_image_qpixmap(self.config.attribute_imgs['魔']))
             else:
@@ -818,60 +816,22 @@ class RDWidget(QWidget):
         overframe._ensure_rd_overframe(self)
         overframe._apply_rd_overframe_layers(self)
 
-    def hide_monster_items(self):
-        self.rd_layout.removeItem(self.detail_info_hbox)
-        self.rd_layout.removeItem(self.attribute_hbox)
-        self.rd_layout.removeItem(self.level_box)
-        self.rd_layout.removeItem(self.ATK_DEF_hbox)
-        self.detail_info_label.setVisible(False)
-        self.race_selector.setVisible(False)
-        self.call_way_selector.setVisible(False)
-        for _, btn in self.attribute_btn_dict.items():
-            btn.setVisible(False)
-        for btn in self.level_star_btn_list:
-            btn.setVisible(False)
-        self.ATK_label.setVisible(False)
-        self.ATK_edit.setVisible(False)
-        self.DEF_label.setVisible(False)
-        self.DEF_edit.setVisible(False)
-        self.Max_ATK_label.setVisible(False)
-        self.Max_ATK_edit.setVisible(False)
-
-        self.ATK_DEF_item.setVisible(False)
-        self.level_item.setVisible(False)
-        self.Max_ATK_item.setVisible(False)
-        self.ATK_number_item.setVisible(False)
-        self.DEF_number_item.setVisible(False)
-        self.Max_number_item.setVisible(False)
-        self.detail_text_item.setVisible(False)
-
-    def reappear_monster_items(self):
-        self.rd_layout.insertLayout(3, self.detail_info_hbox)
-        self.rd_layout.insertLayout(4, self.attribute_hbox)
-        self.rd_layout.insertLayout(5, self.level_box)
-        self.rd_layout.insertLayout(6, self.ATK_DEF_hbox)
-        self.detail_info_label.setVisible(True)
-        self.race_selector.setVisible(True)
-        self.call_way_selector.setVisible(True)
-        for _, btn in self.attribute_btn_dict.items():
-            btn.setVisible(True)
-        for btn in self.level_star_btn_list:
-            btn.setVisible(True)
-        self.ATK_label.setVisible(True)
-        self.ATK_edit.setVisible(True)
-        self.DEF_label.setVisible(True)
-        self.DEF_edit.setVisible(True)
-        self.Max_ATK_label.setVisible(True)
-        self.Max_ATK_edit.setVisible(True)
-
-        self.ATK_DEF_item.setVisible(True)
-        self.level_item.setVisible(True)
-        self.Max_ATK_item.setVisible(self.Max_ATK_flag)
-        self.ATK_number_item.setVisible(True)
-        self.DEF_number_item.setVisible(True)
-        self.Max_number_item.setVisible(self.Max_ATK_flag)
-        self.detail_text_item.setVisible(True)
-        rd_style._apply_rd_text_colors(self)
+    def _show_monster_items(self, visible):
+        # 重排后的行继续由 Qt 管理，让隐藏的行自行收缩。
+        controls = (self.detail_info_label, self.race_selector, self.call_way_selector,
+                    self.extra_info_selector, getattr(self, "extra_info_selector2", None),
+                    getattr(self, "_rd_custom_detail_panel", None), self.attribute_label,
+                    self.level_label, self.level_zero_btn, self.ATK_label, self.ATK_edit,
+                    self.DEF_label, self.DEF_edit, self.Max_ATK_label, self.Max_ATK_toggle,
+                    self.Max_ATK_edit, *self.attribute_btn_dict.values(), *self.level_star_btn_list)
+        for widget in controls:
+            if widget is not None:
+                widget.setVisible(visible)
+        for item in (self.ATK_DEF_item, self.level_item, self.ATK_number_item,
+                     self.DEF_number_item, self.detail_text_item):
+            item.setVisible(visible)
+        self.Max_ATK_item.setVisible(visible and self.Max_ATK_flag)
+        self.Max_number_item.setVisible(visible and self.Max_ATK_flag)
 
     def attribute_clicked(self):
         button = self.sender()
@@ -1383,8 +1343,10 @@ class RDWidget(QWidget):
         pass
 
     def set_card_img_nocrop(self, img_path):
-        self.card_img = Image.open(img_path).convert('RGBA')
+        with Image.open(img_path) as source:
+            self.card_img = source.convert("RGBA")
         self.transform_normal_img()
+        self._store_uploaded_image()
 
     def set_card_img_crop(self, img_path):
         pil_image = Image.open(img_path).convert('RGBA')
@@ -1394,7 +1356,18 @@ class RDWidget(QWidget):
             pixmap = crop_dialog.get_cropped_pixmap()
             self.card_img = qpixmap_to_pillow(pixmap)
             self.transform_normal_img()
+            self._store_uploaded_image()
         pass
+
+    def _store_uploaded_image(self):
+        if not rd_panel._editing_rd_card(self):
+            return
+        editor = self.parent_app.otcg_widget
+        editor.card_img = self.card_img.copy()
+        if editor.detail_extra1 == "灵摆":
+            editor.transform_LB_img()
+        else:
+            editor.transform_normal_img()
 
     def transform_normal_img(self):
         card_img_size = self.card_img_size
@@ -1530,10 +1503,8 @@ class RDWidget(QWidget):
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
         self.parent_app.rd_scene.render(painter, QRectF(image.rect()), self.parent_app.rd_scene.sceneRect())
         painter.end()
-        if self.output_format == 0:
-            image.save(file_name, format='PNG')
-        else:
-            image.save(file_name, format='JPG')
+        from print_export import save_image
+        save_image(image, file_name, "PNG" if self.output_format == 0 else "JPG")
         self.update_mix_param()
         self.update_card_name()
 

@@ -8,7 +8,7 @@
 import copy
 import json
 
-from PyQt5.QtCore import QEvent, QMimeData, Qt, QTimer, pyqtSignal
+from PyQt5.QtCore import QEvent, QMimeData, QModelIndex, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import (
     QBrush, QColor, QDrag, QFont, QIcon, QKeySequence, QPainter, QPen, QPixmap, QStandardItem, QStandardItemModel,
 )
@@ -35,9 +35,14 @@ KIND_STYLE = {"hat": ("效果", "#EEEDFE", "#3C3489", "#7F77DD"),
               "cards": ("卡片", "#FAECE7", "#712B13", "#D85A30"),
               "filter": ("卡片条件", "#FBEAF0", "#72243E", "#D4537E"),
               "number": ("数值", "#FAEEDA", "#633806", "#BA7517"),
-              "cond": ("条件", "#E6F1FB", "#0C447C", "#378ADD")}
+              "cond": ("条件", "#E6F1FB", "#0C447C", "#378ADD"),
+              "ls_stmt": ("脚本语句", "#E1F5EE", "#085041", "#1D9E75"),
+              "ls_expr": ("脚本表达式", "#E7EFF8", "#25496E", "#547AA5"),
+              "ls_branch": ("条件分支", "#EBE9F9", "#483A75", "#8071B1"),
+              "ls_field": ("表项", "#F7EBDD", "#76471F", "#AA7444"),
+              "ls_hint": ("提示文字", "#F1EFE8", "#554F40", "#887B5D")}
 CATEGORY_KIND = {"效果": "hat", "动作": "stmt", "登记效果": "stmt", "控制": "stmt", "卡片": "cards", "卡片条件": "filter",
-                 "数值": "number", "条件": "cond"}
+                 "数值": "number", "条件": "cond", **catalog.script_palette.CATEGORIES}
 HOVER_BG = "#CFE3F7"
 _ICONS = {}
 
@@ -118,7 +123,7 @@ KIND_HINT = {"stmt": "放动作、控制", "cards": "放一块卡片", "number":
 def slot_hint(accepts, only):
     if only:
         return "放：" + "、".join(catalog.BLOCKS[k].label for k in only)
-    return KIND_HINT[accepts]
+    return KIND_HINT.get(accepts) or KIND_STYLE[accepts][0]
 
 
 def slot_fits(slot_data, key):
@@ -161,7 +166,7 @@ class Palette(QTreeWidget):
                     it.setBackground(0, QBrush(QColor(bg)))
                     it.setForeground(0, QBrush(QColor(fg)))
                     top.addChild(it)
-            top.setExpanded(True)
+            top.setExpanded(cat not in catalog.script_palette.CATEGORIES)
 
     def blocks(self):
         for i in range(self.topLevelItemCount()):
@@ -174,7 +179,7 @@ class Palette(QTreeWidget):
         for top, it in self.blocks():
             it.setHidden(False)
             top.setHidden(False)
-            top.setExpanded(True)
+            top.setExpanded(top.text(0) not in catalog.script_palette.CATEGORIES)
 
     def focus_slot(self, slot_data, slot_label):
         """右边选中一个槽：只显示放得进去的积木，滚到第一块。"""
@@ -201,8 +206,9 @@ class Palette(QTreeWidget):
     def focus_block(self, key):
         """右边选中一块积木：显示全部，跳到这块积木在积木栏里的位置。"""
         self.show_all("全部积木（选中的是「%s」）" % catalog.BLOCKS[key].label)
-        for _, it in self.blocks():
+        for top, it in self.blocks():
             if it.data(0, ROLE_NODE) == key:
+                top.setExpanded(True)
                 self.setCurrentItem(it)
                 self.scrollToItem(it, QAbstractItemView.PositionAtCenter)
                 self.horizontalScrollBar().setValue(0)        # 只竖着跳，不横着滚
@@ -234,6 +240,7 @@ class BlockTree(QTreeWidget):
         self.setAcceptDrops(True)
         self.setDragDropMode(QAbstractItemView.DragDrop)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.counter_names = {}
         self.card = {"code": 100009999, "name": "新卡", "kind": "monster"}
         self.extra = {}                 # 积木以外、原样保存的部分（召唤手续 summon 等）
         self._moving = None
@@ -246,7 +253,38 @@ class BlockTree(QTreeWidget):
         self.extra = {k: copy.deepcopy(v) for k, v in card.items() if k not in ("schema", "card", "effects")}
         for node in card.get("effects", []):
             self.addTopLevelItem(self.make_block(node))
-        self.expandAll()
+        if any(n.get("block") == "ls_program" for n in card.get("effects", [])):
+            self.expandToDepth(1)
+        else:
+            self.expandAll()
+
+    def selection_path(self):
+        index = self.currentIndex()
+        path = []
+        while index.isValid():
+            path.append(index.row())
+            index = index.parent()
+        return tuple(reversed(path))
+
+    def fits_root(self, key, moving=None):
+        if catalog.BLOCKS[key].kind != "hat":
+            return False
+        others = [self.topLevelItem(i) for i in range(self.topLevelItemCount()) if self.topLevelItem(i) is not moving]
+        return not others or (key != "ls_program" and all(it.data(0, ROLE_NODE)["block"] != "ls_program" for it in others))
+
+    def refresh_selection(self, refresh):
+        """卡包改号可能重建整棵积木树，重建后按原来的行路径选回同一块。"""
+        path = self.selection_path()
+        refresh()
+        if not path:
+            return None
+        index = QModelIndex()
+        for row in path:
+            index = self.model().index(row, 0, index)
+            if not index.isValid():
+                return None
+        self.setCurrentIndex(index)
+        return self.currentItem()
 
     def make_block(self, node):
         b = catalog.BLOCKS[node["block"]]
@@ -272,7 +310,7 @@ class BlockTree(QTreeWidget):
     def paint(self, it):
         node = it.data(0, ROLE_NODE)
         b = catalog.BLOCKS[node["block"]]
-        it.setText(0, b.show(node))
+        it.setText(0, b.show(node, self.counter_names))
         _, bg, fg, _ = KIND_STYLE[b.kind]
         it.setIcon(0, kind_icon(b.kind))
         it.setBackground(0, QBrush(QColor(bg)))
@@ -312,10 +350,9 @@ class BlockTree(QTreeWidget):
     # ------------------------------------------------------------ 放到哪里
     def drop_place(self, pos, key, moving=None):
         """积木 key 拖到 pos 时落在哪：(槽 item 或 None=最外层, 下标)；放不进返回 None。"""
-        kind = catalog.BLOCKS[key].kind
         it = self.itemAt(pos)
         if it is None:                                   # 空白处：放到最外层末尾（只有效果能放）
-            return (None, self.topLevelItemCount()) if kind == "hat" else None
+            return (None, self.topLevelItemCount()) if self.fits_root(key, moving) else None
         if it.data(0, ROLE) == "slot":
             parent, index = it, it.childCount()
         else:
@@ -324,7 +361,7 @@ class BlockTree(QTreeWidget):
             index = (parent.indexOfChild(it) if parent else self.indexOfTopLevelItem(it)) + \
                 (1 if pos.y() > rect.center().y() else 0)
         if parent is None:
-            return (None, index) if kind == "hat" else None
+            return (None, index) if self.fits_root(key, moving) else None
         count = parent.data(0, ROLE_NODE)[2]
         if not slot_fits(parent.data(0, ROLE_NODE), key):
             return None
@@ -425,21 +462,24 @@ class BlockTree(QTreeWidget):
         kind = catalog.BLOCKS[key].kind
         it = self.currentItem()
         if kind == "hat" or it is None:
-            if kind != "hat":
+            if not self.fits_root(key):
                 return False
-            self.addTopLevelItem(self.make_block(catalog.new(key)))
+            new = self.make_block(catalog.new(key))
+            self.addTopLevelItem(new)
         else:
             parent = it if it.data(0, ROLE) == "slot" else it.parent()
-            index = parent.childCount() if it.data(0, ROLE) == "slot" else parent.indexOfChild(it) + 1
             if parent is None or not slot_fits(parent.data(0, ROLE_NODE), key):
                 return False
+            index = parent.childCount() if it.data(0, ROLE) == "slot" else parent.indexOfChild(it) + 1
             count = parent.data(0, ROLE_NODE)[2]
             if count == 1 and parent.childCount():
                 return False
             new = self.make_block(catalog.new(key))
             parent.insertChild(index, new)
             parent.setExpanded(True)
-        self.expandAll()
+        new.setExpanded(True)
+        self.setCurrentItem(new)
+        self.scrollToItem(new)
         self.changed.emit()
         return True
 
@@ -520,6 +560,8 @@ class FieldPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.counters = None
+        self.setcode_actions = None
         self.form = QFormLayout(self)
         # 窄的时候长标签放到选项上面一行，不和下拉框挤在一起
         self.form.setRowWrapPolicy(QFormLayout.WrapLongRows)
@@ -527,6 +569,7 @@ class FieldPanel(QWidget):
         self.item = None
 
     def show_item(self, tree, it):
+        self.item = None
         while self.form.rowCount():
             self.form.removeRow(0)
         self.item = it if it is not None and it.data(0, ROLE) == "block" else None
@@ -542,12 +585,18 @@ class FieldPanel(QWidget):
             hint.setWordWrap(True)
             hint.setStyleSheet("color:#666666;")
             self.form.addRow(hint)
+        code_edit = None
         for name, label, ftype, opt in b.fields:
             lab = QLabel(label)
             if len(label) > 8:                           # 长标签折行，不把选项挤没；短的不拆（「效果代码」）
                 lab.setWordWrap(True)
                 lab.setMaximumWidth(220)
-            self.form.addRow(lab, self.widget(tree, name, ftype, opt, node.get(name)))
+            widget = self.widget(tree, name, ftype, opt, node.get(name))
+            self.form.addRow(lab, widget)
+            if name == "setcode":
+                code_edit = widget
+        if code_edit is not None and self.setcode_actions is not None:
+            self.form.addRow(self.setcode_actions(code_edit))
 
     def widget(self, tree, name, ftype, opt, value):
         if ftype == "choice":
@@ -609,19 +658,66 @@ class FieldPanel(QWidget):
             w.setFixedHeight(120)
             w.textChanged.connect(lambda w=w: self.set(tree, name, w.toPlainText()))
             return w
+        if ftype == "counter" and self.counters is not None:
+            picker = self.counters.picker(value or opt)
+            item = self.item
+            def select(code):
+                if item is self.item and tree.currentItem() is item:
+                    if self.counters.remember_choice(code):
+                        picker.mark_registered(code)
+                    self.set(tree, name, code)
+            picker.picked.connect(select)
+            return picker
+        if ftype == "counter":
+            from effect_model.counters import counter_code
+            w = QLineEdit(str(value or opt))
+            w.setToolTip("支持十进制或十六进制，例如 4660 或 0x1234。0x1 为魔力指示物。")
+            item = self.item
+            def commit():
+                if item is not self.item or tree.currentItem() is not item:
+                    return
+                try:
+                    code = counter_code(w.text())
+                except ValueError as error:
+                    from PyQt5.QtWidgets import QToolTip
+                    QToolTip.showText(w.mapToGlobal(w.rect().bottomLeft()), str(error), w)
+                    w.setText(str(self.item.data(0, ROLE_NODE).get(name, opt)))
+                    return
+                w.setText(code)
+                self.set(tree, name, code)
+            w.editingFinished.connect(commit)
+            return w
         if ftype == "int":
             w = QSpinBox()
-            w.setRange(-99999, 99999)
+            if name == "code":
+                w.setRange(0, catalog.MAX_CARD_CODE)
+            elif name == "index" and self.item.data(0, ROLE_NODE)["block"] == "ls_hint":
+                w.setRange(0, 15)
+            else:
+                w.setRange(-99999, 99999)
             w.setValue(int(value or 0))
             w.valueChanged.connect(lambda v: self.set(tree, name, v))
             return w
+        block = self.item.data(0, ROLE_NODE)["block"]
+        if block in ("ls_engine", "ls_name", "ls_method"):
+            from .script_symbol import symbol_field
+            field = symbol_field(block, name, value, lambda v: self.set(tree, name, v.strip()))
+            if field is not None:
+                return field
         w = QLineEdit(str(value or ""))
         w.textChanged.connect(lambda v: self.set(tree, name, v.strip()))
         return w
 
     def set(self, tree, name, value):
+        self.set_values(tree, {name: value})
+
+    def set_values(self, tree, values):
+        if self.item is None:
+            return
         node = dict(self.item.data(0, ROLE_NODE))
-        node[name] = value
+        if all(node.get(key) == value for key, value in values.items()):
+            return
+        node.update(values)
         self.item.setData(0, ROLE_NODE, node)
         tree.paint(self.item)
         self.changed.emit()
@@ -631,6 +727,8 @@ class BlockEditor(QWidget):
     """embedded=True：嵌进工作台，不显示自己的中文 / Lua / 问题（工作台有）；改动时发 edited。"""
 
     edited = pyqtSignal()
+    script_requested = pyqtSignal(str)
+    guide_requested = pyqtSignal(str)
 
     def __init__(self, parent=None, embedded=False):
         super().__init__(parent)
@@ -642,6 +740,24 @@ class BlockEditor(QWidget):
             b = QPushButton(text)
             b.clicked.connect(slot)
             bar.addWidget(b)
+        if embedded:
+            from PyQt5.QtWidgets import QMenu
+            script_menu = QMenu(self)
+            for key, label in (("reference", "从 MDPro3 实卡读取…"), ("file", "从 .lua 文件导入…"),
+                               ("current", "转换当前卡脚本"), ("restore", "还原上次转换")):
+                action = script_menu.addAction(label)
+                action.triggered.connect(lambda _, key=key: self.script_requested.emit(key))
+                if key == "restore":
+                    self.restore_script = action
+            button = QPushButton("脚本积木")
+            button.setMenu(script_menu)
+            bar.addWidget(button)
+            guide_button = QPushButton("积木入门")
+            guide_button.setToolTip("打开教学模式。选中积木按 F1 可直接查它的用法")
+            guide_button.clicked.connect(lambda: self.guide_requested.emit(""))
+            help_key = QShortcut(QKeySequence("F1"), self, self._explain_selected)
+            help_key.setContext(Qt.WidgetWithChildrenShortcut)
+            bar.addWidget(guide_button)
         bar.addStretch(1)
         self.status = QLabel()
         bar.addWidget(self.status)
@@ -708,6 +824,17 @@ class BlockEditor(QWidget):
         QShortcut(QKeySequence.Delete, self.tree, self.tree.remove_current)
         self.fields.show_item(self.tree, None)
 
+    def _explain_selected(self):
+        item = self.tree.currentItem()
+        if self.palette.hasFocus() or item is None:
+            choice = self.palette.currentItem()
+            key = choice.data(0, ROLE_NODE) if choice else None
+        else:
+            if item.data(0, ROLE) == "slot":
+                item = item.parent()
+            key = item.data(0, ROLE_NODE)["block"]
+        self.guide_requested.emit(key or "")
+
     def sync_palette(self, it):
         """右边选中什么，左边积木栏就跳到对应的积木：选中槽 → 只显示放得进去的；选中积木 → 跳到它自己。"""
         if it is None:
@@ -765,7 +892,10 @@ class BlockEditor(QWidget):
     def _palette_double(self, it, _col):
         key = it.data(0, ROLE_NODE)
         if key and not self.tree.insert_new(key):
-            self.status.setText("放不进去：先选中一个类型对得上的槽")
+            if catalog.BLOCKS[key].kind == "hat" and not self.tree.fits_root(key):
+                self.status.setText("整卡脚本有自己的初始化函数。可从「脚本积木」菜单转换当前效果。")
+            else:
+                self.status.setText("先选中能放这类积木的槽")
 
     def load(self, card):
         self.tree.load(card)

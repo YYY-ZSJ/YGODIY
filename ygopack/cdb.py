@@ -5,6 +5,8 @@
 """
 
 import os
+import tempfile
+from contextlib import closing
 
 from . import sqlite
 
@@ -22,7 +24,13 @@ def pack_setcode(codes):
     value = 0
     for i, c in enumerate(codes[:4]):
         value |= (c & 0xffff) << (16 * i)
-    return value
+    # SQLite 的 INTEGER 是有符号 64 位，第四个字段可以占用符号位。
+    return value - (1 << 64) if value >= 1 << 63 else value
+
+
+def unpack_setcode(value):
+    value = int(value or 0)
+    return [part for shift in (0, 16, 32, 48) if (part := (value >> shift) & 0xffff)]
 
 
 def rows(records):
@@ -55,3 +63,28 @@ def write(path, records, backend=None):
     finally:
         sqlite.FORCE_CTYPES = old
     return used
+
+
+def read_cards(path):
+    """标准 datas/texts 联表，读取全部卡片数据库字段。"""
+    names = ("code", "ot", "alias", "setcode", "type", "atk", "def", "level", "race", "attribute", "category", "name", "desc")
+    columns = ",".join("t.str%d" % n for n in range(1, 17))
+    query = ("select d.id,d.ot,d.alias,d.setcode,d.type,d.atk,d.def,d.level,d.race,d.attribute,d.category,t.name,t.desc,"
+             + columns + " from datas d join texts t on t.id=d.id order by d.id")
+    with closing(sqlite.connect(path, readonly=True)) as connection:
+        rows = connection.query(query)
+    for row in rows:
+        yield {"record": dict(zip(names, row)), "strings": {str(i): text for i, text in enumerate(row[len(names):]) if text},
+               "script": "", "art": None, "media": {}}
+
+
+def write_atomic(path, records):
+    folder = os.path.dirname(os.path.abspath(path))
+    with tempfile.NamedTemporaryFile(dir=folder, suffix=".cdb", delete=False) as temp:
+        name = temp.name
+    try:
+        write(name, records)
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.remove(name)

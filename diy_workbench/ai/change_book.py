@@ -97,6 +97,8 @@ class ChangeBook(QObject):
         target = params.get("card_uid") or plan.target
         pending_docs = []
         if operation in ("fields", "blocks", "tests", "design_text", "card_data", "script"):
+            if plan.creations and not params.get("card_uid"):
+                raise ValueError("本批包含新卡，请用 new_card、copy_card 或 new_pack 返回的 card_uid 指定要修改的卡。")
             for creation in plan.creations:
                 if not creation["applied"]:
                     cards = creation["document"]["tabs"] if creation["kind"] == "pack" else [creation["document"]]

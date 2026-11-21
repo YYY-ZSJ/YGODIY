@@ -1167,6 +1167,7 @@ def _manga_save_image(editor, file_name):
         return False
     if not file_name:
         return True
+    from print_export import save_image
     try:
         from PyQt5.QtGui import QImage
 
@@ -1174,11 +1175,11 @@ def _manga_save_image(editor, file_name):
         image = _manga_render(_manga_state(app), _MANGA_CARD_W * factor, _MANGA_CARD_H * factor)
         if str(file_name).lower().endswith((".jpg", ".jpeg")):
             image = image.convertToFormat(QImage.Format_RGB888)
-            image.save(file_name, "JPG", 95)
+            save_image(image, file_name, "JPG", 95)
         else:
             # 压缩等级 80：特典卡的金色拉丝纹几乎压不动，默认最高压缩写高清图要 5 秒，
             # 80 只要约 1 秒，文件只大约四分之一
-            image.save(file_name, "PNG", 80)
+            save_image(image, file_name, "PNG", 80)
     except Exception:
         _tab_log("导出漫画卡失败:\n" + traceback.format_exc())
     return True

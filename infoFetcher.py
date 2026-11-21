@@ -49,6 +49,16 @@ def transform_mark(s: str) -> str:
     return s
 
 
+def _matching_card_result(soup, password):
+    wanted = str(password).zfill(8)
+    for row in soup.select("div.row.card.result"):
+        for item in row.select("div.names h3 span"):
+            code = item.get_text(strip=True)
+            if code.isdigit() and code.zfill(8) == wanted:
+                return row
+    return None
+
+
 class InfoFetcher:
     def __init__(self, offical_cn=False) -> None:
         self.session_baige = requests.Session()
@@ -125,22 +135,16 @@ class InfoFetcher:
             self.card_img = card_img
             return
         if self.local_image_use and self.local_image_source != '':
-            flag = False
-            img_list = [os.path.join(self.local_image_source, f'{self.card_pass}.png'),
-                os.path.join(self.local_image_source, f'{self.card_pass}.jpg'),
-                os.path.join(self.local_image_source, f"{self.card_pass.lstrip('0')}.png"),
-                os.path.join(self.local_image_source, f"{self.card_pass.lstrip('0')}.jpg")]
-            for img in img_list:
-                if os.path.exists(img):
-                    self.card_img = Image.open(img).convert('RGBA')
-                    flag = True
-                    break
-            if not flag:
-                self.fetch_img_online()
-            pass
-        else:
-            self.fetch_img_online()
-        pass
+            for name in dict.fromkeys((self.card_pass, self.card_pass.lstrip("0"))):
+                for extension in (".png", ".jpg"):
+                    path = os.path.join(self.local_image_source, name + extension)
+                    try:
+                        with Image.open(path) as source:
+                            self.card_img = source.convert("RGBA")
+                        return
+                    except OSError:
+                        continue
+        self.fetch_img_online()
 
     def fetch_img_online(self):
         url = f"https://images.ygoprodeck.com/images/cards_cropped/{self.card_pass.lstrip('0')}.jpg"
@@ -167,15 +171,7 @@ class InfoFetcher:
             if search_res:
                 self.valid = False
                 return
-            search_card = None
-            results_list = soup.find_all('div', class_='row card result')
-            for res in results_list:
-                code_area = res.find('div', class_='col-md-6 col-xs-8 names')
-                h3_list = code_area.find_all('h3')
-                for h3 in h3_list:
-                    text = h3.find('span').text
-                    if text.isdigit() and text.zfill(8)[:-2] == self.card_pass[:-2]:
-                        search_card = res
+            search_card = _matching_card_result(soup, self.card_pass)
             if search_card is None:
                 self.valid = False
                 return

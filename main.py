@@ -49,6 +49,7 @@ _SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 if _SRC_DIR not in sys.path:
     sys.path.append(_SRC_DIR)
 import diy_workbench.workbench as diy_workbench  # noqa: E402
+import diy_workbench.support_dialog as support_dialog  # noqa: E402
 import language_switch
 import manga
 import mode_styles
@@ -102,6 +103,10 @@ class YuGiOhApp(QWidget):
         except Exception:
             self._workbench_mode_index = -1
             _tab_log("安装 DIY 工作台失败:\n" + traceback.format_exc())
+        self._guide_mode_index = self.combo_box.count()
+        self._guide_page = None
+        self.combo_box.addItem("积木入门")
+        support_dialog.install(self)
 
         # OCG/TCG、RD、漫画卡各自的显示设置（mode_styles），RD 另有语言下拉
         self._style_mode_key = "ocg"
@@ -196,7 +201,7 @@ class YuGiOhApp(QWidget):
 
         from diy_workbench.ai.dock import make_shell
         make_shell(self)
-        self.setWindowTitle('YGODIY 2.0.0')
+        self.setWindowTitle('YGODIY 4.0.0')
         self.setWindowIcon(QIcon(rpath('mold/YGODIY.ico')))
 
         screen_height = QGuiApplication.primaryScreen().geometry().height()
@@ -240,6 +245,8 @@ class YuGiOhApp(QWidget):
     def resizeEvent(self, event):
 
         super().resizeEvent(event)
+        if self.current_mode == getattr(self, "_guide_mode_index", -1):
+            return
         if self.current_mode in (0, getattr(self, '_workbench_mode_index', -2)):  # DIY 工作台显示的是 OCG 卡面
             self.view.fitInView(self.otcg_widget.base_item.boundingRect(), Qt.KeepAspectRatio)
             self.otcg_widget.update_mix_param()
@@ -262,6 +269,8 @@ class YuGiOhApp(QWidget):
 
 
     def showEvent(self, event):
+        if self.current_mode == getattr(self, "_guide_mode_index", -1):
+            return super().showEvent(event)
         # 漫画卡模式的序号不在 0~3，按漫画卡卡面适配（否则会被当成旧版卡）
         manga_index = getattr(self, '_manga_mode_index', -1)
         manga_item = getattr(self, 'manga_item', None)
@@ -292,6 +301,8 @@ class YuGiOhApp(QWidget):
         """模式下拉的入口。由外到内：超框图层在模式间同步、补装 AI 翻译开关、切换后保持当前语言（language_switch）、
         各模式自己的显示设置（mode_styles）、漫画卡模式（manga）、RD 卡框跟随 OCG（rd_frame），
         最里层 _switch_mode_base 是各编辑器本身的切换。"""
+        if index == getattr(self, '_support_index', -1):     # 「支持作者」只弹窗，不是模式
+            return support_dialog.open_from_combo(self)
         if getattr(self, '_of_last_mode', None) is None and self.current_mode in overframe._OF_SYNC_MODES:
             self._of_last_mode = self.current_mode
         result = language_switch._switch_mode_keeping_language(self, index, self._switch_mode_styled)
@@ -316,6 +327,20 @@ class YuGiOhApp(QWidget):
             return None
 
     def _switch_mode_manga(self, index: int):
+        guide_index = getattr(self, "_guide_mode_index", -1)
+        if index == guide_index and guide_index >= 0:
+            diy_workbench.leave(self)
+            manga._manga_leave(self)
+            if self._guide_page is None:
+                from diy_workbench.block_guide import BlockGuide
+                self._guide_page = BlockGuide()
+                self._guide_page.return_requested.connect(lambda: self.combo_box.setCurrentIndex(self._workbench_mode_index))
+                self.right_layout.addWidget(self._guide_page, 1)
+            self.current_mode = guide_index
+            self._show_guide(True)
+            return
+        if self.current_mode == guide_index:
+            self._show_guide(False)
         workbench_index = getattr(self, '_workbench_mode_index', -1)
         if index == workbench_index and workbench_index >= 0:
             manga._manga_leave(self)
@@ -334,6 +359,20 @@ class YuGiOhApp(QWidget):
             return None
         manga._manga_leave(self)
         return self._switch_mode_frame(index)
+
+    def _show_guide(self, visible):
+        self._guide_page.setVisible(visible)
+        self.scroll_area.setVisible(not visible)
+        self.view.setVisible(not visible)
+        manager = getattr(self, "card_tab_manager", None)
+        if manager is not None:
+            manager.pack_panel.setVisible(not visible)
+            manager.panel.setVisible(not visible)
+
+    def open_block_guide(self, key=""):
+        self.combo_box.setCurrentIndex(self._guide_mode_index)
+        if key and self._guide_page is not None:
+            self._guide_page.show_block(key)
 
     def _switch_mode_frame(self, index: int):
         try:

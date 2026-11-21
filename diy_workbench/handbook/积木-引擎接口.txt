@@ -1,0 +1,56 @@
+ls_api_Effect_CreateEffect|新建一个效果对象，供后续填写它的触发和处理方式。|在初始化函数声明 e1，值放本块，持有卡接 c，即 Effect.CreateEffect(c)。|创建后仍需设置类型、处理并向卡片登记，否则游戏不知道要使用它。
+ls_api_method_Clone|根据一个已有的效果或卡片组生成另一个对象。|在已有 e1 时声明 e2，值用 e1:Clone()，再单独修改并登记 e2。|核对接收者是什么类型。若只是 e2=e1，两个名字会指同一个对象。
+ls_api_method_RegisterEffect|把已配置的效果交给这张卡，使引擎能够发现它。|初始化函数最后执行 c:RegisterEffect(e1)，调用对象接 c，效果槽接 e1。|若脚本能加载却没有效果，检查登记的是已经配置的那一个对象。
+ls_api_Duel_RegisterEffect|把创建的场上规则效果以指定玩家为基准登记到决斗。|配置临时限制并设好期限，执行 Duel.RegisterEffect(e1,tp)。|给单张卡的普通效果通常向该卡登记。全局效果尤其要核对到期时间。
+ls_api_method_SetType|告诉引擎效果属于发动、起动、诱发或持续等哪一类。|给通常魔法的 e1 调用 e1:SetType(EFFECT_TYPE_ACTIVATE)。|卡面仍须是真正的魔法。改变脚本类型不会自动改变数据库里的卡种。
+ls_api_method_SetCode|指定事件编号或持续效果的具体规则编号。|通常魔法的发动设 EVENT_FREE_CHAIN，攻击力持续加成则使用 EFFECT_UPDATE_ATTACK。|事件与效果代码是不同系列，结合上一步的效果类型选择。
+ls_api_method_SetCategory|登记这项效果可能进行的操作类别，给响应和提示读取。|抽卡魔法在初始化时设 e1:SetCategory(CATEGORY_DRAW)，并在处理里另行抽卡。|只登记分类，手牌不会增加。还要有实际处理和必要的发动检查。
+ls_api_method_SetProperty|记录效果的属性标志，例如发动时需要选定对象。|给需要取对象的效果设 EFFECT_FLAG_CARD_TARGET，再在目标函数选择目标。|写了标志仍须执行选对象的步骤，并在结算时重新确认关联。
+ls_api_method_SetRange|限制效果来源卡在哪个区域时有效。|怪兽的场上起动效果设置 e1:SetRange(LOCATION_MZONE)，让它进墓再观察。|这里填效果来源位置。想限制受影响的怪兽在哪，请设作用范围。
+ls_api_method_SetTargetRange|给范围效果分别指定己方和对方哪些区域或玩家受影响。|要影响自己怪兽区，设置 e1:SetTargetRange(LOCATION_MZONE,0)。|若属性指定作用于玩家，两个参数的含义会变为玩家选项，混用会选错对象。
+ls_api_method_SetCountLimit|设每回合可使用的次数，也能通过编号让同名卡共享次数。|先试 e1:SetCountLimit(1)，再读带共享编号的实卡，拿第二张副本比较。|单卡计次与同卡名共享不同。共享编号、效果编号和次数都要核对。
+ls_api_method_SetCondition|把一个会返回真假的函数登记为发动或适用条件。|将 s.condition 作为参数传入，在那个函数中比较谁的回合。|此处传函数本身，不要提前调用 s.condition()。
+ls_api_method_SetCost|指定负责检查与实际支付代价的函数。|在初始化中传 s.cost，函数内先在 chk==0 时检查能否付500，其余情况才实际支付。|若把扣分放进检查分支，光询问能否发动就会产生错误的扣分。
+ls_api_method_SetTarget|登记发动合法性、目标选择和处理预告的回调。|传 s.target，在检查分支判断能否抽1张，正式发动时登记抽卡预告。|没有取对象的抽卡卡也可有这个函数，它也负责发动前的合法性。
+ls_api_method_SetOperation|登记连锁处理时才执行的函数。|传 s.operation，在函数里面调用 Duel.Draw(tp,1,REASON_EFFECT)。|如果发动就立即抽了，查抽卡是否误写进目标或代价函数。
+ls_api_method_SetValue|给持续效果提供固定数值或由条件计算的值。|在加攻击力的效果上设 e1:SetValue(500)，应用后核对攻守栏。|只设500还要选对效果代码。不同代码需要数字或判定函数。
+ls_api_method_SetReset|规定临时效果遇到什么事件、阶段或次数后结束。|用持续到结束阶段的规范写法，例如 RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END。|改变场合后容易留下永久加成，离场和到期都要试。
+ls_api_method_SetDescription|把效果关联到供玩家选择时显示的一条提示。|先准备序号0的提示，再执行 e1:SetDescription(aux.Stringid(id,0))。|若显示空白，查提示编号与实际导出的文字是否一致。
+ls_api_method_SetLabel|在这个效果对象上临时保存数值供后面读取。|先执行 e:SetLabel(3)，后续在同一效果对象里读 e:GetLabel()。|别在读取之前写入其他数值。多件事共用一个效果时注意谁在写。
+ls_api_method_GetLabel|读出先前存在这个效果对象上的数值。|目标阶段存3，在处理阶段把读数用于计算抽卡或回复。|换一个效果对象读不到原先标记，先检查是否同一个 e。
+ls_api_method_SetLabelObject|把一个卡片、效果或卡片组对象挂在效果上供后续取用。|将选定的卡 tc 存入 e:SetLabelObject(tc)，延后处理时取回。|跨时点保存卡片组和重新判断卡是否仍适格是两件事，参照实卡处理生命周期。
+ls_api_method_GetLabelObject|取回之前和当前效果关联的那个对象。|先取 e:GetLabelObject() 记作 tc，确认存在并仍可处理再用。|尚未设置时可能是空值。条件判断应在调用 tc 的方法之前。
+ls_api_method_GetHandler|从一个效果对象找到提供该效果的卡。|在处理函数声明 c，取 e:GetHandler()，随后给这张卡加指示物。|取原因效果的来源时应对那个原因效果调用，别误读当前效果 e。
+ls_api_method_GetHandlerPlayer|取得当前效果的持有卡对应的玩家。|用 e:GetHandlerPlayer() 的结果与回合玩家比较，核对控制权改变时的局面。|数值是玩家编号0或1，不是卡号。
+ls_api_method_GetReasonEffect|找出令某张卡发生这次变化的原因效果。|被效果送墓时先读 tc:GetReasonEffect()，确认存在后再取其持有卡。|战斗或规则移动可能没有原因效果，直接继续调用会报空值错误。
+ls_api_method_IsHasEffect|查询某张卡上当前是否有指定代码的效果。|对卡 c 查 c:IsHasEffect(EFFECT_DISABLE)，在效果无效前后比较。|得到的结果可供真假判断，不要把它直接当攻击力加成的具体数值。
+ls_api_method_IsRelateToEffect|在处理时确认一张卡仍和本次效果有关联。|读回对象 tc，先确认 tc 存在，再检查 tc:IsRelateToEffect(e)，成立才破坏。|对象离场再回来通常已是新的实体关系，不能只凭同卡号继续处理。
+ls_api_method_GetCardTarget|读取由某张卡长期维持对象关系的整组卡。|先为来源卡建立关系，处理时读 c:GetCardTarget()，逐张核对。|一次连锁中的临时对象请用该连锁提供的目标资料。
+ls_api_method_SetCardTarget|建立从一张卡指向另一张卡的持续关系。|以来源卡 c 调用 c:SetCardTarget(tc)，再从 c 取回整个对象组。|两个参数方向颠倒，后续从来源卡就找不到目标。
+ls_api_method_CancelCardTarget|解除两张卡之间已经存在的持续对象关系。|先建立 c 指向 tc 的关系，再执行 c:CancelCardTarget(tc)，比较对象组。|解除关系不会自动破坏或移动任何一张卡。
+ls_api_method_GetLinkedZone|取得连接怪兽箭头所指格子的区域标记。|以连接怪兽调用 c:GetLinkedZone(tp)，按指定玩家视角查它指到的格。|结果是表示格子的数值标记，不是站在那些格子里的怪兽组。
+ls_api_method_GetColumnGroup|取得同列内的卡片组，也能通过参数扩到相邻列。|调用 c:GetColumnGroup() 看同列，在其他列另摆一张对照。|要加左右距离时留意参照方向与边缘格。
+ls_api_method_GetFlagEffect|读取卡片身上某编号标记的个数。|先用卡的注册标记接口写入 id，再读 c:GetFlagEffect(id) 并判断是否大于0。|查不到优先核对同一张卡、同一编号和重置时机。
+ls_api_method_RegisterFlagEffect|给卡登记具有编号和清除时机的内部标记。|读实卡中 c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD,0,1)，再配读标记接口核对。|末尾额外数值按实际用途填写。内部标记与卡上可见的指示物各自管理。
+ls_api_Duel_RaiseEvent|让一组卡共同发出一个事件，可供监听它的效果响应。|在已有自定义事件的实卡里跟踪传入的卡片组、事件编号与监听端的编号。|两个编号需一致，还要有监听效果。不要让处理无条件再次触发自身。
+ls_api_Duel_RaiseSingleEvent|让特定的一张卡发出单卡事件。|读一个为单卡发出 EVENT_CUSTOM 加编号的处理，核对第一槽接的是那一张卡。|多张卡一起产生的组事件请用「对卡片组发出事件」，监听方式要匹配。
+ls_api_Duel_GetChainInfo|从某个连锁环节中取回需要的资料。|在处理时查 Duel.GetChainInfo(0,CHAININFO_TARGET_PARAM)，读回发动时记下的数值。|0在这里指当前处理的链节。资料种类要和当初保存的内容一致。
+ls_api_Duel_SetTargetPlayer|在本次连锁环节记录之后处理要用的玩家。|目标函数执行 Duel.SetTargetPlayer(tp)，处理时按目标玩家的资料取回。|记下玩家不会自动抽牌或造成伤害，实际动作还在处理函数。
+ls_api_Duel_SetTargetParam|为这个链节保存一个整数供处理取回。|把抽卡张数2用 Duel.SetTargetParam(2) 存入，处理用目标数值再读回。|改卡时一起调整发动检查、记录值和操作预告中的张数。
+ls_api_Duel_IsPlayerCanDraw|向引擎询问指定玩家是否允许抽指定张数。|在目标函数 chk==0 时返回 Duel.IsPlayerCanDraw(tp,2)，再试有抽卡限制的局面。|它只给出可否，真正抽卡仍用「让玩家抽卡」。
+ls_api_Duel_GetMatchingGroup|按筛选函数、双方区域和排除项找出所有合格卡。|筛选 aux.TRUE，参考玩家 tp，己方区域 LOCATION_GRAVE，对方区域0，排除项 nil，得到自己墓地的卡片组。|区域顺序相对于参考玩家。空组也可能是有效结果。
+ls_api_Duel_SelectMatchingCard|让指定玩家在处理当时从合格卡中挑选。|自己从自己卡组选1只怪兽，选择玩家与参考玩家都用 tp，张数下限上限都1。|筛选函数得返回真假，排除项可用 nil。卡文要求发动时取对象应使用 SelectTarget。
+ls_api_Duel_IsExistingMatchingCard|检查给定范围是否至少存在若干张合格卡。|用自己墓地区域、至少1张，回答是否能使用后续回收处理。|检查返回真假，不会让玩家选卡。实际选择还需另一步。
+ls_api_Duel_SelectTarget|在发动时挑选目标并登记到这个连锁环节。|在目标函数正式发动分支中，从对方怪兽区选1只，最少1、最多1。|同时配置取对象属性，预检查与正式选择应使用一致的范围。
+ls_api_Duel_GetFirstTarget|在处理时取回本链节的第一个对象。|声明 tc 接 Duel.GetFirstTarget()，检查 tc 和 tc:IsRelateToEffect(e) 再处理。|若曾选多个目标，单读第一个不会处理其余对象。
+ls_api_Duel_SetOperationInfo|向引擎预告本次效果打算进行哪种处理。|自己抽2张可登记 Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,2)。|本行不会抽卡。预告、合法性检查和最终实际处理要写同一张数。
+ls_api_method_Filter|从已有卡片组挑出通过判断的子组。|让 g:Filter(Card.IsFaceup,nil) 得到其中表侧卡，比较两个组的张数。|返回的是新取得的筛选结果，要保存或接给下一步。
+ls_api_method_IsExists|在已有组中判断是否至少有指定数量的卡符合条件。|用 g:IsExists(Card.IsFaceup,1,nil) 检查至少一张表侧。|它给的是真假。若你还需要那些卡本身，可用 Filter。
+ls_api_method_Select|由玩家在已有组中选若干张。|已有 g 时用 g:Select(tp,1,1,nil)，从中选恰好一张再对选中结果处理。|张数下限不得超过可选数。原先的整个组仍然是整个组。
+ls_api_Duel_Destroy|用指定原因破坏某张卡或一组卡。|确认目标仍有关联后执行 Duel.Destroy(tc,REASON_EFFECT)，比较目标最终位置。|有保护或破坏代替时实际成功的张数可能为0。
+ls_api_Duel_SendtoGrave|按指定原因把单卡或卡片组送入墓地。|把一组卡 g 以 REASON_EFFECT 送墓，再在墓地检查对应卡。|作为代价与作为效果的原因标记不同。送墓也不自动算破坏。
+ls_api_Duel_Remove|把卡除外，并指定表侧或里侧与处理原因。|执行 Duel.Remove(tc,POS_FACEUP,REASON_EFFECT)，在表侧除外区核对卡号。|里侧除外的卡可用信息受限，先用表侧做基础例子。
+ls_api_Duel_SpecialSummon|给出卡片、双方和表示形式等参数执行特殊召唤。|用普通可苏生怪兽试 Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)。|检查区域、正规出场限制和剩余格。两个布尔参数要按卡文选择。
+ls_api_Duel_Draw|真正让玩家抽指定张数。|在处理函数执行 Duel.Draw(tp,1,REASON_EFFECT)，结算后卡组减少一张。|发动时只查「检查玩家能否抽指定张数」，不要在预检查里提前抽牌。
+ls_api_Duel_Damage|以指定原因对玩家造成数值伤害。|执行 Duel.Damage(1-tp,500,REASON_EFFECT)，在无替代效果时对方从8000到7500。|tp是发动方，1-tp是另一方。效果伤害与代价不同。
+ls_api_aux_Stringid|根据卡号与提示序号取得模拟器使用的文字编号。|添加提示0，执行 aux.Stringid(id,0) 并把结果传给效果的说明。|这里取得的是编号。文字要在卡片字符串资料里填写并随卡包导出。

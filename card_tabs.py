@@ -16,7 +16,8 @@ import time
 import traceback
 
 from PIL import Image
-from PyQt5.QtCore import QEvent, QObject, QTimer, Qt
+from PyQt5.QtCore import QEvent, QObject, QTimer, Qt, pyqtSignal
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -223,13 +224,6 @@ def _load_referenced_image(data):
         return None
 
 
-def _data_has_saved_image(data):
-    return bool(
-        isinstance(data, dict)
-        and (data.get("image") or _referenced_image_path(data))
-    )
-
-
 def _undo_data_signature(data):
     try:
         return json.dumps(
@@ -309,6 +303,46 @@ def _import_data_with_image(data, default_data, image_sentinel=None):
     )
     import_data["image"] = default_image or _FALLBACK_IMAGE_BASE64
     return import_data
+
+
+class _SortableList(QListWidget):
+    moved = pyqtSignal(int, int)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setDefaultDropAction(Qt.MoveAction)
+        self.setDragDropOverwriteMode(False)
+        self.setToolTip("上下拖动可调整顺序")
+
+    def startDrag(self, supported_actions):
+        from PyQt5.QtGui import QDrag
+        drag = QDrag(self)
+        drag.setMimeData(self.model().mimeData(self.selectedIndexes()))
+        drag.exec_(Qt.MoveAction)  # dropEvent 已完成移动，无需视图再删除源行。
+
+    def dropEvent(self, event):
+        if event.source() is not self:
+            event.ignore()
+            return
+        item = self.itemAt(event.pos())
+        position = self.count() if item is None else self.row(item) + int(event.pos().y() > self.visualItemRect(item).center().y())
+        source = self.currentRow()
+        self.move_row(source, position - int(position > source))
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
+
+    def move_row(self, source, dest):
+        if source == dest or not (0 <= source < self.count() and 0 <= dest < self.count()):
+            return
+        current = self.currentItem()
+        blocked = self.blockSignals(True)
+        try:
+            self.insertItem(dest, self.takeItem(source))
+            self.setCurrentItem(current)
+        finally:
+            self.blockSignals(blocked)
+        self.moved.emit(source, dest)
 
 
 class _UndoEventFilter(QObject):
@@ -391,6 +425,7 @@ class _CardTabManager:
         self._state_file_lock = threading.Lock()
         self._state_write_generation = 0
         self._state_write_pending = None
+        self._state_write_error = None
         self._state_writer_running = False
         self._apply_token = 0
         self._image_cache = {}
@@ -434,7 +469,7 @@ class _CardTabManager:
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        self.pack_list = QListWidget(panel)
+        self.pack_list = _SortableList(panel)
         self.pack_list.setObjectName("card_pack_list")
         self.pack_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pack_list.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -468,7 +503,7 @@ class _CardTabManager:
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        self.tab_list = QListWidget(panel)
+        self.tab_list = _SortableList(panel)
         self.tab_list.setObjectName("card_tab_list")
         self.tab_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.tab_list.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -479,6 +514,10 @@ class _CardTabManager:
         self.new_button = QPushButton("新建", panel)
         self.copy_button = QPushButton("复制", panel)
         self.delete_button = QPushButton("删除", panel)
+        self.save_button = QPushButton("保存草稿", panel)
+        self.save_button.setShortcut(QKeySequence.Save)
+        self.save_button.setToolTip("保存所有卡包和卡片到本机（Ctrl+S）")
+        layout.addWidget(self.save_button)
         layout.addWidget(self.new_button)
         layout.addWidget(self.copy_button)
         layout.addWidget(self.delete_button)
@@ -494,6 +533,9 @@ class _CardTabManager:
             return
         layout.insertWidget(0, self.pack_panel)
         layout.insertWidget(1, self.panel)
+        if self.app.current_mode == getattr(self.app, "_guide_mode_index", -1):
+            self.pack_panel.hide()
+            self.panel.hide()
         try:
             available = QApplication.primaryScreen().availableGeometry().width()
             added_width = self.pack_panel.width() + self.panel.width()
@@ -501,7 +543,21 @@ class _CardTabManager:
         except Exception:
             pass
 
+    def _list_reordered(self, is_pack, source, dest):
+        records = self.packs if is_pack else self.tabs
+        records.insert(dest, records.pop(source))
+        self.current_pack_index = self.pack_list.currentRow()
+        self.current_index = self.tab_list.currentRow()
+        self._sync_current_pack()
+        self._save_current_snapshot(full=False)
+        self._request_write_state(0)
+        workbench = getattr(self.app, "_workbench", None)
+        if workbench and workbench.active():
+            workbench.refresh()
+
     def _connect_signals(self):
+        self.pack_list.moved.connect(lambda start, end: self._list_reordered(True, start, end))
+        self.tab_list.moved.connect(lambda start, end: self._list_reordered(False, start, end))
         self.pack_list.currentRowChanged.connect(self._on_pack_changed)
         self.pack_list.itemChanged.connect(self._on_pack_item_changed)
         self.pack_list.customContextMenuRequested.connect(self._show_pack_context_menu)
@@ -512,6 +568,7 @@ class _CardTabManager:
         self.tab_list.currentRowChanged.connect(self._on_row_changed)
         self.tab_list.customContextMenuRequested.connect(self._show_card_context_menu)
         self.card_advanced_search_button.clicked.connect(self.open_card_advanced_search)
+        self.save_button.clicked.connect(self._save_clicked)
         self.new_button.clicked.connect(self.new_tab)
         self.copy_button.clicked.connect(self.copy_tab)
         self.delete_button.clicked.connect(self.delete_tab)
@@ -1090,7 +1147,9 @@ class _CardTabManager:
                 except OSError:
                     pass
             os.replace(temp_path, path)
-        except Exception:
+            self._state_write_error = None
+        except Exception as error:
+            self._state_write_error = str(error)
             _tab_log("写入标签页数据失败:\n" + traceback.format_exc())
 
     def _write_state(self):
@@ -1242,6 +1301,12 @@ class _CardTabManager:
             return not bool(getattr(self._image_cache[id(tab)], "_card_tab_placeholder", False))
         data = tab.get("data") or {}
         image = _load_referenced_image(data)
+        if image is None and data.get("image"):
+            try:
+                with Image.open(io.BytesIO(base64.b64decode(data["image"]))) as source:
+                    image = source.convert("RGBA")
+            except (OSError, ValueError):
+                pass
         target_image_found = image is not None
         if image is None:
             card_id = data.get("_search_card_id")
@@ -1254,16 +1319,10 @@ class _CardTabManager:
                         target_image_found = True
                 except Exception:
                     image = None
-            elif card_id:
+            if image is None:
                 image = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
-                image._card_tab_placeholder = True
-        if image is not None:
-            _bounded_cache_put(
-                self._image_cache,
-                id(tab),
-                image,
-                _IMAGE_CACHE_LIMIT,
-            )
+                image._card_tab_placeholder = bool(card_id)
+        _bounded_cache_put(self._image_cache, id(tab), image, _IMAGE_CACHE_LIMIT)
         return target_image_found
 
     def _prepare_current_image_for_mode_switch(self):
@@ -1341,7 +1400,7 @@ class _CardTabManager:
                         image.load()
                     else:
                         image = _load_referenced_image(data)
-                    if image is not None:
+                    if image is not None and tab.get("data") is data and tab_id not in self._image_cache:
                         _bounded_cache_put(
                             self._image_cache,
                             tab_id,
@@ -1355,7 +1414,14 @@ class _CardTabManager:
 
     def _export_editor_data(self):
         """经宿主「导出数据」得到的完整卡片数据（含卡图），补上各功能自己的字段。"""
-        return self._with_feature_fields(self._export_from_editor())
+        data = self._with_feature_fields(self._export_from_editor())
+        if data is not None and getattr(self.editor.card_img, "_card_tab_placeholder", False):
+            tab = self._current_tab()
+            if tab and (tab.get("data") or {}).get("_search_card_id"):
+                data["_search_card_id"] = tab["data"]["_search_card_id"]
+                data.pop("image", None)
+                data.pop(_CARD_TAB_IMAGE_REF_KEY, None)
+        return data
 
     def _collect_editor_data_fast(self):
         """直接从控件读出的卡片数据（不含卡图，切卡时用），补上各功能自己的字段。"""
@@ -1455,10 +1521,6 @@ class _CardTabManager:
         tab = self._current_tab()
         if tab is not None:
             self._prime_tab_image_cache(tab)
-        if tab is not None and id(tab) not in self._image_cache:
-            image = _load_referenced_image(self._default_data)
-            if image is not None:
-                _bounded_cache_put(self._image_cache, id(tab), image, _IMAGE_CACHE_LIMIT)
         cached_image = tab is not None and id(tab) in self._image_cache
         cached_render = tab is not None and id(tab) in self._render_cache
         image_transform_called = False
@@ -1755,8 +1817,8 @@ class _CardTabManager:
                 "watermark": self._combo_index("water_selector", data.get("watermark", 0)),
                 "cardpass_vis": self._visible("card_pass_item", data.get("cardpass_vis", True)),
                 "cardpack_vis": self._visible("card_pack_item", data.get("cardpack_vis", True)),
-                "holo_vis": self._visible("holo_item", data.get("holo_vis", True)),
-                "copyright_vis": self._visible("copyright_item", data.get("copyright_vis", True)),
+                "holo_vis": self._toggle_checked("toggle_holo", data.get("holo_vis", True)),
+                "copyright_vis": self._toggle_checked("toggle_copy", data.get("copyright_vis", True)),
                 "local_source_flag": self._toggle_checked("source_toggle", data.get("local_source_flag", False)),
                 "local_source_folder": self._attr_value("local_image_folder", data.get("local_source_folder", "")),
                 "round_corner": self._toggle_checked("toggle_corner", data.get("round_corner", False)),
@@ -1835,11 +1897,8 @@ class _CardTabManager:
             item.setToolTip(title)
 
     def _current_export_settings(self):
-        output_format = str(self._attr_value("output_format", "PNG") or "PNG").upper()
-        if output_format == "JPG":
-            output_format = "JPG"
-        else:
-            output_format = "PNG"
+        raw_format = self._attr_value("output_format", 0)
+        output_format = 1 if raw_format == 1 or str(raw_format).upper() in ("1", "JPG", "JPEG") else 0
         try:
             output_name = int(self._attr_value("output_name", 0) or 0)
         except Exception:
@@ -1890,25 +1949,20 @@ class _CardTabManager:
         return _safe_path_component(raw_pass, f"卡片{index + 1}")
 
     def _load_search_card_for_export(self, data):
-        if not isinstance(data, dict) or _data_has_saved_image(data):
+        if not isinstance(data, dict):
             return
         card_id = data.get("_search_card_id")
         if not card_id:
             return
+        tab = self._current_tab()
+        if tab is None or self._prime_tab_image_cache(tab):
+            return
         try:
-            card_pass_edit = getattr(self.editor, "card_pass_edit", None)
-            if card_pass_edit is not None:
-                if hasattr(card_pass_edit, "has_user_type"):
-                    card_pass_edit.has_user_type = True
-                card_pass_edit.setText(str(card_id))
-            fetch_info = getattr(self.editor, "fetch_info", None)
-            after_info_fetch = getattr(self.editor, "after_info_fetch", None)
-            if fetch_info is not None and after_info_fetch is not None:
-                fetch_info()
-                if getattr(getattr(self.editor, "info_fetcher", None), "valid", False):
-                    after_info_fetch()
-            elif hasattr(self.editor, "on_cardpass_return"):
-                self.editor.on_cardpass_return()
+            # 这里只补原画。查到的官方卡名、卡密和效果不能替换 DIY 卡片的内容。
+            image = self.editor.lookup_art(card_id)
+            if image is not None:
+                self.editor.apply_lookup_art(image)
+                self._cache_current_visuals()
         except Exception:
             _tab_log("导出前加载搜索卡片失败:\n" + traceback.format_exc())
 
@@ -1955,7 +2009,7 @@ class _CardTabManager:
         exported = 0
         failures = []
         name_counts = {}
-        extension = ".jpg" if original_settings["format"] == "JPG" else ".png"
+        extension = ".jpg" if original_settings["format"] == 1 else ".png"
 
         try:
             QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -2363,24 +2417,20 @@ class _CardTabManager:
             )
 
     def _load_search_card_if_current(self, row, token, card_id):
-        if token == self._apply_token and row == self.current_index and 0 <= row < len(self.tabs):
-            tab = self.tabs[row]
-            if isinstance(tab.get("data"), dict):
-                # 重新查卡只为补卡图：查完把这张卡原来的内容套回去（OTCGWidget.after_info_fetch 的装饰器处理）
-                self.editor._ygodiy_refetch_restore = (self, tab, token, _json_clone(tab["data"]))
-        if token != self._apply_token or row != self.current_index:
-            return
-        try:
-            if hasattr(self.editor.card_pass_edit, "has_user_type"):
-                self.editor.card_pass_edit.has_user_type = True
-            self.editor.card_pass_edit.setText(str(card_id))
-            self.editor.on_cardpass_return()
-        except Exception:
-            _tab_log("加载搜索卡片失败:\n" + traceback.format_exc())
+        if token == self._apply_token and row == self.current_index:
+            self.editor.request_card_lookup(str(card_id), art_only=True)
 
     def autosave(self):
         self._save_current_snapshot(full=False)
         self._request_write_state()
+
+    def _save_clicked(self):
+        self.save_all()
+        if self._state_write_error:
+            QMessageBox.warning(self.app, "草稿保存失败", self._state_write_error)
+        else:
+            self.save_button.setText("已保存")
+            QTimer.singleShot(1800, lambda: self.save_button.setText("保存草稿"))
 
     def save_all(self):
         self._save_current_snapshot(full=True)
@@ -2458,50 +2508,6 @@ def _ocg_of_previous_inject(manager, data):
             for name in ("attr_style", "level_style", "AD_style"):
                 data[name] = int(getattr(rd_widget, name, 0) or 0)
     return data
-
-
-def _restore_after_search_refetch(original_after):
-    """OTCGWidget.after_info_fetch 的装饰器：切回标签页时「按卡密重新查卡」只用来补卡图。
-
-    查卡完成后把刚查到的卡图存进这张卡的缓存，再把这张卡原来的内容（查卡期间用户打的字也算）套回去；
-    查卡回来时已经切到别的卡，就丢弃这次结果。
-    """
-    def after_info_fetch(self, *args, **kwargs):
-        pending = self.__dict__.get("_ygodiy_refetch_restore")
-        if pending:
-            manager, tab, token, _saved = pending
-            if not (token == manager._apply_token and manager._current_tab() is tab):
-                # 查卡还没回来用户就切到了别的卡：这次结果属于上一张卡，丢弃，
-                # 否则会写进现在这张卡（p09 的过期判断按卡密比较，新建的卡卡密都相同，拦不住）
-                self.__dict__.pop("_ygodiy_refetch_restore", None)
-                _safe_call(getattr(getattr(self, "parent_app", None), "hide_loading_gif", None))
-                for name in ("name_search_btn", "card_pass_btn", "random_btn"):
-                    _safe_call(getattr(getattr(self, name, None), "setEnabled", None), True)
-                return None
-        keep = None
-        if pending:
-            # 查卡期间用户可能已经在这张卡上打了字：以「查卡完成这一刻」编辑器里的内容为准
-            try:
-                keep = pending[0]._collect_editor_data_fast()
-            except Exception:
-                keep = None
-            keep = keep if isinstance(keep, dict) else pending[3]
-        result = original_after(self, *args, **kwargs)
-        pending = self.__dict__.pop("_ygodiy_refetch_restore", None)
-        if pending and keep is not None:
-            manager, tab, token, _saved = pending
-            try:
-                if token == manager._apply_token and manager._current_tab() is tab:
-                    manager._cache_current_visuals()  # 刚查到的卡图归这张卡
-                    manager._apply_editor_data(keep)  # 其余内容还原成用户自己的
-                    tab["data"] = keep
-            except Exception:
-                _tab_log("重新查卡后还原卡片内容失败:\n" + traceback.format_exc())
-        return result
-
-    after_info_fetch.__name__, after_info_fetch.__qualname__ = original_after.__name__, original_after.__qualname__
-    after_info_fetch.__wrapped__ = original_after
-    return after_info_fetch
 
 
 def _of_sync_previous_inject(manager, data):

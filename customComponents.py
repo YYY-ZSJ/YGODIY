@@ -10,6 +10,7 @@ from PyQt5.QtGui import QColor, QPainter, QBrush, QCursor, QPen, QColor, QPolygo
 
 import math
 import os
+import app_preferences
 import applog
 import sys
 from mixTextItem import MixTextItem
@@ -86,27 +87,69 @@ class SymbolBarWatcher(QObject):
         target.setFocus()
 
 
+class SymbolBar(QWidget):
+    def __init__(self, parent, effect, extra_targets):
+        super().__init__(parent)
+        from PyQt5.QtWidgets import QGridLayout
+        self.watcher = SymbolBarWatcher(self, effect, [effect] + [w for w in extra_targets if w is not None])
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
+        row = QHBoxLayout()
+        row.setSpacing(4)
+        layout.addLayout(row)
+        for symbol in SYMBOL_BUTTON_TEXTS:
+            button = self._button(symbol)
+            button.setFixedSize(36, 24)
+            row.addWidget(button)
+        manage = QPushButton("自定义…", self)
+        manage.setFocusPolicy(Qt.NoFocus)
+        manage.clicked.connect(self.edit_phrases)
+        row.addWidget(manage)
+        row.addStretch()
+        self.custom = QGridLayout()
+        self.custom.setSpacing(2)
+        layout.addLayout(self.custom)
+        self.refresh_phrases()
+        if effect.parentWidget() is not None and effect.isHidden():
+            self.hide()
+
+    def _button(self, text):
+        button = QPushButton(text.replace("&", "&&"), self)
+        button.setToolTip(text)
+        button.setFocusPolicy(Qt.NoFocus)
+        button.clicked.connect(lambda _checked=False: self.watcher.insert(text))
+        return button
+
+    def refresh_phrases(self):
+        while self.custom.count():
+            button = self.custom.takeAt(0).widget()
+            button.hide()
+            button.deleteLater()
+        for i, phrase in enumerate(app_preferences.get("quick_phrases", [])):
+            button = self._button(phrase)
+            button.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+            button.setText(button.fontMetrics().elidedText(phrase, Qt.ElideRight, 105).replace("&", "&&"))
+            self.custom.addWidget(button, i // 4, i % 4)
+
+    def edit_phrases(self):
+        from PyQt5.QtWidgets import QInputDialog, QMessageBox
+        phrases = app_preferences.get("quick_phrases", [])
+        text, ok = QInputDialog.getMultiLineText(self, "自定义快捷文字", "每行一个按钮，可修改、删除或调整行序。", "\n".join(phrases))
+        if ok:
+            try:
+                app_preferences.set_value("quick_phrases", list(dict.fromkeys(s.strip() for s in text.splitlines() if s.strip())))
+            except OSError as error:
+                QMessageBox.warning(self, "快捷文字保存失败", str(error))
+                return
+            for bar in QApplication.allWidgets():
+                if isinstance(bar, SymbolBar):
+                    bar.refresh_phrases()
+
+
 def make_symbol_bar(parent, effect, extra_targets=()):
-    """效果文本框上方的一排特殊符号快捷按钮：「」 ① ② ③ ④ ⑤ ●。
-    插入目标是这个面板里最近获得焦点的文本框：一般是效果文本，刚编辑过灵摆效果就插到灵摆效果里。
-    返回 (按钮条, 跟踪器)。"""
-    bar = QWidget(parent)
-    row = QHBoxLayout(bar)
-    row.setContentsMargins(0, 0, 0, 0)
-    row.setSpacing(4)
-    watcher = SymbolBarWatcher(bar, effect, [effect] + [w for w in extra_targets if w is not None])
-    for symbol in SYMBOL_BUTTON_TEXTS:
-        button = QPushButton(symbol, bar)
-        button.setFixedSize(36, 24)
-        button.setFocusPolicy(Qt.NoFocus)  # 点按钮不抢走文本框的焦点和光标
-        button.setToolTip('插入 ' + symbol)
-        button.clicked.connect(lambda _=False, s=symbol: watcher.insert(s))
-        row.addWidget(button)
-    row.addStretch(1)
-    # 效果文本框还没放进面板（没有父控件）时 isHidden() 恒为真，不能据此隐藏按钮条
-    if effect.parentWidget() is not None and effect.isHidden():
-        bar.setVisible(False)
-    return bar, watcher
+    bar = SymbolBar(parent, effect, extra_targets)
+    return bar, bar.watcher
 
 
 class WorkerSignals(QObject):
@@ -1938,6 +1981,16 @@ class OverFrameSettingDialog(QDialog):
         self.done(1)
     pass
 
+def _confirm_output_settings(dialog):
+    try:
+        app_preferences.set_value("print_bleed", dialog.bleed.isChecked())
+    except OSError as error:
+        from PyQt5.QtWidgets import QMessageBox
+        QMessageBox.warning(dialog, "无法保存导出设置", str(error))
+        return
+    dialog.accept()
+
+
 class OutputSettingDialog(QDialog):
     def __init__(self, HD_img: int, format: int, name: int, RD=False, parent: 'OTCGWidget' = None):
         super().__init__(parent)
@@ -1989,6 +2042,9 @@ class OutputSettingDialog(QDialog):
             self.vbox.addLayout(self.HD_hbox)
         self.vbox.addLayout(self.format_hbox)
         self.vbox.addLayout(self.name_hbox)
+        self.bleed = QCheckBox("印刷出血（四边 3 mm，附裁切标记）", self)
+        self.bleed.setChecked(bool(app_preferences.get("print_bleed", False)))
+        self.vbox.addWidget(self.bleed)
         self.vbox.addStretch(1)
         self.vbox.addWidget(self.confirm_btn)
         self.setLayout(self.vbox)
@@ -2003,7 +2059,7 @@ class OutputSettingDialog(QDialog):
         self.name = index
 
     def on_confirm(self):
-        self.done(1)
+        _confirm_output_settings(self)
     pass
 
 
@@ -2029,6 +2085,9 @@ class OutputSettingDialogSimple(QDialog):
         self.confirm_btn = QPushButton('确认')
         self.confirm_btn.clicked.connect(self.on_confirm)
         self.vbox.addLayout(self.format_hbox)
+        self.bleed = QCheckBox("印刷出血（四边 3 mm，附裁切标记）", self)
+        self.bleed.setChecked(bool(app_preferences.get("print_bleed", False)))
+        self.vbox.addWidget(self.bleed)
         self.vbox.addStretch(1)
         self.vbox.addWidget(self.confirm_btn)
         self.setLayout(self.vbox)
@@ -2037,7 +2096,7 @@ class OutputSettingDialogSimple(QDialog):
         self.format = index
 
     def on_confirm(self):
-        self.done(1)
+        _confirm_output_settings(self)
     pass
 
 

@@ -7,14 +7,17 @@
 import ctypes
 import struct
 
+from ygopack.cardinfo import TYPE_PENDULUM
 from .messages import parse, SELECTS
 
 LOC = {"deck": 0x01, "hand": 0x02, "mzone": 0x04, "szone": 0x08, "grave": 0x10, "banished": 0x20,
-       "extra": 0x40, "overlay": 0x80, "field": 0x0c, "pzone": 0x200}
+       "extra": 0x40, "overlay": 0x80, "field": 0x0c, "pzone": 0x200, "fzone": 0x100}
 LOC_NAME = {v: k for k, v in LOC.items()}
 POS = {"attack": 0x1, "facedown_attack": 0x2, "defense": 0x4, "facedown_defense": 0x8, "set": 0xa,
        "faceup": 0x5, "facedown": 0xa}
 POS_FACEUP = 0x5
+PENDULUM_SLOTS = (0, 4)
+FIELD_SLOT = 5
 
 DUEL_ATTACK_FIRST_TURN = 0x02
 DUEL_PSEUDO_SHUFFLE = 0x10
@@ -52,11 +55,10 @@ class Duel:
         for p in (0, 1):
             zones = field.get(str(p), field.get(p, {})) or {}
             used = {"mzone": set(), "szone": set()}
-            if zones.get("pzone"):
-                used["szone"].update({0, 4})
             deck = list(zones.get("deck", []))
             deck += [FILLER] * max(0, 20 - len(deck))
-            for code in reversed(deck):  # 列表第一张是卡组最上面
+            for item in reversed(deck):  # 列表第一张是卡组最上面
+                code, _, _, _ = self._unpack(item)
                 lines.append(self._add(code, p, "deck", 0, "facedown_defense"))
             for zone in ("hand", "grave", "banished", "extra"):
                 for item in zones.get(zone, []):
@@ -64,12 +66,22 @@ class Duel:
                     lines.append(self._add(code, p, zone, 0, pos))
             for i, item in enumerate(zones.get("pzone", [])):
                 code, seq, pos, _ = self._unpack(item)
-                lines.append(self._add(code, p, "pzone", 0 if i == 0 else 1, "faceup"))
+                side = seq if seq is not None else i
+                slot = PENDULUM_SLOTS[side]
+                if slot in used["szone"]:
+                    raise ValueError("同侧灵摆区重复布置。")
+                used["szone"].add(slot)
+                lines.append(self._add(code, p, "pzone", side, "faceup"))
+            for item in zones.get("fzone", []):
+                code, _, pos, _ = self._unpack(item)
+                lines.append(self._add(code, p, "szone", FIELD_SLOT, pos or "faceup"))
             for zone in ("mzone", "szone"):
                 for item in zones.get(zone, []):
                     code, seq, pos, mats = self._unpack(item)
                     if seq is None:
-                        seq = next(s for s in range(5) if s not in used[zone])
+                        seq = next((s for s in range(5) if s not in used[zone]), None)
+                    if seq is None or seq in used[zone]:
+                        raise ValueError("玩家%d 的 %s 格子已被占用。" % (p, zone))
                     used[zone].add(seq)
                     pos = pos or ("attack" if zone == "mzone" else "set")
                     lines.append(self._add(code, p, zone, seq, pos))
@@ -125,10 +137,23 @@ class Duel:
 
     # ------------------------------------------------------------ 查询
 
+    def in_zone(self, entry, zone):
+        location = entry.get("location", 0)
+        if location & LOC[zone]:
+            return True
+        if location != LOC["szone"]:
+            return False
+        if zone == "fzone":
+            return entry.get("sequence") == FIELD_SLOT
+        if zone == "pzone":
+            return bool(entry.get("sequence") in PENDULUM_SLOTS and entry.get("position", POS_FACEUP) & POS_FACEUP
+                        and self.core.card_type(entry["code"]) & TYPE_PENDULUM)
+        return False
+
     def query(self, player, zone):
         """返回某玩家某区域的卡：[{"code", "sequence", "position", "level", "atk", "def", "overlay", "disabled"}]。
         查询结果按标志位从低到高排列：卡号、位置、等级、攻击力、守备力、超量素材、状态。"""
-        loc = LOC["szone"] if zone == "pzone" else LOC[zone]
+        loc = LOC["szone"] if zone in ("pzone", "fzone") else LOC[zone]
         n = self.core.dll.query_field_card(self.ptr, player, loc, QUERY_FLAGS, self._qbuf, 0)
         data = self._qbuf.raw[:n]
         out, pos, idx = [], 0, 0
@@ -145,13 +170,12 @@ class Duel:
             nover, = struct.unpack_from("<i", data, p + 20)
             overlay = list(struct.unpack_from("<%dI" % nover, data, p + 24))
             status, = struct.unpack_from("<I", data, p + 24 + 4 * nover)
-            out.append({"code": code, "sequence": s, "position": position, "level": level, "atk": atk, "def": def_,
+            out.append({"code": code, "location": l, "sequence": s, "position": position, "level": level, "atk": atk, "def": def_,
                         "overlay": overlay, "disabled": bool(status & STATUS_DISABLED)})
             pos += length
             idx += 1
-        if zone == "pzone":
-            out = [c for c in out if c["sequence"] in (0, 4) and c["position"] & POS_FACEUP and
-                   self.core.card_type(c["code"]) & 0x1000000]
+        if zone in ("fzone", "pzone"):
+            return [entry for entry in out if self.in_zone(entry, zone)]
         return out
 
     def end(self):

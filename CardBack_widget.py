@@ -153,10 +153,8 @@ class CardBackWidget(QWidget):
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
         self.parent_app.back_scene.render(painter, QRectF(image.rect()), self.parent_app.back_scene.sceneRect())
         painter.end()
-        if self.output_format == 0:
-            image.save(file_name, format='PNG')
-        else:
-            image.save(file_name, format='JPG')
+        from print_export import save_image
+        save_image(image, file_name, "PNG" if self.output_format == 0 else "JPG")
         pass
 
     pass

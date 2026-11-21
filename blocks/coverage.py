@@ -139,7 +139,8 @@ OTHER_NAME = "其他（还没归类）"
 
 def ours_vocabulary():
     text = ""
-    for p in [os.path.join(HERE, "compile.py")] + glob.glob(os.path.join(SRC, "effect_model", "lua", "*.py")):
+    sources = [os.path.join(HERE, name) for name in ("compile.py", "card_queries.py")]
+    for p in sources + glob.glob(os.path.join(SRC, "effect_model", "lua", "*.py")):
         with open(p, encoding="utf-8") as f:
             text += f.read()
     with open(os.path.join(HERE, "effect_codes.json"), encoding="utf-8") as f:
@@ -193,8 +194,9 @@ def report(missing, names=None):
                 examples[c].append(code)
     name = names or (lambda code: str(code))
     lines = ["# 积木能复现多少官方卡", "",
-             "由 `python -m blocks.coverage` 生成：逐个扫 MDPro3 的官方卡脚本，用到的引擎接口和常量全是积木写得出的"
-             "（或者积木有等价写法）就算「能拼」。这是词汇层面的估计，偏乐观（词汇都有不代表结构一定拼得出）。", "",
+             "此表由 `python -m blocks.coverage` 扫描 MDPro3 主脚本包 `Data/script.zip` 生成。"
+             "卡片脚本的引擎接口及常量均有对应中文效果积木或等价写法时计入「积木能拼」。这项统计只衡量词汇覆盖。"
+             "整卡脚本积木的逐卡字节码与引擎核对见 [积木说明](README.md#本机语料核对)。", "",
              "| | 卡数 | 占比 |", "| --- | ---: | ---: |",
              "| 官方卡脚本 | %d | 100%% |" % total,
              "| 积木能拼 | %d | %.1f%% |" % (len(full), 100 * len(full) / total),

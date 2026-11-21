@@ -16,7 +16,11 @@ import functools
 import json
 import os
 
+from .card_queries import CAPABILITIES, CARD_STATES, CARD_VALUES, PREVIOUS_VALUES, RELATIONS, SHUFFLE_PILES, choices
+from .script import palette as script_palette
+
 HERE = os.path.dirname(os.path.abspath(__file__))
+MAX_CARD_CODE = 999_999_999
 
 PLAYERS = [("you", "自己"), ("opp", "对方")]
 WHO = [("you", "自己"), ("opp", "对方"), ("both", "双方")]
@@ -25,6 +29,7 @@ ANY_PLAYER = [("any", "双方")] + PLAYERS
 # 旧存档里的 hand_grave 这种（下划线连的地方）照样认得。
 ZONES = [("mzone", "怪兽区"), ("field", "场上"), ("szone", "魔法与陷阱区域"), ("hand", "手卡"), ("deck", "卡组"),
          ("grave", "墓地"), ("banished", "除外状态"), ("extra", "额外卡组"), ("pzone", "灵摆区域"), ("fzone", "场地区域")]
+CARD_LOCATIONS = ZONES + [("overlay", "超量素材区")]
 # 永续效果、「让一片区域的卡适用效果」能管的区域（场上以外也行：「双方不能从卡组把卡送去墓地」）
 FIELD_ZONES = [("mzone", "怪兽区"), ("szone", "魔法与陷阱区域"), ("field", "场上"), ("hand", "手卡"), ("deck", "卡组"),
                ("grave", "墓地"), ("banished", "除外状态")]
@@ -122,7 +127,7 @@ SUMMON_METHODS = [("special", "特殊召唤"), ("advance", "上级召唤"), ("fu
                   ("xyz", "超量召唤"), ("link", "连接召唤"), ("ritual", "仪式召唤"), ("pendulum", "灵摆召唤")]
 REASONS = [("battle", "战斗"), ("effect", "效果"), ("cost", "代价"), ("material", "作为素材"), ("release", "解放"),
            ("discard", "丢弃"), ("destroy", "破坏"), ("fusion", "作为融合素材"), ("synchro", "作为同调素材"),
-           ("xyz", "作为超量素材"), ("link", "作为连接素材"), ("return", "被效果回到手卡·卡组"), ("reveal", "被翻开"),
+           ("xyz", "作为超量素材"), ("link", "作为连接素材"), ("return", "回到墓地"), ("reveal", "被翻开"),
            ("draw", "抽卡")]
 PHASES = [("main", "主要阶段"), ("main1", "主要阶段1"), ("main2", "主要阶段2"), ("battle", "战斗阶段"),
           ("standby", "准备阶段"), ("end", "结束阶段"), ("draw", "抽卡阶段"), ("battle_step", "战斗步骤"),
@@ -136,7 +141,7 @@ CHAIN_CATS = [("destroy", "破坏卡"), ("special_summon", "特殊召唤"), ("se
               ("to_grave", "送去墓地"), ("draw", "抽卡"), ("negate", "让发动无效"), ("to_hand", "让卡回到手卡")]
 CONT_MODES = [("self", "这张卡自己"), ("zone", "一片区域里的卡"), ("player", "玩家"), ("equipped", "装备怪兽"),
               ("card_target", "这张卡的对象怪兽")]
-COUNTERS = [("0x1", "魔力指示物")]
+from effect_model.counters import counter_name
 
 
 @functools.lru_cache(maxsize=None)
@@ -169,7 +174,9 @@ class Block:
             node[slot[0]] = []
         return node
 
-    def show(self, node):
+    def show(self, node, counter_names=None):
+        if "counter" in node:
+            node = dict(node, counter_text=counter_name(node["counter"], counter_names))
         return self._show(node) if self._show else self.label
 
 
@@ -236,7 +243,7 @@ def _add(*blocks):
         BLOCKS[b.key] = b
 
 
-COST_ACTS = ["discard", "send_to_gy", "banish", "release", "pay_lp", "detach", "to_deck", "remove_counter", "reveal", "to_hand"]
+COST_ACTS = ["discard", "send_to_gy", "banish", "release", "pay_lp", "detach", "to_deck", "remove_counter", "reveal", "to_hand", "mill_deck"]
 
 
 def _effect_show(n):
@@ -410,15 +417,15 @@ _add(
           [("count", "几个", "int", 1), ("all", "取除多少", "choice", [("", "取除这么多"), ("yes", "全部取除")])],
           [("count_n", "几个（算出来的，可以空着）", "number", 1), ("cards", "哪只超量怪兽的（空着是这张卡）", "cards", 1)],
           show=lambda n: "取除这张卡的 %d 个超量素材" % n["count"], hint="RemoveOverlayCard"),
-    Block("add_counter", "stmt", "动作", "放置指示物", [("counter", "种类", "choice", COUNTERS), ("count", "几个", "int", 1),
+    Block("add_counter", "stmt", "动作", "放置指示物", [("counter", "指示物编号", "counter", "0x1"), ("count", "几个", "int", 1),
                                                   ("max", "这张卡最多放几个（0 为不限）", "int", 0)],
           [("cards", "放在哪张卡上", "cards", 1), ("count_n", "几个（算出来的，可以空着）", "number", 1)],
-          show=lambda n: "放置 %d 个%s" % (n["count"], _opt(COUNTERS, n["counter"])), hint="AddCounter"),
+          show=lambda n: "放置 %d 个%s" % (n["count"], n["counter_text"]), hint="AddCounter"),
     Block("remove_counter", "stmt", "动作", "取除指示物",
-          [("counter", "种类", "choice", COUNTERS), ("count", "几个", "int", 1),
+          [("counter", "指示物编号", "counter", "0x1"), ("count", "几个", "int", 1),
            ("from", "从哪里取除", "choice", [("self", "这张卡"), ("field", "场上任意的卡")])],
           [("count_n", "几个（算出来的，可以空着）", "number", 1)],
-          show=lambda n: "取除这张卡的 %d 个%s" % (n["count"], _opt(COUNTERS, n["counter"])), hint="RemoveCounter（代价）"),
+          show=lambda n: "取除这张卡的 %d 个%s" % (n["count"], n["counter_text"]), hint="RemoveCounter（代价）"),
     Block("create_token", "stmt", "动作", "特殊召唤衍生物",
           [("name", "名字", "text", "衍生物"), ("count", "几只", "int", 1),
            ("race", "种族", "choice", RACES), ("attribute", "属性", "choice", ATTRIBUTES), ("level", "等级", "int", 1),
@@ -488,8 +495,9 @@ _add(
           hint="Duel.Overlay（场上的卡原本的超量素材送去墓地）"),
     Block("confirm_top", "stmt", "动作", "翻开卡组最上面", [("player", "谁的卡组", "choice", PLAYERS), ("count", "几张", "int", 1)],
           show=lambda n: "翻开%s卡组最上面 %d 张" % (_opt(PLAYERS, n["player"]), n["count"]), hint="Duel.ConfirmDecktop"),
-    Block("shuffle", "stmt", "动作", "洗切卡组", [("player", "谁的卡组", "choice", PLAYERS)],
-          show=lambda n: "%s的卡组洗切" % _opt(PLAYERS, n["player"]), hint="Duel.ShuffleDeck"),
+    Block("shuffle", "stmt", "动作", "洗切卡组、手卡或额外卡组",
+          [("player", "谁的", "choice", PLAYERS), ("pile", "洗切哪里", "choice", choices(SHUFFLE_PILES))],
+          show=lambda n: "%s的%s洗切" % (_opt(PLAYERS, n["player"]), SHUFFLE_PILES[n.get("pile", "deck")][0])),
     Block("reveal", "stmt", "动作", "给对方观看", slots=[("cards", "哪些卡", "cards", 1)],
           hint="Duel.ConfirmCards（当代价：公开手卡）"),
     Block("win", "stmt", "动作", "决斗胜利", [("player", "谁", "choice", PLAYERS)],
@@ -530,7 +538,7 @@ _add(
           [("player", "谁选", "choice", PLAYERS), ("count", "选几张", "int", 1), ("as", "记作", "text", "A"),
            ("upto", "张数", "choice", UPTO), ("different", "卡名", "choice", DIFFERENT),
            ("sum", "按等级合计选", "choice", [("", "不按合计"), ("level_eq", "等级合计正好是下面的数值")])],
-          [("source", "从哪些卡里选", "cards", 1), ("count_n", "张数（算出来的，可以空着）", "number", 1),
+          [("source", "从哪些卡里选", "cards", 1, ("all", "pick", *RELATIONS)), ("count_n", "张数（算出来的，可以空着）", "number", 1),
            ("sum_n", "等级合计（按合计选时用）", "number", 1)],
           show=lambda n: "让%s选 %d 张，记作 %s" % (_opt(PLAYERS, n["player"]), n["count"], n["as"]),
           hint="处理时选卡（不是取对象）：Duel.SelectMatchingCard"),
@@ -574,7 +582,7 @@ _add(
           [("cond", "能选的条件（不需要可以空着）", "cond", 1), ("target", "这个分支的对象", "target", 0), ("operation", "这个分支的处理", "stmt", 0)],
           show=lambda n: "●%s" % n["text"], hint="发动时选好分支，分类和对象按选到的分支设置；Duel.SelectOption 写在 Target 里"),
     Block("take_target", "target", "控制", "取对象",
-          [("count", "几张", "int", 1), ("as", "记作", "text", "T")], [("source", "从哪些卡里取", "cards", 1)],
+          [("count", "几张", "int", 1), ("as", "记作", "text", "T")], [("source", "从哪些卡里取", "cards", 1, ("all",))],
           show=lambda n: "取 %d 张作为对象，记作 %s" % (n["count"], n["as"]),
           hint="只能放在效果的「对象」槽：Duel.SelectTarget；处理里用「对象」积木"),
 )
@@ -761,8 +769,8 @@ _add(
     Block("declared_num", "number", "数值", "宣言的等级", hint="配合「让玩家宣言」等级"),
     Block("dice_value", "number", "数值", "骰子的点数", hint="配合「掷骰子」"),
     Block("event_value", "number", "数值", "那次的数值", hint="ev：那次伤害 / 回复的数值（时机是受到伤害等）"),
-    Block("counter_of", "number", "数值", "指示物的数量", [("counter", "种类", "choice", COUNTERS)],
-          [("card", "哪张卡（几张时合计）", "cards", 1)], show=lambda n: "%s的数量" % _opt(COUNTERS, n["counter"]),
+    Block("counter_of", "number", "数值", "指示物的数量", [("counter", "指示物编号", "counter", "0x1")],
+          [("card", "哪张卡（几张时合计）", "cards", 1)], show=lambda n: "%s的数量" % n["counter_text"],
           hint="GetCounter"),
     Block("sum_of", "number", "数值", "合计", [("stat", "合计什么", "choice", STATS)], [("cards", "哪些卡", "cards", 1)],
           show=lambda n: "%s的合计" % _opt(STATS, n["stat"]), hint="Group.GetSum"),
@@ -817,14 +825,79 @@ _add(
 )
 
 # 积木栏的分类顺序
-CATEGORY_ORDER = ["效果", "动作", "登记效果", "控制", "卡片", "卡片条件", "数值", "条件"]
+_add(*(Block(key, "cards", "卡片", label,
+             slots=[("card", "从哪张卡读取（默认这张卡，卡片组取第一张）", "cards", 1),
+                    ("filter", "只要符合条件的卡（可空）", "filter", 0)], hint=getter)
+       for key, (label, getter) in RELATIONS.items()))
+_add(*(Block(key, "number", "数值", "卡片的" + label, slots=[("card", "哪张卡", "cards", 1)], hint=getter)
+       for key, (label, getter) in CARD_VALUES.items()))
+_add(
+    Block("f_location", "filter", "卡片条件", "现在所在的区域", [("where", "现在在", "multi", CARD_LOCATIONS)],
+          show=lambda n: "现在在%s" % _opt(CARD_LOCATIONS, n["where"]), hint="IsLocation"),
+    Block("f_summon_location", "filter", "卡片条件", "召唤前所在的区域", [("where", "从哪里召唤", "multi", CARD_LOCATIONS)],
+          show=lambda n: "从%s召唤的" % _opt(CARD_LOCATIONS, n["where"]), hint="IsSummonLocation"),
+    Block("f_summon_player", "filter", "卡片条件", "由谁召唤", [("who", "召唤的玩家", "choice", PLAYERS)],
+          show=lambda n: "由%s召唤的" % _opt(PLAYERS, n["who"]), hint="IsSummonPlayer"),
+    Block("f_printed_type", "filter", "卡片条件", "原本的卡片种类", [("kind", "具有任一种", "multi", KINDS + SUBTYPES)],
+          show=lambda n: "原本的种类含%s" % _opt(KINDS + SUBTYPES, n["kind"]), hint="GetOriginalType"),
+    Block("f_capable", "filter", "卡片条件", "卡片能否被这样处理", [("ability", "处理", "choice", choices(CAPABILITIES))],
+          show=lambda n: CAPABILITIES[n["ability"]][0]),
+    Block("f_related", "filter", "卡片条件", "与这张卡的关系", [("relation", "属于哪一组", "choice", choices(RELATIONS))],
+          show=lambda n: "属于" + RELATIONS[n["relation"]][0], hint="可放进「全部」的筛选槽，从指定区域取素材、互相连接的怪兽等作为对象"),
+    Block("free_zones", "number", "数值", "空闲的主要怪兽区或魔陷区数量",
+          [("player", "谁的", "choice", PLAYERS), ("zone", "区域", "choice", [("mzone", "主要怪兽区域"), ("szone", "魔法与陷阱区域")])],
+          [("exclude", "计算时视为已离场的卡（可空）", "cards", 1)], hint="GetMZoneCount / GetSZoneCount"),
+    Block("extra_zones", "number", "数值", "从额外卡组召唤可用的区域数", [("player", "召唤的玩家", "choice", PLAYERS)],
+          [("monster", "准备召唤的怪兽（默认这张卡）", "cards", 1), ("exclude", "计算时视为已离场的素材（可空）", "cards", 1)],
+          hint="GetLocationCountFromEx，考虑怪兽种类、额外怪兽区与连接箭头"),
+    Block("previous_value", "number", "数值", "离场前在场上的数值", [("stat", "哪种数值", "choice", choices(PREVIOUS_VALUES))],
+          [("card", "哪张卡", "cards", 1)], show=lambda n: "离场前的%s" % PREVIOUS_VALUES[n["stat"]][0]),
+    Block("environment", "cond", "条件", "指定场地卡的效果适用中",
+          [("code", "场地卡号", "int", 0), ("name", "场地卡名（读句子用）", "text", ""), ("who", "哪一方", "choice", ANY_PLAYER)],
+          show=lambda n: "场地「%s」适用中" % (n.get("name") or n["code"]), hint="Duel.IsEnvironment，也识别视为该场地卡的效果"),
+    Block("event_reason", "cond", "条件", "本次事件发生的原因",
+          [("reason", "原因", "multi", REASONS), ("match", "判断方式", "choice", [("any", "含任一所选原因"), ("exact", "与所选原因完全相同")])],
+          show=lambda n: "事件原因%s「%s」" % ("等于" if n.get("match") == "exact" else "包含", _opt(REASONS, n["reason"])),
+          hint="检查这次事件传入的原因 r。要检查某张卡自身的原因，用卡片条件「原因」"),
+    Block("chain_location", "cond", "条件", "响应的效果在哪里发动", [("where", "发动区域", "multi", CARD_LOCATIONS)],
+          show=lambda n: "响应的效果在%s发动" % _opt(CARD_LOCATIONS, n["where"]), hint="GetActivateLocation，配合「卡或效果发动」时机"),
+    Block("damage_calculated", "cond", "条件", "伤害计算已完成", hint="Duel.IsDamageCalculated"),
+    Block("mill_deck", "stmt", "动作", "从卡组上方送去墓地", [("player", "谁的卡组", "choice", PLAYERS), ("count", "张数", "int", 1)],
+          [("count_n", "张数（算出来的，可空）", "number", 1)], show=lambda n: "将%s卡组上方的卡送去墓地" % _opt(PLAYERS, n["player"]),
+          hint="Duel.DiscardDeck，放在代价槽时检查能否作为代价送墓"),
+    Block("negate_related", "stmt", "动作", "无效指定卡已发动的连锁效果", slots=[("cards", "哪些卡", "cards", 1)],
+          hint="Duel.NegateRelatedChain，只处理与这些卡关联、尚未结算的连锁效果"),
+    Block("set_turn_counter", "stmt", "控制", "设置这张卡的回合计数", [("count", "设置为", "int", 1)],
+          [("count_n", "设置为算出的数值（可空）", "number", 1)], hint="SetTurnCounter，可配合「卡片的回合计数」"),
+    Block("reset_flag", "stmt", "控制", "清除标记", [("on", "标记在", "choice", FLAG_ON), ("name", "标记编号（0～9）", "int", 1)],
+          show=lambda n: "清除%s的标记 %d" % (_opt(FLAG_ON, n["on"]), n["name"]), hint="ResetFlagEffect，编号与「做标记」相同"),
+)
+
+_add(
+    Block("f_effect_state", "filter", "卡片条件", "效果或战斗中的卡片状态",
+          [("state", "检查状态", "choice", choices(CARD_STATES))], show=lambda n: CARD_STATES[n["state"]][0]),
+    Block("f_card_owner", "filter", "卡片条件", "卡片原本属于哪位玩家", [("who", "持有者", "choice", PLAYERS)],
+          hint="GetOwner，即使卡片的控制权发生转移，持有者仍可单独判断"),
+    Block("f_reason_handler", "filter", "卡片条件", "造成这张卡变化的效果来自哪张卡",
+          slots=[("filter", "原因效果的持有卡需满足", "filter", 0)], hint="GetReasonEffect，可按字段、卡名等筛选"),
+    Block("event_effect_from", "cond", "条件", "引发当前事件的效果来自哪张卡",
+          slots=[("filter", "原因效果的持有卡需满足", "filter", 0)], hint="判断本次事件的原因效果 re"),
+    Block("effect_instances", "number", "数值", "卡片受到指定效果影响的数量", [("code", "效果代码", "code", "")],
+          [("card", "哪张卡（默认这张卡）", "cards", 1)], hint="GetEffectCount"),
+)
+_add(*script_palette.definitions(Block))
+
+CATEGORY_ORDER = ["效果", "动作", "登记效果", "控制", "卡片", "卡片条件", "数值", "条件", *script_palette.CATEGORIES]
 KIND_ZH = {"hat": "效果", "stmt": "语句", "cards": "卡片", "number": "数值", "cond": "条件", "filter": "卡片条件",
-           "target": "取对象", "option": "●选项"}
+           "target": "取对象", "option": "●选项", **script_palette.KINDS}
 
 
 def new(key, **values):
     """新建一块积木（JSON 节点），values 覆盖默认选项。"""
     node = BLOCKS[key].defaults()
+    if key == "ls_program" and "body" not in values:
+        from .script import parse
+        node["body"] = parse("local s,id=GetID()\nfunction s.initial_effect(c)\nend")["body"]
     node.update(values)
     if key == "effect" and not node.get("modes"):
         node.pop("modes", None)      # 绝大多数效果用不到，空着就不进存档

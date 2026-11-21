@@ -3,7 +3,6 @@
 由补丁分片 p01、p09、p12、p21、p23 整理而来。
 """
 
-import threading
 import traceback
 
 from PyQt5.QtCore import QTimer
@@ -25,76 +24,6 @@ from common import (
 _BASE_IMAGE_CACHE_LIMIT = 6
 
 _EDITOR_SHORT_DEBOUNCE_MS = 45
-
-
-def _normalized_card_pass(value):
-    return str(value or "").strip().lstrip("0") or "0"
-
-
-def _install_fetch_race_guard(editor):
-    if editor is None or getattr(editor, "_fetch_race_guard_installed", False):
-        return
-    fetch_info = getattr(editor, "fetch_info", None)
-    after_info_fetch = getattr(editor, "after_info_fetch", None)
-    if fetch_info is None or after_info_fetch is None:
-        return
-    editor._fetch_race_guard_installed = True
-    editor._fetch_lock = threading.RLock()
-    editor._last_completed_fetch_pass = None
-    editor._completed_fetch_generation = 0
-    editor._applied_fetch_generation = 0
-
-    def guarded_fetch_info(*args, **kwargs):
-        with editor._fetch_lock:
-            requested = _normalized_card_pass(
-                _text_from(getattr(editor, "card_pass_edit", None))
-            )
-            try:
-                return fetch_info(*args, **kwargs)
-            except Exception:
-                # 查卡失败（联网出错等）也算完成一次，并标记为无效：
-                # 否则下面的 after_info_fetch 会把它当成「已应用过」直接返回，
-                # 按钮一直禁用、加载动画一直转。异常继续抛给 p33 的 Worker 保护记录。
-                fetcher = getattr(editor, "info_fetcher", None)
-                if fetcher is not None:
-                    try:
-                        fetcher.valid = False
-                    except Exception:
-                        pass
-                raise
-            finally:
-                editor._last_completed_fetch_pass = requested
-                editor._completed_fetch_generation += 1
-
-    def guarded_after_info_fetch(*args, **kwargs):
-        with editor._fetch_lock:
-            completed = getattr(editor, "_last_completed_fetch_pass", None)
-            generation = int(getattr(editor, "_completed_fetch_generation", 0))
-            current = _normalized_card_pass(
-                _text_from(getattr(editor, "card_pass_edit", None))
-            )
-            if completed is not None and completed != current:
-                editor._ignored_stale_fetches = int(
-                    getattr(editor, "_ignored_stale_fetches", 0)
-                ) + 1
-                _safe_call(
-                    getattr(getattr(editor, "parent_app", None), "hide_loading_gif", None)
-                )
-                for name in ("name_search_btn", "card_pass_btn", "random_btn"):
-                    _safe_call(getattr(getattr(editor, name, None), "setEnabled", None), True)
-                return None
-            if generation and generation == int(
-                getattr(editor, "_applied_fetch_generation", 0)
-            ):
-                return None
-            result = after_info_fetch(*args, **kwargs)
-            editor._applied_fetch_generation = generation
-            return result
-
-    guarded_fetch_info._fetch_race_guard_wrapped = True
-    guarded_after_info_fetch._fetch_race_guard_wrapped = True
-    editor.fetch_info = guarded_fetch_info
-    editor.after_info_fetch = guarded_after_info_fetch
 
 
 def _install_editor_input_debounce(editor):
@@ -354,7 +283,6 @@ def _setup_otcg_editor(editor):
     _install_editor_input_debounce(editor)
     _install_pendulum_scale_live_refresh(editor)
     _install_effect_layout_controls(editor)
-    _install_fetch_race_guard(editor)
     _install_rd_frame_sync_on_editor(editor)
     _schedule_card_tabs(editor)
     _remove_editor_link_center(editor)

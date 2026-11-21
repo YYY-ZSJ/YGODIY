@@ -12,6 +12,7 @@
 import json
 import os
 import sys
+from functools import cache
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
@@ -25,6 +26,21 @@ from blocks.proto_flip import CASE as FLIP_CASE  # noqa: E402
 SCHEMA = "ygodiy-blocks/0.3"
 SPELL = {"type": 0x2, "level": 0, "attribute": 0, "race": 0, "atk": 0, "def": 0}
 BE, DORON, LV4 = 89631139, 756652, 549481       # 青眼白龙、多隆（3星战士族）、硬毛鼠（兽族）
+
+
+@cache
+def regression_core():
+    """使用同一测试进程的引擎回调。未安装 Windows 版 MDPro3 时跳过实盘用例。"""
+    from unittest import SkipTest
+    from sandbox.core import Core, default_mdpro3
+
+    if sys.platform != "win32":
+        raise SkipTest("对局测试需要 Windows 版 MDPro3")
+    try:
+        root = default_mdpro3()
+    except FileNotFoundError as error:
+        raise SkipTest(str(error)) from error
+    return Core(root)
 
 
 def card(code, name, kind, effects):

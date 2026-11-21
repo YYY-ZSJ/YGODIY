@@ -112,4 +112,5 @@ class SandboxTools:
     def progress(self, document):
         tests = suite(document)
         return {"scenarios": [{k: s[k] for k in ("id", "effect", "name", "template")} for s in tests["scenarios"]],
+                "environment": "virtual_cards 可用 {official_code:卡密} 加载本机原版效果，或用 {name,kind,effects:[积木]} 自定义陪测卡；支持 fzone、pzone 和 lp:[我方,对方]。",
                 **coverage(document, tests)}

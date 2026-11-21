@@ -51,14 +51,35 @@ def _effect_code(code):
     return value
 
 
+SCRIPT_CATEGORIES = {
+    "CATEGORY_DESTROY": ("炸怪", "炸魔陷"), "CATEGORY_REMOVE": ("除外",), "CATEGORY_TOGRAVE": ("送墓",),
+    "CATEGORY_TOHAND": ("回手",), "CATEGORY_TODECK": ("回卡组",), "CATEGORY_HANDES": ("削手",),
+    "CATEGORY_DECKDES": ("削卡组",), "CATEGORY_DRAW": ("抽卡",), "CATEGORY_SEARCH": ("检索",),
+    "CATEGORY_POSITION": ("表示形式",), "CATEGORY_CONTROL": ("控制权",), "CATEGORY_ATKCHANGE": ("攻守变化",),
+    "CATEGORY_DEFCHANGE": ("攻守变化",), "CATEGORY_SPECIAL_SUMMON": ("特殊召唤",), "CATEGORY_TOKEN": ("衍生物",),
+    "CATEGORY_DAMAGE": ("伤害",), "CATEGORY_RECOVER": ("回复",), "CATEGORY_COUNTER": ("指示物",),
+    "CATEGORY_COIN": ("赌博",), "CATEGORY_DICE": ("赌博",), "CATEGORY_FUSION_SUMMON": ("融合相关",),
+    "CATEGORY_NEGATE": ("效果无效",), "CATEGORY_DISABLE": ("效果无效",),
+}
+
+
 def categories(model):
     """按积木推出分类，只是起点：玩家可以在「卡片数据」里手动改。"""
     value = 0
     for node in walk(model.get("effects", [])):
         block = node.get("block")
+        if block == "ls_api_method_SetCategory":
+            for part in walk(node.get("arg0", [])):
+                if part["block"] == "ls_name":
+                    for label in SCRIPT_CATEGORIES.get(part["value"], ()):
+                        value |= bit(label)
         if block in BLOCKS:
             value |= bit(BLOCKS[block])
-        if block == "destroy":
+        if block == "mill_deck":
+            value |= bit("削卡组") | bit("送墓")
+        elif block == "negate_related":
+            value |= bit("效果无效")
+        elif block == "destroy":
             value |= _destroy(node)
         elif block == "to_hand":
             value |= _to_hand(node)

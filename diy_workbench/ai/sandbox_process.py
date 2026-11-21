@@ -14,7 +14,7 @@ import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from sandbox import WORKER_ARGUMENT
 
-from sandbox.test_data import digest, revision
+from sandbox.test_data import revision, scenario_revision
 from sandbox.test_templates import apply_template
 
 SCENE_TIMEOUT = 25
@@ -122,7 +122,7 @@ class SandboxWorker(QThread):
                     if result["status"] != "通过" and "unreached_assertions" not in result:
                         result["unreached_assertions"] = expected
                     result.update(scenario_id=scene["id"], name=scene["name"], effect=scene["effect"], basis=scene["basis"],
-                        template=scene["template"], revision=revision(self.document), scenario_revision=digest(scene),
+                        template=scene["template"], revision=revision(self.document), scenario_revision=scenario_revision(scene),
                         seconds=round(time.monotonic() - started, 3))
                     results.append(result)
                     self.progressed.emit(result)

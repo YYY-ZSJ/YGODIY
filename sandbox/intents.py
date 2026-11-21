@@ -183,7 +183,8 @@ class IntentRunner(Runner):
         elif not self.choices and len(request["cards"]) == 1:
             self.duel.respond_bytes([1, 0])
         else:
-            raise ScenarioError("素材选择无法兑现意图；请查看当前已选、可选素材。")
+            raise ScenarioError("素材选择停在这一步。待选意图 %s，可选 %s，已选 %s。" % (
+                self.choices, self.listing(request["cards"]), self.listing(request.get("selected", []))))
 
     def on_select_sum(self, request, action):
         if not self.choices:

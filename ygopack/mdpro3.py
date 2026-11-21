@@ -105,6 +105,14 @@ def find_mdpro3():
 
 def official_setnames(md_dir=None):
     """MDPro3 的官方字段：[(编号, 中文名, 日文名)]，读 Data/locales/zh-CN/strings.conf 的 !setname 行。"""
+    return _official_names("!setname ", md_dir)
+
+
+def official_counters(md_dir=None):
+    return _official_names("!counter ", md_dir)
+
+
+def _official_names(prefix, md_dir):
     if md_dir is None:
         md_dir, _ = find_mdpro3()
     if not md_dir:
@@ -117,8 +125,8 @@ def official_setnames(md_dir=None):
         return []
     out = []
     for line in lines:
-        if line.startswith("!setname "):
-            code, _, names = line[len("!setname "):].strip().partition(" ")
+        if line.startswith(prefix):
+            code, _, names = line[len(prefix):].strip().partition(" ")
             zh, _, jp = names.partition("\t")
             out.append((code.lower(), zh.strip(), jp.strip()))
     return out

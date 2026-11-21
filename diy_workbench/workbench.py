@@ -2,9 +2,11 @@
 
 和漫画卡模式一样是独立的一个模式：进入时先按 OCG/TCG 切换（卡面、数据、显示设置都按 OCG），
 再把右栏换成工作台面板；app.current_mode 设为工作台自己的序号。
-OCG 编辑器只在两件事上被动到，而且都是用户点了按钮：「写回卡面」（效果文字）和「按顺序重新分配」（卡密）。
+「卡面」页就是 OCG 编辑器本身：停在这一页时把它借过来，离开这一页或工作台就放回去。
+除此之外，OCG 编辑器只在两件事上被动到，而且都是用户点了按钮：「写回卡面」（效果文字）和「按顺序重新分配」（卡密）。
 """
 
+from collections import Counter
 import os
 import shutil
 import threading
@@ -14,7 +16,7 @@ import zipfile
 
 from PyQt5.QtCore import QTimer, Qt, QUrl
 from PyQt5.QtGui import QDesktopServices, QResizeEvent
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox, QScrollArea, QTabWidget, QVBoxLayout, QWidget
 
 from . import dialogs, store
 from .code_page import CodePage
@@ -78,6 +80,7 @@ class Workbench:
         self._known = {}                 # 卡包装进去的文件名 → MDPro3 里已有的卡号 {卡号: 谁占用}
         self._setcodes = {}              # 卡包装进去的文件名 → 别的扩展包用掉的字段 {编号: (名字, 来源)}
         self._known_busy = set()
+        self._index_generation = 0
         self._official = None            # 官方字段 [(编号, 中文名, 日文名)]
         self.panel = QWidget()
         self.panel.setObjectName("diy_workbench_panel")
@@ -89,7 +92,12 @@ class Workbench:
         self.tabs = QTabWidget()
         self.effect_page = EffectPage()
         self.pack_page = PackPage()
+        self.card_page = QScrollArea()           # 「卡面」页：里面放借来的 OCG 编辑器
+        self.card_page.setWidgetResizable(True)
+        self.card_page.setFrameShape(QScrollArea.NoFrame)
+        self._editor_slot = None                 # 借走编辑器时占住它在模式栈里的位置，模式序号不变
         self.tabs.addTab(self.effect_page, "效果")
+        self.tabs.addTab(self.card_page, "卡面")
         self.tabs.addTab(self.pack_page, "卡包")
         self.code_page = CodePage()
         self.installed_page = InstalledPage()
@@ -99,21 +107,26 @@ class Workbench:
         root.addWidget(self.tabs)
         app.stacked_widget.addWidget(self.panel)
 
+        from .counter_manager import CounterManager
+        from .setcode_editor import SetcodeEditor
+        self.counters = CounterManager(self)
+        self.field_editor = SetcodeEditor(self)
         ep, pp = self.effect_page, self.pack_page
         ep.changed.connect(self._effect_changed)
+        ep.editor.guide_requested.connect(self.app.open_block_guide)
+        from . import script_import
+        ep.editor.script_requested.connect(lambda action: script_import.change(self, action))
         ep.setcodes_requested.connect(self._edit_setcodes)
         ep.write_back.connect(self._write_back)
         ep.check_requested.connect(self._check_current)
         ep.media_requested.connect(self._edit_media)
         ep.card_data_requested.connect(self._edit_card_data)
-        ep.export_requested.connect(lambda: (self.tabs.setCurrentIndex(1), self._export(True)))
-        ep.edit_card_requested.connect(lambda: app.combo_box.setCurrentIndex(0))
+        ep.export_requested.connect(lambda: (self.tabs.setCurrentWidget(self.pack_page), self._export(True)))
+        ep.edit_card_requested.connect(lambda: self.tabs.setCurrentWidget(self.card_page))
         ep.focus_toggled.connect(self._set_focus)
         pp.card_selected.connect(self._select_card)
         pp.settings_changed.connect(self._settings_changed)
         pp.assign_codes.connect(self._assign_codes)
-        pp.setname_added.connect(self._add_setname)
-        pp.setname_removed.connect(self._remove_setname)
         pp.export_requested.connect(self._export)
         pp.transfer_requested.connect(self._transfer)
         cp, ip = self.code_page, self.installed_page
@@ -146,10 +159,10 @@ class Workbench:
         self.app.stacked_widget.setCurrentWidget(self.panel)
         self._set_shares(VIEW_SHARE, PANEL_SHARE)
         self._connect_manager()
-        self.refresh()
         self._tab_changed(self.tabs.currentIndex())
 
     def leave(self):
+        self._borrow_editor(False)
         self.app.view.setVisible(True)
         self._set_shares(1, 1)                   # 别的模式还是原来的 1:1
 
@@ -158,7 +171,7 @@ class Workbench:
         self.focus = on
         self.effect_page.editor.set_wide(on)     # 地方够了：积木栏、积木列表、选项三栏并排
         if self.active():
-            self.app.view.setVisible(not on and self.tabs.currentIndex() == 0)
+            self.app.view.setVisible(self._shows_card())
             if not on:
                 QTimer.singleShot(0, self._refit)
 
@@ -180,9 +193,43 @@ class Workbench:
 
     def _tab_changed(self, index):
         if self.active():
-            # 只有效果页显示卡面，其余页和专注模式把宽度让给右栏
-            self.app.view.setVisible(index == 0 and not self.focus)
+            if self.tabs.currentWidget() is self.pack_page:
+                self._invalidate_index()
+            self._borrow_editor(self.tabs.currentWidget() is self.card_page)
+            self.app.view.setVisible(self._shows_card())
+            QTimer.singleShot(0, self._refit)
             self.refresh()
+
+    def _shows_card(self):
+        """效果页和卡面页显示卡图，其余页把宽度让给右栏；专注模式只在效果页隐藏卡图。"""
+        page = self.tabs.currentWidget()
+        return page is self.card_page or page is self.effect_page and not self.focus
+
+    def _borrow_editor(self, on):
+        editor = getattr(self.app, "otcg_widget", None)
+        if editor is None or on == (self._editor_slot is not None):
+            return
+        stack = self.app.stacked_widget
+        if on:
+            index = stack.indexOf(editor)
+            self._editor_slot = QWidget()
+            stack.insertWidget(index, self._editor_slot)
+            stack.removeWidget(editor)
+            self.card_page.setWidget(editor)
+            editor.setAutoFillBackground(False)
+            return
+        manager = self.manager()
+        if manager is not None:                  # 改过的卡名、类型要让积木和卡包看到
+            try:
+                manager._save_current_snapshot(full=False)
+            except Exception:
+                _log("离开卡面页时保存失败:\n" + traceback.format_exc())
+        slot, self._editor_slot = self._editor_slot, None
+        index = stack.indexOf(slot)
+        self.card_page.takeWidget()
+        stack.removeWidget(slot)
+        slot.deleteLater()
+        stack.insertWidget(index, editor)
 
     def _connect_manager(self):
         manager = self.manager()
@@ -212,14 +259,7 @@ class Workbench:
         m = self.manager()
         if m is None:
             return
-        for name in ("_write_state_in_background", "_write_state"):
-            fn = getattr(m, name, None)
-            if fn is not None:
-                try:
-                    fn()
-                    return
-                except Exception:
-                    _log("工作台保存标签页失败:\n" + traceback.format_exc())
+        m._request_write_state(0)
 
     def _card_text(self, tab):
         """当前卡读编辑器里正在显示的文字，其他卡读存下来的数据。"""
@@ -245,11 +285,12 @@ class Workbench:
         if tab is None:
             return
         try:
-            self._refresh_effect(tab, pack)
-            if self.tabs.currentIndex() == 1:
+            if self.tabs.currentWidget() is self.effect_page:
+                self._refresh_effect(tab, pack)
+            elif self.tabs.currentWidget() is self.pack_page:
                 self._refresh_pack(pack)
             elif self.tabs.currentWidget() is self.code_page:
-                self._refresh_code(tab)
+                self._refresh_code(tab, pack)
             elif self.tabs.currentWidget() is self.installed_page:
                 self._refresh_installed()
         except Exception:
@@ -258,7 +299,7 @@ class Workbench:
     def _refresh_effect(self, tab, pack):
         diy = store.card_diy(tab)
         settings = store.pack_diy(pack or {})
-        result = store.generate(tab)
+        result = store.generate(tab, self.counters.sync_labels(pack, tab))
         problem = None
         summary = ""
         setcode_text = "无"
@@ -272,6 +313,7 @@ class Workbench:
             setcode_text = "、".join(names) or "无"
         note = "卡包「%s」· %d 张 · %s" % ((pack or {}).get("title", ""), len((pack or {}).get("tabs", [])),
                                        self._target_text(short=True))
+        self.effect_page.editor.restore_script.setEnabled("before_script_blocks" in diy)
         self.effect_page.show_card(diy["blocks"], result.rec, summary, result, settings["setnames"],
                                    self._text_same(tab, result), note, problem, setcode_text)
         self.effect_page.show_design(diy.get("design_text") or "", store.text_matches(diy.get("design_text"), result.desc))
@@ -280,42 +322,47 @@ class Workbench:
             self.effect_page.add_check_lines(self._last_check[uid])
             self.effect_page.tabs.setCurrentIndex(0)
 
-    def _refresh_pack(self, pack):
+    def _refresh_pack(self, pack, selected_counter=""):
         if pack is None:
             return
         settings = store.pack_diy(pack)
         tab_now, _ = self.current()
         known = self.known_codes(pack)               # None：还在后台读
-        codes = [store.card_code(t.get("data") or {}) for t in pack.get("tabs", [])]
-        rows = []
-        for tab in pack.get("tabs", []):
-            res = store.generate(tab)
-            diy = store.card_diy(tab)
-            n = store.item_count(diy["blocks"])
-            if res.rec is None:
-                rows.append(("", tab.get("title", ""), "（不支持）", "", "", "", "× " + (res.error or ""), tab is tab_now))
-                continue
-            rec = res.rec
-            kind = store.describe(rec).split(" · ")[0]
-            names = "、".join(self._setname(c, settings) for c in diy.get("setcodes", []))
-            effects = "%d 个效果" % n if n else ("（通常怪兽）" if rec["type"] & 0x10 else "没有效果")
-            if not n:
-                text = "—"
-            else:
-                text = "一致" if self._text_same(tab, res) else "不同"
-            check = ("× " + res.error) if res.error else ("× " + res.issues[0][1] if any(
-                lv == "错误" for lv, _ in res.issues) else ("√ 通过" if n else "—"))
-            code_problem = ""
-            if rec["code"] and known is not None and rec["code"] in known:
-                code_problem = "卡号 %d 已被%s占用，不能用" % (rec["code"], known[rec["code"]])
-            elif rec["code"] and codes.count(rec["code"]) > 1:
-                code_problem = "卡号 %d 和这个卡包里别的卡重复，不能用" % rec["code"]
-            if code_problem:
-                check = "× " + code_problem
-            rows.append((rec["code"] or "（无）", rec["name"], kind, names, effects, text, check, tab is tab_now,
-                         code_problem))
-        self.pack_page.show_pack(pack.get("title", ""), settings, rows, self._target_text(),
-                                 self._code_status(settings, len(rows), known), self._setname_conflicts(pack, settings))
+        codes = Counter(store.card_code(t.get("data") or {}) for t in pack.get("tabs", []))
+        tabs = tuple(pack.get("tabs", []))
+        counter_names = self.counters.labels(pack)
+        self.pack_page.show_pack(pack.get("title", ""), settings, tabs, self._target_text(),
+                                 self._code_status(settings, len(tabs), known), self._setname_conflicts(pack, settings),
+                                 row_at=lambda index: self._pack_row(tabs[index], tab_now, settings, known, codes, counter_names),
+                                 fields_ready=known is not None)
+
+        self.counters.show_pack(selected_counter)
+
+    def _pack_row(self, tab, tab_now, settings, known, codes, counter_names=None):
+        res = store.generate(tab, counter_names)
+        diy = store.card_diy(tab)
+        n = store.item_count(diy["blocks"])
+        if res.rec is None:
+            return ("", tab.get("title", ""), "（不支持）", "", "", "", "× " + (res.error or ""), tab is tab_now)
+        rec = res.rec
+        kind = store.describe(rec).split(" · ")[0]
+        names = "、".join(self._setname(c, settings) for c in diy.get("setcodes", []))
+        effects = "%d 个效果" % n if n else ("（通常怪兽）" if rec["type"] & 0x10 else "没有效果")
+        if not n:
+            text = "—"
+        else:
+            text = "一致" if self._text_same(tab, res) else "不同"
+        error = res.error or next((message for level, message in res.issues if level == "错误"), "")
+        check = "× " + error if error else "√ 通过" if n else "—"
+        code_problem = ""
+        if rec["code"] and known is not None and rec["code"] in known:
+            code_problem = "卡号 %d 已被%s占用，不能用" % (rec["code"], known[rec["code"]])
+        elif rec["code"] and codes[rec["code"]] > 1:
+            code_problem = "卡号 %d 和这个卡包里别的卡重复，不能用" % rec["code"]
+        if code_problem:
+            check = "× " + code_problem
+        return (rec["code"] or "（无）", rec["name"], kind, names, effects, text, check, tab is tab_now,
+                code_problem)
 
     def _code_status(self, settings, count, known):
         """卡号段核查：按「从……起，每张间隔……」分配的卡号，在 MDPro3 里有没有被占用。"""
@@ -334,8 +381,9 @@ class Workbench:
 
     def known_codes(self, pack):
         """MDPro3 里已有的卡号（官方卡 + 已装的别的扩展包）；第一次在后台读，读完刷新。没读完时返回 None。"""
-        from ygopack import build as ypbuild
-        stem = "ygodiy-" + ypbuild.slug(pack.get("title") or "DIY") + ".ypk"   # 这个卡包自己装过的旧版本不算
+        from ygopack.expansion_index import installed_index
+        stem = self._stem(pack)
+        generation = self._index_generation
         if stem in self._known:
             return self._known[stem]
         if stem not in self._known_busy:
@@ -345,17 +393,25 @@ class Workbench:
                 from ygopack import mdpro3
                 md_dir, _ = mdpro3.find_mdpro3()
                 target, _ = mdpro3.expansions_dir()
-                return (ypbuild.known_codes(md_dir, skip_file=stem, expansions=target),
-                        ypbuild.known_setcodes(target, skip_file=stem))
+                return installed_index(md_dir, target, stem, include_counters=True)
 
             def done(value, error):
+                if generation != self._index_generation:
+                    return
                 self._known_busy.discard(stem)
-                codes, setcodes = value if value and not error else ({}, {})
+                codes, setcodes, counters = value if value and not error else ({}, {}, {})
+                self.counters.installed[stem] = counters
                 self._known[stem] = codes
                 self._setcodes[stem] = setcodes
                 if error:
                     _log("读 MDPro3 已有卡号失败:\n" + error)
-                self.refresh()
+                current_pack = self.current()[1]
+                if self.active() and current_pack and self._stem(current_pack) == stem:
+                    if self.tabs.currentWidget() is self.pack_page:
+                        self._refresh_pack(current_pack)
+                    elif self.tabs.currentWidget() is self.effect_page:
+                        self.counters.index_ready(current_pack)
+                        self.field_editor.index_ready(current_pack)
             self._run_async(work, done)
         return None
 
@@ -376,23 +432,43 @@ class Workbench:
                 others[int(c, 16) & 0xfff] = (name, source)
         official = {int(c, 16) & 0xfff: zh for c, zh, _ in self.official()}
         out = {}
-        for code in settings.get("setnames", {}):
+        own_by_base = {}
+        for code, local_name in settings["setnames"].items():
             base = int(code, 16) & 0xfff
+            own_by_base.setdefault(base, []).append((code, local_name))
             if base in official:
                 out[code] = "编号和官方字段「%s」撞了，换一个" % official[base]
             elif base in others:
                 name, source = others[base]
                 out[code] = "编号和%s的%s撞了，换一个" % (source, "字段「%s」" % name if name else "字段")
+        for other_code, other_name, title in self._other_project_fields(pack):
+            for code, name in own_by_base.get(int(other_code, 16) & 0xfff, ()):
+                if other_name != name:
+                    out.setdefault(code, "与项目卡包「%s」的字段「%s」共用编号；两份定义分别保存" % (title, other_name))
         return out
 
     def _taken_setcodes(self, pack):
         """新建字段要避开的编号：官方字段 + 别的扩展包用掉的。"""
-        return [int(c, 16) for c, _, _ in self.official()] + [int(c, 16) for c in self.diy_setnames(pack)]
+        return ([int(c, 16) for c, _, _ in self.official()] + [int(c, 16) for c in self.diy_setnames(pack)]
+                + [int(code, 16) for code, _, _ in self._other_project_fields(pack)])
+
+    def _other_project_fields(self, pack):
+        for other in self.manager().packs:
+            if other is not pack:
+                for code, name in store.pack_diy(other)["setnames"].items():
+                    yield code, name, other.get("title", "")
+
+    def _invalidate_index(self):
+        self._index_generation += 1
+        self._known_busy.clear()
+        self._known.clear()
+        self._setcodes.clear()
+        self.counters.installed.clear()
+        self.counters.official = None
 
     def _recheck(self):
         """重新读一遍 MDPro3 里已有的卡号和字段（刚往扩展目录里放了别的卡包时用）。"""
-        self._known.clear()
-        self._setcodes.clear()
+        self._invalidate_index()
         self._official = None
         self.refresh()
 
@@ -482,11 +558,11 @@ class Workbench:
             self.refresh()
 
     def _write_back(self):
-        tab, _ = self.current()
+        tab, pack = self.current()
         editor = getattr(self.app, "otcg_widget", None)
         if tab is None or editor is None:
             return
-        result = store.generate(tab)
+        result = store.generate(tab, self.counters.labels(pack))
         if result.error:
             return
         editor.text_input.setPlainText(result.desc)
@@ -499,7 +575,7 @@ class Workbench:
     def _select_card(self, row):
         m = self.manager()
         if m is not None and 0 <= row < m.tab_list.count():
-            self.tabs.setCurrentIndex(0)
+            self.tabs.setCurrentWidget(self.effect_page)
             m.tab_list.setCurrentRow(row)
 
     def _settings_changed(self, values):
@@ -535,38 +611,17 @@ class Workbench:
         self._save_state()
         QTimer.singleShot(0, self.refresh)
 
-    def _add_setname(self, code, name):
-        _, pack = self.current()
-        if pack is None:
-            return
-        settings = store.pack_diy(pack)
-        code = code or store.next_setcode(settings["setnames"], self._taken_setcodes(pack))   # 避开已经被用掉的编号
-        settings["setnames"][code] = name
-        store.set_pack_diy(pack, settings)
-        self._save_state()
-        self.refresh()
-
-    def _remove_setname(self, code):
-        _, pack = self.current()
-        if pack is None:
-            return
-        settings = store.pack_diy(pack)
-        settings["setnames"].pop(code, None)
-        store.set_pack_diy(pack, settings)
-        self._save_state()
-        self.refresh()
-
     def _change_target(self):
         from ygopack import mdpro3
         path = QFileDialog.getExistingDirectory(self.panel, "选 MDPro3 的安装目录，或任意扩展卡包目录")
         if path:
             mdpro3.set_custom_dir(path)
-            self.refresh()
+            self._recheck()
 
     def _reset_target(self):
         from ygopack import mdpro3
         mdpro3.set_custom_dir(None)
-        self.refresh()
+        self._recheck()
 
     # ------------------------------------------------------------ 后台任务
 
@@ -653,9 +708,9 @@ class Workbench:
 
     # ------------------------------------------------------------ 脚本页
 
-    def _refresh_code(self, tab):
+    def _refresh_code(self, tab, pack=None):
         diy = store.card_diy(tab)
-        result = store.generate(tab)
+        result = store.generate(tab, self.counters.labels(pack or self.current()[1]))
         data = tab.get("data") or {}
         code = str(data.get("cardpass") or "")
         title = "c%s.lua  ·  %s" % (code or "（还没有卡号）", data.get("name", ""))
@@ -762,7 +817,7 @@ class Workbench:
         if m is None or pack is None:
             return
         if action == "import":
-            path, _ = QFileDialog.getOpenFileName(self.panel, "导入卡片或卡包", "", "卡片或卡包 (*.ydiy *.ypk)")
+            path, _ = QFileDialog.getOpenFileName(self.panel, "导入卡片或卡包", "", "卡片、卡包或数据库 (*.ydiy *.ypk *.zip *.cdb)")
             if path:
                 self._import_path(path)
             return
@@ -772,12 +827,16 @@ class Workbench:
         if action.startswith("text_"):
             self._export_text(title, [tab] if single else pack.get("tabs", []))
             return
-        filters = "YGODIY 文件 (*.ydiy);;MDPro3 卡包 (*.ypk)" if single else "YGODIY 文件 (*.ydiy)"
-        path, chosen = QFileDialog.getSaveFileName(self.panel, "导出这张卡" if single else "导出这个卡包", title + transfer.EXTENSION, filters)
+        filters = "YGODIY 文件 (*.ydiy);;MDPro3 卡包 (*.ypk);;卡片数据库 (*.cdb)"
+        path, chosen = QFileDialog.getSaveFileName(self.panel, "导出这张卡" if single else "导出这个卡包", title, filters)
         if not path:
             return
-        if "ypk" in chosen:
-            self._export(False, {"title": title, "tabs": [tab], "diy": pack.get("diy") or {}}, path)
+        ext = os.path.splitext(path)[1].lower()
+        if ext not in (".cdb", ".ypk", transfer.EXTENSION):
+            ext = ".cdb" if "*.cdb" in chosen else ".ypk" if "*.ypk" in chosen else transfer.EXTENSION
+            path += ext
+        if ext in (".cdb", ".ypk"):
+            self._export(False, {"title": title, "tabs": [tab] if single else pack["tabs"], "diy": pack.get("diy") or {}}, path)
             return
         transfer.export_file(path, "card" if single else "pack", title, [tab] if single else pack.get("tabs", []), pack.get("diy"), self._assets())
         self.pack_page.show_results([("√", "已导出到 %s" % path)], "导出完成", True)
@@ -788,7 +847,7 @@ class Workbench:
         if not path:
             return
         try:
-            card_text.export(path, tabs)
+            card_text.export(path, tabs, self.counters.labels(self.current()[1]))
         except OSError as error:
             QMessageBox.warning(self.panel, "导出失败", "文件写不进去：%s" % error)
             return
@@ -797,20 +856,33 @@ class Workbench:
     def _import_path(self, path):
         from . import transfer
         from diy_workbench.ai.project_access import ProjectAccess
-        m = self.manager()
-        try:
-            result = transfer.read_file(path, self._assets(), m._default_data)
-        except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
-            QMessageBox.warning(self.panel, "导入失败", "这个文件读不出来：%s" % error)
-            return
-        self.import_result(ProjectAccess(self.app), result)
+        project = ProjectAccess(self.app)
+        target = self.current()[1]
+        assets, defaults = self._assets(), self.manager()._default_data
+        self.pack_page.show_results([("…", "正在读取卡包……")])
 
-    def import_result(self, project, result):
+        def done(result, error):
+            if error:
+                QMessageBox.warning(self.panel, "导入失败", "这个文件读不出来：" + error.strip().splitlines()[-1])
+                return
+            if result["kind"] == "card" and not any(pack is target for pack in self.manager().packs):
+                QMessageBox.warning(self.panel, "导入失败", "读取期间目标卡包已被删除。")
+                return
+            self.import_result(project, result, target)
+
+        self._run_async(lambda: transfer.read_file(path, assets, defaults), done)
+
+    def import_result(self, project, result, target=None):
         """卡片加进当前卡包，卡包文件新建一个卡包；导入后切到导入的第一张卡。"""
         project.flush()
         tabs = result["tabs"]
+        counter_notes = []
         if result["kind"] == "card":
-            pack = self.current()[1]
+            pack = target if target is not None else self.current()[1]
+            from .counter_catalog import import_card_names
+            incoming = (result.get("diy") or {}).get("counters")
+            if incoming:
+                counter_notes = import_card_names(pack, incoming, tabs, self.counters.external(pack))
             for tab in tabs:
                 project.insert({"kind": "card", "pack_id": project.pack_id(pack), "document": tab, "images": {}})
         else:
@@ -819,7 +891,11 @@ class Workbench:
                 pack["diy"] = result["diy"]
             project.insert({"kind": "pack", "id": uuid.uuid4().hex, "document": pack, "images": {}})
         project.refresh(pack, tabs[0])
-        self.pack_page.show_results([("√", "导入了 %d 张卡" % len(tabs))], "导入完成", True)
+        conflicts = self._setname_conflicts(pack, store.pack_diy(pack))
+        lines = [("√", "导入了 %d 张卡" % len(tabs))]
+        lines.extend(("!", "%s：%s" % pair) for pair in conflicts.items())
+        lines.extend(("!", note) for note in counter_notes)
+        self.pack_page.show_results(lines, "导入完成", True)
         self.refresh()
 
     # ------------------------------------------------------------ 已安装
@@ -856,7 +932,7 @@ class Workbench:
                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No) == QMessageBox.Yes:
             _, removed = transfer.uninstall(path, self._recycle_folder(), mdpro3.expansions_dir()[0])
             self.installed_page.notice = "已卸载，清除了 %d 个动态卡图。" % removed
-            self._known.clear()
+            self._invalidate_index()
             self._refresh_installed()
 
     def _restore_pack(self, path):
@@ -870,7 +946,7 @@ class Workbench:
         except (OSError, ValueError) as error:
             QMessageBox.warning(self.panel, "恢复失败", str(error))
             return
-        self._known.clear()
+        self._invalidate_index()
         self._refresh_installed()
 
     def _purge_pack(self, path):
@@ -902,8 +978,10 @@ class Workbench:
         except Exception:
             _log("导出前保存当前卡失败:\n" + traceback.format_exc())
         if not install and not save_to:
-            save_to, _ = QFileDialog.getSaveFileName(self.panel, "导出卡包",
-                                                     "ygodiy-%s.ypk" % pack.get("title", "DIY"), "卡包 (*.ypk)")
+            save_to, chosen = QFileDialog.getSaveFileName(self.panel, "导出卡包", "ygodiy-%s" % pack.get("title", "DIY"),
+                                                        "MDPro3 卡包 (*.ypk);;卡片数据库 (*.cdb)")
+            if save_to and not save_to.lower().endswith((".ypk", ".cdb")):
+                save_to += ".cdb" if "*.cdb" in chosen else ".ypk"
             if not save_to:
                 return
         from ygopack import build as ypbuild, mdpro3
@@ -916,10 +994,16 @@ class Workbench:
         out_dir = os.path.join(mdpro3.app_dir(), "DIY卡包导出")
         self._busy = True
         self.pack_page.set_busy(True)
-        self.pack_page.show_results([("…", "正在导出并在测试沙盒里验证……")])
+        database_only = bool(save_to and save_to.lower().endswith(".cdb"))
+        self.pack_page.show_results([("…", "正在写入卡片数据库……" if database_only else "正在导出并在测试沙盒里验证……")])
 
         def work():
             lines = []
+            if database_only:
+                out, report = ypbuild.build_manifest(manifest, out_dir, out_dir, assets, database_path=save_to)
+                lines = [("×" if level == "错误" else "!", (card + "：" if card else "") + message)
+                         for level, card, message in report.items]
+                return bool(out), lines, ("已导出卡片数据库到 " + save_to if out else "数据库导出失败"), False
             md_dir, _ = mdpro3.find_mdpro3()
             target, note = mdpro3.expansions_dir()
             stem = "ygodiy-" + ypbuild.slug(manifest["name"]) + ".ypk"
@@ -962,7 +1046,7 @@ class Workbench:
                 return
             ok, lines, summary, verify_failed = value
             self.pack_page.show_results(lines, summary, ok)
-            self._known.clear()                  # 装进去以后 MDPro3 里的卡号变了，重新核查
+            self._invalidate_index()             # 装进去以后 MDPro3 里的卡号变了，重新核查
             self.refresh()
             if finished:
                 finished(ok, lines, summary, verify_failed)

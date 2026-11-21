@@ -919,10 +919,12 @@ def _prev_custom_sync_rd_overlay_controls(rd_editor, otcg_editor):
 
     holo_visible = _toggle_checked(getattr(otcg_editor, "toggle_holo", None), True)
     if getattr(rd_editor, "_rd_synced_holo_visible", None) != holo_visible:
+        _set_toggle_checked_silent(getattr(rd_editor, "toggle_holo", None), holo_visible)
         _safe_call(getattr(rd_editor, "on_toggle_holo", None), holo_visible)
         rd_editor._rd_synced_holo_visible = holo_visible
     copyright_visible = _toggle_checked(getattr(otcg_editor, "toggle_copy", None), True)
     if getattr(rd_editor, "_rd_synced_copyright_visible", None) != copyright_visible:
+        _set_toggle_checked_silent(getattr(rd_editor, "toggle_copy", None), copyright_visible)
         _safe_call(getattr(rd_editor, "on_toggle_copy", None), copyright_visible)
         rd_editor._rd_synced_copyright_visible = copyright_visible
 

@@ -1,4 +1,4 @@
-"""卡片和卡包的文件：.ydiy 是 zip，里面一份 manifest.json 加卡图和资源；也能从 .ypk 读卡。"""
+"""卡片和卡包的文件：.ydiy 是 zip，里面一份 manifest.json 加卡图和资源；也能从 .ypk 或独立 .cdb 读卡。"""
 
 import copy
 import hashlib
@@ -53,6 +53,7 @@ def export_file(path, kind, title, tabs, pack_settings, assets):
 def _new_tab(title, data, diy, image, media, assets, default_data):
     uid = uuid.uuid4().hex
     merged = copy.deepcopy(default_data)
+    merged.pop("_search_card_id", None)
     merged.update(data)
     merged.pop("image", None)
     merged.pop("_image_ref", None)
@@ -60,8 +61,16 @@ def _new_tab(title, data, diy, image, media, assets, default_data):
     if image:
         os.makedirs(assets, exist_ok=True)
         reference = hashlib.sha256(image).hexdigest()       # 标签页按内容命名卡图
-        with open(os.path.join(assets, reference + ".img"), "wb") as stream:
-            stream.write(image)
+        target = os.path.join(assets, reference + ".img")
+        if not os.path.isfile(target):
+            temporary = target + "." + uid + ".tmp"
+            try:
+                with open(temporary, "wb") as stream:
+                    stream.write(image)
+                os.replace(temporary, target)
+            finally:
+                if os.path.exists(temporary):
+                    os.remove(temporary)
         merged["_image_ref"] = reference
     if media:
         folder = os.path.join(assets, MEDIA_FOLDER)
@@ -97,20 +106,26 @@ def read_ydiy(path, assets, default_data):
 
 
 def read_ypk(path, assets, default_data):
-    """扩展包没有积木：脚本原样保留成手写脚本，卡片资料从 cdb 还原。"""
-    title, cards = expansion.read_cards(path)
+    """从独立 cdb 或扩展包还原卡片，有脚本时原样保留。"""
     tabs = []
-    for card in cards:
-        rec = card["record"]
-        diy = {"setcodes": expansion.setcodes(rec["setcode"]), "category": rec["category"]}
-        if card["script"]:
-            diy["script"] = card["script"]
-        if card["strings"]:
-            diy["strings"] = card["strings"]
-        if rec["alias"]:
-            diy.update(alias=rec["alias"], alias_mode="art")
-        tabs.append(_new_tab(rec["name"], expansion.card_data(rec), diy, card["art"], card["media"], assets, default_data))
-    return {"kind": "pack", "title": title, "diy": {}, "tabs": tabs}
+    with expansion.open_cards(path, pack_settings=True) as (title, settings, cards):
+        for card in cards:
+            rec = card["record"]
+            diy = {"setcodes": expansion.setcodes(rec["setcode"]), "category": rec["category"]}
+            if card["script"]:
+                diy["script"] = card["script"]
+            if card["strings"]:
+                diy["strings"] = card["strings"]
+            if rec["alias"]:
+                diy.update(alias=rec["alias"], alias_mode="art")
+            data = expansion.card_data(rec)
+            original = cardinfo.original_cdb_fields(rec, data, bool(card["script"]))
+            if original:
+                diy["cdb_original"] = original
+            if rec["ot"] != 3:
+                diy["cdb_ot"] = rec["ot"]
+            tabs.append(_new_tab(rec["name"], data, diy, card["art"], card["media"], assets, default_data))
+    return {"kind": "pack", "title": title, "diy": settings, "tabs": tabs}
 
 
 def read_file(path, assets, default_data):

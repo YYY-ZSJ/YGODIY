@@ -4,11 +4,14 @@ import copy
 import re
 
 from blocks import SCHEMA
-from blocks.catalog import BLOCKS, effect_codes, fits, multi_parts
+from blocks.catalog import BLOCKS, MAX_CARD_CODE, effect_codes, fits, multi_parts
 from blocks.compile import walk
 
 MAX_BLOCKS = 200
 MAX_DEPTH = 20
+# 整卡把每个变量、参数和函数都拆成独立节点，复杂度预算须按完整脚本计算。
+SCRIPT_MAX_DEPTH = 64
+SCRIPT_MAX_BLOCKS = 8000
 CUSTOM_BLOCKS = ("raw", "custom_effect")
 
 
@@ -50,8 +53,14 @@ def _parameter(block, name, kind, option, value, path):
         return value
     if kind == "multi" and isinstance(value, str) and all(v in dict(option) for v in multi_parts(value, dict(option))):
         return value
-    if kind == "int" and type(value) is int and -99999999 <= value <= 99999999:
-        return value
+    if kind == "counter":
+        from effect_model.counters import counter_code
+        return counter_code(value)
+    if kind == "int":
+        low, high = (0, MAX_CARD_CODE) if name == "code" else (-99999999, 99999999)
+        if type(value) is int and low <= value <= high:
+            return value
+        raise ValueError("%s：积木%s的参数%s必须是%d～%d的整数。" % (path, block.label, name, low, high))
     if kind == "code" and isinstance(value, str) and value in {row["name"] for row in effect_codes()}:
         return value
     if kind == "lua" and isinstance(value, str) and len(value) <= 20000 and "\x00" not in value:
@@ -63,7 +72,7 @@ def _parameter(block, name, kind, option, value, path):
         if name == "setcode" and not re.fullmatch(r"0x[0-9a-fA-F]{1,4}", value):
             raise ValueError(path + '：字段编号须为0x开头的十六进制字符串，例如"0xa01"；名字不能代替编号。')
         return value
-    expected = {"int": "整数(-99999999～99999999)", "text": "不含空字符、最多500字的字符串"}.get(kind, kind)
+    expected = "不含空字符、最多500字的字符串" if kind == "text" else kind
     if kind in ("choice", "multi"):
         expected = "可选值=" + ",".join(repr(key) for key, _ in option)
         if kind == "multi":
@@ -81,12 +90,14 @@ def validate_tree(model, previous=None, custom=()):
         if key not in ("schema", "effects") and (key not in retained or retained[key] != value):
             raise ValueError("model.%s：只允许修改effects，不能在积木树内写入卡片资料或改旧元数据。" % key)
     count = [0]
+    full_script = len(model["effects"]) == 1 and isinstance(model["effects"][0], dict) and model["effects"][0].get("block") == "ls_program"
+    max_depth, max_blocks = (SCRIPT_MAX_DEPTH, SCRIPT_MAX_BLOCKS) if full_script else (MAX_DEPTH, MAX_BLOCKS)
     allowed = {_custom_key(node) for node in custom}
 
     def visit(node, depth, path, slot=None):
         count[0] += 1
-        if depth > MAX_DEPTH or count[0] > MAX_BLOCKS:
-            raise ValueError(path + "：积木树超过20层或200块，请拆分修改。")
+        if depth > max_depth or count[0] > max_blocks:
+            raise ValueError(path + "：积木树超过%d层或%d块，请拆分修改。" % (max_depth, max_blocks))
         if not isinstance(node, dict) or not isinstance(node.get("block"), str) or node["block"] not in BLOCKS:
             raise ValueError(path + '.block：须为目录中已开放的积木ID，例如"effect"；不接受以type代替block。')
         if node["block"] in CUSTOM_BLOCKS and _custom_key(node) not in allowed:
@@ -108,8 +119,8 @@ def validate_tree(model, previous=None, custom=()):
             children = node.get(child_slot[0], [])
             if not isinstance(children, list) or (child_slot[3] == 1 and len(children) > 1):
                 examples = {"cards": "this_card", "cond": "phase", "number": "num", "filter": "f_kind", "stmt": "draw", "target": "take_target", "option": "option"}
-                example = examples[child_slot[2]]
-                if not fits(child_slot, example):
+                example = examples.get(child_slot[2])
+                if example is None or not fits(child_slot, example):
                     example = next(key for key in sorted(BLOCKS) if key not in CUSTOM_BLOCKS and fits(child_slot, key))
                 raise ValueError(path + "." + child_slot[0] + "：槽必须是" + child_slot[2] + "积木的数组" +
                                  ("，最多1块" if child_slot[3] == 1 else "") + '；数组格式例如[{"block":"' + example + '"}]，按目录补其参数和槽。')

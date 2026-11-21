@@ -2,7 +2,8 @@
 
 from ..model import ModelError, applies, is_ref, limits_of
 from ..model.patterns import linked_count_times, same_original_name_ref
-from .acts import ActsMixin, COUNTER_CODE, PHASE_CODE
+from ..counters import counter_code
+from .acts import ActsMixin, PHASE_CODE
 from .common import CATEGORY, HINT, LANDED, LOC, SHORT, SUMMON_EVENTS, TYPE, able, cmp_lua, indent, sides, step_refs
 from .cont import ContMixin, SUMMON_TYPE
 
@@ -418,7 +419,7 @@ class EffectGen(ActsMixin, ContMixin):
         if act == "pay_lp":
             return "Duel.CheckLPCost(tp,%d)" % step["amount"], ["Duel.PayLPCost(tp,%d)" % step["amount"]]
         if act == "remove_counter" and is_ref(step.get("from"), "self"):
-            code, n = COUNTER_CODE[step["counter"]], step.get("count", 1)
+            code, n = counter_code(step["counter"]), step.get("count", 1)
             return ("e:GetHandler():IsCanRemoveCounter(tp,%s,%d,REASON_COST)" % (code, n),
                     ["e:GetHandler():RemoveCounter(tp,%s,%d,REASON_COST)" % (code, n)])
         if act == "detach_xyz_material":

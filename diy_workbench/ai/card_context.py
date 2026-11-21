@@ -41,9 +41,10 @@ MANGA_FIELDS = ("name", "card_type", "language", "call_way", "level", "rank", "l
 def modes(app):
     keys = ["ocg", "rd", "fc", "back", "past"]
     extra = {getattr(app, "_manga_mode_index", -1): "manga",
-             getattr(app, "_workbench_mode_index", -1): "diy"}
+             getattr(app, "_workbench_mode_index", -1): "diy", getattr(app, "_guide_mode_index", -1): "guide"}
     return [{"id": keys[i] if i < len(keys) else extra.get(i, "unknown"),
-             "index": i, "label": app.combo_box.itemText(i)} for i in range(app.combo_box.count())]
+             "index": i, "label": app.combo_box.itemText(i)} for i in range(app.combo_box.count())
+            if i != getattr(app, "_support_index", -1)]
 
 
 def active_mode(app):

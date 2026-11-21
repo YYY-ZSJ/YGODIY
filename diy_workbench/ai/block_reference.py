@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from blocks.catalog import BLOCKS, effect_codes
+from blocks.script.calls import BY_BLOCK, arguments
 
 SAMPLES = (100009702, 100009704, 100009708, 100009711, 100009716, 100009742, 100009770, 100009773)
 
@@ -16,6 +17,10 @@ def full_catalog():
     enums, lines = {}, []
     for block in sorted(BLOCKS.values(), key=lambda item: item.key):
         if block.key in ("raw", "custom_effect"):
+            continue
+        if block.key in BY_BLOCK:
+            api = BY_BLOCK[block.key]
+            lines.append("%s | %s | %s | %s" % (block.key, api, block.label, encoded(arguments(api))))
             continue
         fields, defaults = {}, block.defaults()
         for name, label, kind, option in block.fields:
@@ -35,6 +40,8 @@ def full_catalog():
     header = ["YGODIY_BLOCK_REFERENCE_V2 · 积木完整目录", "字段=[中文说明,类型,省略时默认值,可选值表编号(若有)]；枚举表项=[实际值,中文名]。",
               "每个块必填block；标量参数可省略用默认值。槽一律数组，槽项=[说明,接收类型,最多块数(0不限),限定块ID或null]。",
               "目录没有声明每个槽的最少数量；空槽在结构上可保留，编译可能要求补齐，见格式规范。不要把最多1块误解为必须1块。",
+              "ls_api_ 行=[ID | Lua接口 | 中文用途 | 参数标签按序]，kind=ls_expr。以冒号开头的接口有receiver槽，参数依次对应arg0、arg1等槽。"
+              "这两种槽都是最多1块ls_expr，最后的more槽可放额外参数。无标量字段。用get_block_catalog(ids)可展开槽名及默认值。",
               "可选值表：" + encoded({value: json.loads(key) for key, value in enums.items()})]
     return "\n".join(header + lines)
 

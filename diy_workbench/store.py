@@ -15,6 +15,7 @@
 
 import copy
 import re
+from itertools import chain
 
 from blocks import SCHEMA, build as build_blocks, type_bits
 from blocks.catalog import new as new_block
@@ -22,9 +23,10 @@ from blocks.categories import categories
 from blocks.compile import CompileError
 from blocks.convert import convert
 from effect_model import SCHEMA_V01, upgrade
+from effect_model.counters import clean_names
 from ygopack import cardinfo
 
-DEFAULT_PACK = {"author": "", "ot": 3, "code_start": 100001000, "code_step": 100, "setnames": {}}
+DEFAULT_PACK = {"author": "", "ot": 3, "code_start": 100001000, "code_step": 100, "setnames": {}, "counters": {}, "text_source": "card"}
 
 
 class NotSupported(ValueError):
@@ -95,6 +97,8 @@ def pack_diy(pack):
     out = copy.deepcopy(DEFAULT_PACK)
     if isinstance(diy, dict):
         out.update({k: v for k, v in diy.items() if k in DEFAULT_PACK})
+        out["setnames"] = dict(out.get("setnames") or {})
+        out["counters"] = clean_names(out.get("counters"))
     return out
 
 
@@ -196,7 +200,10 @@ def full_model(tab):
     data = tab.get("data") or {}
     model = copy.deepcopy(diy["blocks"])
     if rule_same_name(diy):      # 规则上同名、效果不同：引擎见到 alias 就读原卡脚本，所以 alias 写 0，用改名效果
-        model["effects"].insert(0, new_block("name_as", code=diy["alias"], name=diy.get("alias_name", ""), where="all"))
+        if any(e.get("block") == "ls_program" for e in model["effects"]):
+            model["script_alias"] = diy["alias"]
+        else:
+            model["effects"].insert(0, new_block("name_as", code=diy["alias"], name=diy.get("alias_name", ""), where="all"))
     rec, notes = card_record(data, has_effects=bool(model.get("effects")) or bool(diy.get("script")))
     rec["setcodes"] = [int(s, 16) for s in diy.get("setcodes", []) if re.fullmatch(r"0x[0-9a-fA-F]+", str(s))]
     model["schema"] = SCHEMA
@@ -222,7 +229,7 @@ class Result:
         self.model = None       # 补上 card 块的积木树（沙盒检查时取 DIY 衍生物的卡片数据）
 
 
-def generate(tab):
+def generate(tab, counter_names=None):
     """为一张卡生成规范文本、Lua 和检查结果；积木还没拼完整时记在 error 里，不抛异常。"""
     res = Result()
     try:
@@ -237,7 +244,7 @@ def generate(tab):
         res.issues.append(("提示", "旧存档转换：" + n))
     script = card_diy(tab).get("script")
     try:
-        built = build_blocks(model)
+        built = build_blocks(model, counter_names)
     except CompileError as ex:
         if script:
             return _use_script(res, tab, script)
@@ -282,9 +289,15 @@ def manifest(pack, tabs):
         data = tab.get("data") or {}
         cdiy = card_diy(tab)
         entry = {"card": data, "setcodes": list(cdiy.get("setcodes", []))}
+        if cdiy.get("cdb_original"):
+            entry["cdb_original"] = cdiy["cdb_original"]
+        if "cdb_ot" in cdiy and diy.get("ot", 3) == 3:
+            entry["ot"] = cdiy["cdb_ot"]
         code = card_code(data)
         if code:
             entry["code"] = code
+        if cdiy.get("design_text"):
+            entry["design_text"] = cdiy["design_text"]
         if cdiy.get("media"):
             entry["media"] = dict(cdiy["media"])
         if cdiy.get("strings"):
@@ -299,7 +312,7 @@ def manifest(pack, tabs):
             entry["effect"] = model
         cards.append(entry)
     return {"name": pack.get("title") or "DIY", "author": diy.get("author", ""), "ot": diy.get("ot", 3),
-            "setnames": dict(diy.get("setnames") or {}), "cards": cards}
+            "setnames": diy["setnames"], "counters": diy["counters"], "text_source": diy["text_source"], "cards": cards}
 
 
 def assign_codes(tabs, start, step):
@@ -318,7 +331,7 @@ def free_code_start(start, step, count, known):
 def next_setcode(setnames, used=()):
     """新字段的编号：从 0xa01 起找第一个没用过的（官方字段目前到 0x2xx，DIY 用高位段）。"""
     taken = {int(k, 16) & 0xfff for k in setnames} | {c & 0xfff for c in used}
-    code = 0xa01
-    while code in taken:
-        code += 1
-    return "0x%x" % code
+    for code in chain(range(0xa01, 0x1000), range(1, 0xa01)):
+        if code not in taken:
+            return "0x%x" % code
+    raise ValueError("全部 4095 个基础字段编号都已占用。可以在「查找字段」中选用已有字段。")

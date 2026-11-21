@@ -35,13 +35,15 @@ def run_case(core, record, lua, source, text):
             check["card"] = ref(check["card"])
         actions.append(check)
     field = lower_field(scene["field"], ref, codes["__filler__"])
-    runner = IntentRunner(core, {"name": scene["name"], "field": field, "actions": actions, "seed": 20261022})
+    runner = IntentRunner(core, {"name": scene["name"], "field": field, "actions": actions, "lp": scene.get("lp", [8000, 8000]), "seed": 20261022})
     try:
         runner.run()
     except Exception as error:
         runner.fail("情景执行异常：%s：%s" % (type(error).__name__, str(error)[:600]))
     result = runner.report()
     result["references"] = {name: value for name, value in codes.items() if name != "__filler__"}
+    result["official_fixtures"] = {key: core.name(spec["official_code"]) for key, spec in scene.get("virtual_cards", {}).items()
+                                   if "official_code" in spec}
     key, params = scene["template"], scene.get("parameters", {})
     proof = True
     if key == "count_exceeded":

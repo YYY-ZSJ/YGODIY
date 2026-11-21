@@ -56,7 +56,7 @@ PHASE_NAME = {"draw": "抽卡阶段", "standby": "准备阶段", "main1": "主�
 UNTIL_HEAD = {"end_of_turn": "这个回合，", "end_of_next_turn": "直到下个回合的结束时，"}
 BOUND_VERB = {"banish": "除外", "add_to_hand": "加入手卡", "send_to_gy": "送去墓地", "special_summon": "特殊召唤",
               "destroy": "破坏", "release": "解放"}
-COUNTER_NAME = {"spell": "魔力指示物"}
+from .counters import counter_name
 FORBID_WORD = {"summon": "召唤", "flip_summon": "反转召唤", "special_summon": "特殊召唤"}
 NEGATES = ("negate_activation", "negate_effect")
 
@@ -583,7 +583,7 @@ def step_text(step, ctx, infix=""):
         return "给与%s%s伤害" % (who, value_text(step["amount"], ctx))
     if act == "add_counter":
         cap = (ctx.card["counters"].get(step["counter"]) or {}).get("max")
-        return "给%s放置%d个%s%s" % (obj(what, ctx), step.get("count", 1), COUNTER_NAME[step["counter"]],
+        return "给%s放置%d个%s%s" % (obj(what, ctx), step.get("count", 1), counter_name(step["counter"]),
                                  "（最多%d个）" % cap if cap else "")
     if act == "apply_continuous":
         return apply_text(step, ctx)
@@ -803,7 +803,7 @@ def cost_text(step, ctx):
     if act == "pay_lp":
         return "支付%d基本分" % step["amount"]
     if act == "remove_counter":
-        return "把%s%d个%s取除" % (obj(step["from"], ctx), step.get("count", 1), COUNTER_NAME[step["counter"]])
+        return "把%s%d个%s取除" % (obj(step["from"], ctx), step.get("count", 1), counter_name(step["counter"]))
     raise NotImplementedError("代价 %r 还没有中文写法" % act)
 
 

@@ -47,9 +47,9 @@ def _plain(name, effect):
     return "\n\n".join(part for part in (name, effect.strip()) if part)
 
 
-def card_text(tab):
+def card_text(tab, counter_names=None):
     data = tab.get("data") or {}
-    result = store.generate(tab)
+    result = store.generate(tab, counter_names)
     name = data.get("name") or tab.get("title") or "未命名"
     if result.rec is None:
         return _plain(name, data.get("effect_text") or "")
@@ -72,5 +72,5 @@ def write(path, text):
         handle.write(text + "\n")
 
 
-def export(path, tabs):
-    write(path, "\n\n\n".join(card_text(tab) for tab in tabs))
+def export(path, tabs, counter_names=None):
+    write(path, "\n\n\n".join(card_text(tab, counter_names) for tab in tabs))
