@@ -17,6 +17,8 @@
 | 神经翻译推理库 | `ygo_translator/vendor` | llama-cpp-python 0.3.36 的 CPU 轮子、Jinja2、MarkupSafe、typing_extensions 及本地缓存适配模块；上游许可文件保存在相应 `*.dist-info/licenses` 目录 |
 | 实例翻译数据 | `ygo_translator/model/ygo_mt.json.gz` | 基于游戏王卡片多语资料整理，卡片内容的权利归原权利人 |
 
+Windows 程序图标沿用项目原版的 `YGODIY.ico`。便携版中的卡片文字资料来自[百鸽卡片查询](https://ygocdb.com/)，供离线查询使用。卡片名称、文本和卡图的权利归原权利人。
+
 构建时从 PyPI 安装的第三方 Python 包分别保留其上游许可。仓库的 MIT 协议适用于本项目自主源码，资源、字体和模型的授权按以上来源记录执行。
 
 游戏王（Yu-Gi-Oh!）及相关名称、卡片内容的权利归其权利人所有。本项目与 Konami 没有关联。
