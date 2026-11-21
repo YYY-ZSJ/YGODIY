@@ -9,11 +9,12 @@ import sys
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
 
+from app_version import VERSION
 from common import _app_dir
 
 
 def _app_icon_path():
-    for root in (_app_dir(), getattr(sys, "_MEIPASS", "")):
+    for root in (_app_dir(), getattr(sys, "_MEIPASS", os.path.dirname(__file__))):
         if not root:
             continue
         for name in ("YGODIY.ico", "YGODIY-icon.png", os.path.join("mold", "YGODIY.ico")):
@@ -29,7 +30,7 @@ def _install_application_identity():
             import ctypes
 
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-                "YGODIY.YGODIY.4.0.0"
+                f"YGODIY.YGODIY.{VERSION}"
             )
         except Exception:
             pass

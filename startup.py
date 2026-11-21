@@ -4,6 +4,7 @@ import sys
 import time
 
 import applog
+from app_version import APP_TITLE
 from utils import rpath
 
 # ---------------------------------------------------------------- 单实例保护
@@ -43,7 +44,7 @@ def notify_already_running():
     """尽量用图形提示；失败就退回标准错误。"""
     message = (
         "YGODIY 已经在运行了。\n\n"
-        "请先关掉那个窗口（任务栏上标题为「YGODIY 4.0.0」的那个），再重新打开。\n"
+        f"请先关掉任务栏上标题为「{APP_TITLE}」的窗口，再重新打开。\n"
         "如果确定没有窗口却仍提示，删掉程序目录下的 " + INSTANCE_LOCK_NAME + " 再试。"
     )
     if not os.environ.get("YGODIY_SUPPRESS_DIALOG"):  # 无人值守时不弹窗，避免卡住

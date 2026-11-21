@@ -28,13 +28,14 @@ _preload_translation_model()
 
 import applog  # noqa: E402  以下的导入都在翻译模型预载之后
 import startup
+from app_version import APP_TITLE, VERSION
 from OTCG_widget import OTCGWidget
 from RD_widget import RDWidget
 from FC_widget import FCWidget
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGraphicsView, QGraphicsScene, QComboBox, \
     QLabel, QStackedWidget, QMessageBox, QScrollArea
-from PyQt5.QtGui import QFont, QIcon, QMovie, QBrush, QGuiApplication, QPixmapCache
+from PyQt5.QtGui import QFont, QMovie, QBrush, QGuiApplication, QPixmapCache
 from PyQt5.QtCore import Qt
 from CardBack_widget import CardBackWidget
 from Past_widget import PastWidget
@@ -201,8 +202,7 @@ class YuGiOhApp(QWidget):
 
         from diy_workbench.ai.dock import make_shell
         make_shell(self)
-        self.setWindowTitle('YGODIY 4.0.0')
-        self.setWindowIcon(QIcon(rpath('mold/YGODIY.ico')))
+        self.setWindowTitle(APP_TITLE)
 
         screen_height = QGuiApplication.primaryScreen().geometry().height()
         screen_width = QGuiApplication.primaryScreen().geometry().width()
@@ -499,6 +499,7 @@ def main():
     qt_plugins = os.path.join(os.path.dirname(QtCore.__file__), "Qt5", "plugins")
     QtCore.QCoreApplication.addLibraryPath(qt_plugins)
     app = QApplication(sys.argv)
+    app.setApplicationVersion(VERSION)
     _force_light_style(app)
     app.setFont(QFont('Microsoft YaHei', 10))
     yugioh = startup.build_with_splash(YuGiOhApp)
