@@ -50,13 +50,14 @@ def expanded_size(path):
         return sum(entry.file_size for entry in bundle.infolist())
 
 
-def make_installer(compiler, program, artwork):
+def make_installer(compiler, program, artwork, *, full_offline=False):
+    options = ["/DFullOffline"] if full_offline else []
     subprocess.run([
-        str(compiler), f"/DArchiveDir={program.parent}", f"/DInstalledBytes={expanded_size(program)}",
+        str(compiler), *options, f"/DArchiveDir={program.parent}", f"/DInstalledBytes={expanded_size(program)}",
         f"/DArtBytes={expanded_size(artwork)}", f"/DArtHash={checksum(artwork)}",
         str(ROOT / "scripts" / "windows-installer.iss"),
     ], check=True)
-    return program.with_name(f"{BUNDLE}-Setup.exe")
+    return program.with_name(f"YGODIY_{VERSION}.exe" if full_offline else f"{BUNDLE}-Setup.exe")
 
 
 def main():
@@ -65,6 +66,7 @@ def main():
     parser.add_argument("--card-library", type=Path, help="公开卡片文字库目录")
     parser.add_argument("--artwork", type=Path, help="以卡密命名的原始卡图目录")
     parser.add_argument("--iscc", type=Path, help="用指定的 Inno Setup 编译器生成安装向导")
+    parser.add_argument("--full-offline", action="store_true", help="把全部原图内置到单个 EXE，可单独离线安装")
     args = parser.parse_args()
     if not (BUILD / "YGODIY.exe").is_file() or not (BUILD / "_internal").is_dir():
         parser.error("请先运行 scripts/build.py 构建 Windows 程序。")
@@ -74,6 +76,8 @@ def main():
         parser.error("找不到原始卡图目录。")
     if args.iscc and not args.artwork:
         parser.error("生成完整安装向导时，请用 --artwork 指定原始卡图目录。")
+    if args.full_offline and not args.iscc:
+        parser.error("--full-offline 需要用 --iscc 指定安装向导编译器。")
 
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -86,7 +90,7 @@ def main():
             pack_artwork(artwork, args.artwork)
             files.append(artwork)
             if args.iscc:
-                files.append(make_installer(args.iscc, program, artwork))
+                files.append(make_installer(args.iscc, program, artwork, full_offline=args.full_offline))
         for path in files:
             digest = checksum(path)
             sidecar = path.with_name(path.name + ".sha256")
