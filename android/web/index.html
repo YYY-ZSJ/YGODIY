@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=4,user-scalable=yes,viewport-fit=cover"
+    />
+    <title>YGODIY 4.0.0</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="desktop">
+      <div class="titlebar"><img src="icon.png" alt="" />YGODIY 4.0.0</div>
+      <div id="workspace">
+        <aside id="pack-list" class="sidebar"></aside>
+        <aside id="card-list" class="sidebar"></aside>
+        <div id="preview"><canvas id="card-canvas" aria-label="卡面预览"></canvas></div>
+        <section id="work">
+          <div id="mode-row">
+            <select id="mode" aria-label="模式"></select
+            ><button id="copy-text">复制文字</button>
+          </div>
+          <main id="main"></main>
+        </section>
+      </div>
+    </div>
+    <div id="toast" role="status"></div>
+    <dialog id="sheet">
+      <div class="sheet-head">
+        <h2 id="sheet-title"></h2>
+        <button id="close-sheet" aria-label="关闭弹窗">关闭</button>
+      </div>
+      <div id="sheet-body"></div>
+    </dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
