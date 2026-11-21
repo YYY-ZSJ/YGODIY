@@ -345,6 +345,7 @@ _RD_ROW_RULES = (
     {"labels": ("卡名颜色：",)},                   # 卡名颜色 / 高级选项
     {"labels": ("上传卡图",)},                    # 上传卡图 / 超框
     {"labels": ("详细",)},                        # 详细 / 种族 / 召唤方式 / 副类型
+    {"labels": ("类型",)},
     {"labels": ("属性：",)},                      # 属性
     {"labels": ("等级", "阶级")},                  # 等级 / 阶级
     {"labels": ("攻击",)},                        # 攻击 / 防御 / 极限攻击
@@ -733,6 +734,58 @@ def _rd_bind_detail_selector(rd_widget, editor, rd_name, source_name):
     return True
 
 
+def _editing_rd_card(rd):
+    app = rd.parent_app
+    manager = getattr(app, "card_tab_manager", None)
+    return (getattr(app, "current_mode", None) == 1 and not getattr(app, "_rd_switch_in_progress", False)
+            and not getattr(app, "_rd_sync_suspended", False) and not getattr(manager, "_busy", False))
+
+
+def _rd_bind_shared_fields(rd, editor):
+    if getattr(rd, "_shared_fields_bound", False):
+        return
+    rd._shared_fields_bound = True
+
+    def bind(signal, setter):
+        def edited(*args):
+            if _editing_rd_card(rd):
+                setter(*args)
+        signal.connect(edited)
+
+    for name in ("card_name_edit", "card_pass_edit", "card_pack_edit", "ATK_edit", "DEF_edit"):
+        bind(getattr(rd, name).textChanged, getattr(editor, name).setText)
+    def effect_changed():
+        text = rd.text_input.toPlainText()
+        if editor.text_input.toPlainText() != text:
+            editor.text_input.setPlainText(text)
+    bind(rd.text_input.textChanged, effect_changed)
+
+    def reflect_toggle(name, checked):
+        toggle = getattr(editor, name)
+        if toggle.is_checked != checked:
+            _set_toggle_checked_silent(toggle, checked)
+            toggle.toggled.emit(checked)
+
+    for name in ("toggle_copy", "toggle_holo"):
+        bind(getattr(rd, name).toggled, lambda checked, name=name: reflect_toggle(name, checked))
+    for name in ("type_selector", "MT_type_selector"):
+        bind(getattr(rd, name).currentTextChanged, getattr(editor, name).setCurrentText)
+    for attr, button in rd.attribute_btn_dict.items():
+        bind(button.clicked, lambda checked=False, attr=attr: editor.attribute_update(attr))
+
+    def level_changed(*_):
+        if getattr(rd, "_rd_synced_detail_is_xyz", False):
+            return  # 阶级由 RDWidget.star_clicked 写回。
+        editor.current_level = rd.current_level
+        editor.display_level_btn()
+        editor.update_level_label()
+        editor.display_level_star()
+        _schedule_rd_frame_sync(rd.parent_app)
+
+    for button in [rd.level_zero_btn, *rd.level_star_btn_list]:
+        bind(button.clicked, level_changed)
+
+
 def _rd_bind_detail_selectors(rd_widget, editor):
     for rd_name, source_name in _RD_DETAIL_SOURCES:
         _rd_bind_detail_selector(rd_widget, editor, rd_name, source_name)
@@ -1098,6 +1151,7 @@ def _rd_apply_completeness_before_ocg_style(rd_widget):
     _rd_shorten_labels(rd_widget)
     _rd_fit_detail_row(root)
     _rd_bind_detail_selectors(rd_widget, editor)
+    _rd_bind_shared_fields(rd_widget, editor)
     _rd_compact_bottom(root, rd_widget)
     _rd_compact_action_grid(rd_widget)
     _rd_merge_rows_two_column(root, "防伪", "罕贵")

@@ -3,7 +3,7 @@
 from ..model import applies, is_ref
 from .common import LOC, sides
 
-COUNTER_CODE = {"spell": "0x1"}
+from ..counters import counter_code
 
 
 def _value(ap):
@@ -301,7 +301,7 @@ class ContMixin:
         body = []
         for s in eff["do"]:
             if s["act"] == "add_counter" and is_ref(s.get("what"), "self"):
-                body.append("e:GetHandler():AddCounter(%s,%d)" % (COUNTER_CODE[s["counter"]], s.get("count", 1)))
+                body.append("e:GetHandler():AddCounter(%s,%d)" % (counter_code(s["counter"]), s.get("count", 1)))
             else:
                 raise NotImplementedError("「每次……」的处理 %r 还没有 Lua 写法" % s["act"])
         self.g.add_func("function s.lsop%d(e,tp,eg,ep,ev,re,r,rp)\n\tif %s then\n%s\n\tend\nend" % (

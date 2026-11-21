@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="365" viewBox="0 0 740 365">
+  <rect width="740" height="365" rx="12" fill="#f3f7f9"/>
+  <g font-family="Microsoft YaHei, sans-serif" fill="#183749">
+    <text x="22" y="36" font-size="23" font-weight="bold">拿到一张怪兽卡，先看哪几行？</text>
+    <rect x="28" y="54" width="218" height="288" rx="8" fill="#edcc9e" stroke="#795e3c" stroke-width="2"/>
+    <rect x="38" y="65" width="198" height="31" rx="3" fill="#fff5e5"/>
+    <text x="46" y="88" font-size="20" font-weight="bold">练习魔术师</text>
+    <circle cx="216" cy="81" r="12" fill="#746335"/>
+    <text x="216" y="87" fill="white" text-anchor="middle" font-size="16">光</text>
+    <text x="223" y="116" text-anchor="end" font-size="18" fill="#98571f">★ ★ ★ ★</text>
+    <rect x="40" y="124" width="194" height="95" rx="2" fill="#dfece9" stroke="#83aa9b"/>
+    <path d="M137 136L145 163L172 172L146 180L137 207L128 180L102 172L128 164Z" fill="#478873"/>
+    <rect x="38" y="227" width="198" height="106" rx="3" fill="#fff5e5"/>
+    <text x="46" y="250" font-size="16" font-weight="bold">魔法师族／效果</text>
+    <text x="46" y="276" font-size="14">给这张卡放置指示物。</text>
+    <line x1="47" y1="295" x2="225" y2="295" stroke="#a18660"/>
+    <text x="46" y="320" font-size="15">ATK/1600　DEF/1200</text>
+    <g fill="none" stroke="#527c83" stroke-width="2">
+      <path d="M248 82H278"/><path d="M248 111H262V134H278"/>
+      <path d="M248 245H262V195H278"/><path d="M248 271H278"/>
+      <path d="M248 313H278"/>
+    </g>
+    <g font-size="17">
+      <g font-weight="bold">
+        <text x="288" y="86">卡名、属性</text>
+        <text x="288" y="139">等级</text>
+        <text x="288" y="200">种族、类别</text>
+        <text x="288" y="275">效果文字</text>
+        <text x="288" y="320">攻守</text>
+      </g>
+      <text x="400" y="86">光是属性，和种族分开填写。</text>
+      <text x="400" y="139">从星星数出等级4。</text>
+      <text x="400" y="200">魔法师族，属于效果怪兽。</text>
+      <text x="400" y="275">找动作，再看什么时候能做。</text>
+      <text x="400" y="320">攻击力1600，守备力1200。</text>
+    </g>
+  </g>
+</svg>

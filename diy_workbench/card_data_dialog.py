@@ -16,6 +16,8 @@ class CardDataDialog(QDialog):
         self.tab = tab
         diy = store.card_diy(tab)
         generated = store.generate(tab)
+        from ygopack.build import stringids_used
+        required = set(stringids_used(generated.lua or ""))
         auto_strings = generated.strings or []
         saved = diy.get("strings") or {}
         self.auto_category = store.auto_category(tab)
@@ -30,6 +32,9 @@ class CardDataDialog(QDialog):
         for index in range(MAX_STRINGS):
             edit = QLineEdit(saved.get(str(index), ""))
             edit.setPlaceholderText(auto_strings[index] if index < len(auto_strings) else "")
+            if index in required and not (edit.text() or edit.placeholderText()).strip():
+                edit.setPlaceholderText("脚本使用 aux.Stringid(id,%d)，请填写此处提示文字" % index)
+                edit.setStyleSheet("border: 1px solid #ae5827")
             self.strings.append(edit)
             form.addRow("str%d" % (index + 1), edit)
         scroll = QScrollArea()

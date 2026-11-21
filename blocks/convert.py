@@ -184,12 +184,14 @@ class Converter:
             return [new("pay_lp", amount=[new("num", value=int(st.get("amount", 1000)))])]
         if act == "detach_xyz_material":
             return [new("detach", count=int(st.get("count", 1)))]
+        if act in ("add_counter", "remove_counter"):
+            from effect_model.counters import counter_code
+            code = counter_code(st.get("counter", "spell"))
         if act == "remove_counter":
-            return [new("remove_counter", count=int(st.get("count", 1)))]
+            return [new("remove_counter", counter=code, count=int(st.get("count", 1)))]
         if act == "add_counter":
-            if st.get("max"):
-                self.note("「最多%d个」的上限没有对应的积木，去掉了" % st["max"])
-            return [new("add_counter", count=int(st.get("count", 1)), cards=[self.cards(st.get("what"))])]
+            return [new("add_counter", counter=code, count=int(st.get("count", 1)), max=int(st.get("max", 0)),
+                        cards=[self.cards(st.get("what"))])]
         if act in ("negate_activation", "negate_effect", "negate_attack", "negate_summon"):
             return [new(act)]
         if act == "win_duel":

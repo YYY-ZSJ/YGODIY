@@ -12,7 +12,7 @@ import traceback
 
 from PIL import Image
 from PyQt5.QtCore import QEvent, QObject, QTimer, Qt
-from PyQt5.QtGui import QBrush, QColor, QFont, QPixmap
+from PyQt5.QtGui import QBrush, QFont, QPixmap
 from PyQt5.QtWidgets import QFileDialog, QGraphicsPixmapItem, QInputDialog, QLineEdit, QMenu, QMessageBox
 
 from common import _safe_call, _tab_log, _toggle_checked, _widget_scene
@@ -397,7 +397,6 @@ def _ensure_custom_graphics(editor):
     copy_item = ensure("_ygodiy_custom_copyright_item", QGraphicsSimpleTextItem)
     if copy_item is not None:
         try:
-            copy_item.setBrush(QBrush(QColor(0, 0, 0)))
             copy_item.setFont(QFont("Microsoft YaHei", 28))
         except Exception:
             pass
@@ -513,7 +512,8 @@ def _apply_custom_copyright(editor):
             )
         custom_item.setFont(QFont("Microsoft YaHei", font_size))
         custom_item.setText(text)
-        custom_item.setBrush(QBrush(QColor(0, 0, 0)))
+        rd_scene = getattr(getattr(editor, "parent_app", None), "rd_scene", None)
+        custom_item.setBrush(QBrush(Qt.white if custom_item.scene() is rd_scene else Qt.black))
         custom_item.setScale(1.0)
         bounds = custom_item.boundingRect()
         if reference is not None:

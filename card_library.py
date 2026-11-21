@@ -415,8 +415,11 @@ def _local_card_image(card_pass):
     image_path = _local_image_path(card_pass)
     if not image_path:
         return None
-    with Image.open(image_path) as image:
-        return image.convert("RGBA")
+    try:
+        with Image.open(image_path) as image:
+            return image.convert("RGBA")
+    except OSError:
+        return None
 
 
 def _search_local_cards(self, search_text, current_page):

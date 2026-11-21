@@ -157,14 +157,13 @@ class Runner:
     def take(self):
         return self.actions.pop(0)
 
-    @staticmethod
-    def matches(entry, spec, player=None):
+    def matches(self, entry, spec):
         if isinstance(spec, dict):
             if spec.get("code") is not None and entry["code"] != spec["code"]:
                 return False
             if "player" in spec and entry.get("controller") != spec["player"]:
                 return False
-            if "in" in spec and not (entry.get("location", 0) & LOC[spec["in"]]):
+            if "in" in spec and not self.duel.in_zone(entry, spec["in"]):
                 return False
             return True
         return entry["code"] == spec
@@ -470,7 +469,7 @@ class Runner:
     # ------------------------------------------------------------ 日志
 
     ZONE_ZH = {"deck": "卡组", "hand": "手卡", "mzone": "怪兽区", "szone": "魔陷区", "grave": "墓地",
-               "banished": "除外", "extra": "额外卡组", "overlay": "超量素材"}
+               "banished": "除外", "extra": "额外卡组", "overlay": "超量素材", "pzone": "灵摆区", "fzone": "场地区"}
 
     def where(self, loc):
         if loc["location"] & 0x80:

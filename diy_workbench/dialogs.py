@@ -6,8 +6,23 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
-    QCheckBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout, QWidget,
+    QCheckBox, QDialog, QDialogButtonBox, QFormLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout, QWidget,
 )
+
+
+class NameCodeDialog(QDialog):
+    def __init__(self, kind, editing, name, code, parent):
+        super().__init__(parent)
+        self.setWindowTitle(("修改" if editing else "新建") + kind)
+        form = QFormLayout(self)
+        self.title_edit, self.number_edit = QLineEdit(name), QLineEdit(code)
+        self.number_edit.setPlaceholderText("留空自动分配，可填十进制或 0x 编号")
+        form.addRow(kind + "名称", self.title_edit)
+        form.addRow(kind + "编号", self.number_edit)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        form.addRow(buttons)
 
 
 class OfficialSetcodeSearch(QWidget):
@@ -38,12 +53,13 @@ class OfficialSetcodeSearch(QWidget):
     def filter(self, text):
         key = text.strip().lower()
         hexkey = key[2:] if key.startswith("0x") else key
+        decimal = hex(int(key)) if key.isascii() and key.isdecimal() and len(key) <= 5 else ""
         self.list.clear()
         for entry in self.official:
             code, zh, jp = entry[:3]
             source = entry[3] if len(entry) > 3 else ""
             if key and key not in zh.lower() and key not in jp.lower() and key not in source.lower() \
-                    and hexkey != code[2:] and key != code:
+                    and hexkey != code[2:] and key != code and code != decimal:
                 continue
             item = QListWidgetItem("%s　%s%s%s" % (code, zh, ("　" + jp) if jp and jp != zh else "",
                                                  "　〔%s〕" % source if source else ""))
@@ -53,12 +69,40 @@ class OfficialSetcodeSearch(QWidget):
             item.setData(Qt.UserRole, code)
             item.setData(Qt.UserRole + 1, zh)
             self.list.addItem(item)
+            if code == decimal and self.list.currentItem() is None:
+                self.list.setCurrentItem(item)
+        if self.list.count() and self.list.currentItem() is None:
+            self.list.setCurrentRow(0)
         if not self.official:
-            self.count.setText("没有找到 MDPro3 的官方字段表（strings.conf）")
+            self.count.setText("没有可查找的字段")
         else:
-            diy = sum(1 for e in self.official if len(e) > 3 and e[3])
-            self.count.setText("找到 %d 个（官方字段 %d 个，已装扩展包里的自创字段 %d 个）；双击加上"
-                               % (self.list.count(), len(self.official) - diy, diy))
+            self.count.setText("找到 %d 个字段" % self.list.count())
+
+
+class BlockSetcodeDialog(QDialog):
+    """为当前积木选择一个字段，返回编号和显示名称。"""
+
+    def __init__(self, entries, parent):
+        super().__init__(parent)
+        self.setWindowTitle("为积木选择字段")
+        self.resize(520, 460)
+        root = QVBoxLayout(self)
+        self.search = OfficialSetcodeSearch(entries)
+        root.addWidget(self.search, 1)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        choose = buttons.button(QDialogButtonBox.Ok)
+        choose.setText("用于当前积木")
+        buttons.button(QDialogButtonBox.Cancel).setText("取消")
+        choose.setEnabled(self.search.list.currentItem() is not None)
+        self.search.list.currentItemChanged.connect(lambda item, _: choose.setEnabled(item is not None))
+        self.search.picked.connect(self.accept)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        root.addWidget(buttons)
+
+    def selected(self):
+        item = self.search.list.currentItem()
+        return (item.data(Qt.UserRole), item.data(Qt.UserRole + 1)) if item else None
 
 
 class OfficialSetcodeDialog(QDialog):

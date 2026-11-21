@@ -15,6 +15,8 @@ def is_blocks(model):
 
 
 TYPE_SPSUMMON = 0x2000000      # 卡片数据里的「不能通常召唤」（引擎看 cdb 的 type，不看脚本）
+TRAIT_BITS = {"spirit": 0x200, "union": 0x400, "gemini": 0x800}
+SCRIPT_TYPES = {"spsummon": TYPE_SPSUMMON, **TRAIT_BITS}
 
 
 def type_bits(model):
@@ -25,19 +27,23 @@ def type_bits(model):
                                 for e in model.get("effects", [])) else 0
     for e in model.get("effects", []):          # 灵魂 / 同盟 / 二重：卡片种类上的标记
         if e.get("block") == "monster_trait":
-            bits |= {"spirit": 0x200, "union": 0x400, "gemini": 0x800}[e["trait"]]
+            bits |= TRAIT_BITS[e["trait"]]
+        elif e.get("block") == "ls_program":
+            for key in e.get("card_types", "").split("+"):
+                bits |= SCRIPT_TYPES.get(key, 0)
     return bits
 
 
-def build(model):
+def build(model, counter_names=None):
     from .compile import check, compile_full, walk
     from .read import read_full
     issues = [("error", "积木", p) for p in check(model)]
     if any(b["block"] in ("raw", "custom_effect") for b in walk(model.get("effects", []))):
         issues.append(("warning", "积木", "AI 自定义 Lua · 未经积木校验：只做了安全检查，请在沙盒里测试"))
     lua, strings = compile_full(model)
-    desc, pdesc = read_full(model)
-    if (model.get("card") or {}).get("kind") in ("spell", "trap"):     # aux.IsTypeInText 查的是这个标记
+    desc, pdesc = read_full(model, counter_names)
+    if (model.get("card") or {}).get("kind") in ("spell", "trap") and not any(
+            e.get("block") == "ls_program" for e in model.get("effects", [])):     # 完整脚本自带标记
         for word, constant in (("二重怪兽", "TYPE_DUAL"), ("灵魂怪兽", "TYPE_SPIRIT"), ("同盟怪兽", "TYPE_UNION")):
             if word in desc:
                 lua += "s.has_text_type=%s\n" % constant

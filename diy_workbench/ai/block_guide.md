@@ -11,9 +11,9 @@
 9. f_name.code必须填已知的真实卡号；name只用于读回，code=0不会按名字查找。未知编号应查卡库或询问，不能猜。比较“与这张卡原本卡名相同”可用f_same_code(card=[this_card])，排除这些同名卡则f_not(filter=[f_same_code(card=[this_card])])，包含所有同名副本。f_not_self只排除效果持有卡这个实体。f_same_code比较双方原本卡名（IsOriginalCodeRule）；f_name比较指定卡号对应的现在卡名（IsCode），有改名效果时不能互换。
 
 完整双效果树示例（字段编号示范，不是当前卡的资料；①②各限1次）：
-{"schema":"ygodiy-blocks/0.3","effects":[{"block":"effect","type":"quick_o","range":"hand","limit":"name","condition":[{"block":"phase","phase":"main"}],"cost":[{"block":"discard","cards":[{"block":"this_card"}]}],"operation":[{"block":"fusion_summon","mats":"hf","filter":[{"block":"f_race","race":"dragon+spellcaster"}]}]},{"block":"effect","type":"trigger_o","event":"to_grave","range":"grave","limit":"name","condition":[{"block":"card_is","cards":[{"block":"this_card"}],"filter":[{"block":"f_reason","reason":"fusion"}]}],"operation":[{"block":"set_card","cards":[{"block":"pick","who":"you","where":"deck","count":1,"filter":[{"block":"f_set","setcode":"0x1c9","name":"星辰"},{"block":"f_kind","kind":"spell+trap"}]}]}]}]}
+{"schema":"ygodiy-blocks/0.3","effects":[{"block":"effect","type":"quick_o","range":"hand","limit":"name","condition":[{"block":"phase","phase":"main"}],"cost":[{"block":"discard","cards":[{"block":"this_card"}]}],"operation":[{"block":"fusion_summon","mats":"hf","filter":[{"block":"f_race","race":"dragon+spellcaster"}]}]},{"block":"effect","type":"trigger_o","event":"be_material","limit":"name","condition":[{"block":"all_of","items":[{"block":"event_reason","reason":"fusion","match":"exact"},{"block":"card_is","cards":[{"block":"this_card"}],"filter":[{"block":"f_location","where":"grave"},{"block":"f_not","filter":[{"block":"f_reason","reason":"return"}]}]}]}],"operation":[{"block":"set_card","cards":[{"block":"pick","who":"you","where":"deck","count":1,"filter":[{"block":"f_set","setcode":"0x1c9","name":"星辰"},{"block":"f_kind","kind":"spell+trap"}]}]}]}]}
 
-注意：示例②是当前目录可表达的“因融合素材送去墓地”近似组合。be_material本身对应EVENT_BE_MATERIAL，但目前没有素材种类/必须在墓地的直接参数；单体诱发的range不会自动生成墓地条件，不能靠range="grave"假装过滤。to_grave配this_card的f_reason=fusion能排除普通送墓，事件时点仍与官方EVENT_BE_MATERIAL不同；此缺口已记录，需要明确告诉玩家，不擅自添加不存在的参数。不要用exists(event_cards(f_reason fusion))把别的事件卡当成这张卡。
+示例②沿用 c1498449 的三个判断。事件原因恰为 REASON_FUSION，这张卡在墓地，且这张卡自身的原因没有 REASON_RETURN。「大宇宙」把融合素材改为除外时，墓地条件不满足。
 
 常见写法 → 现有积木组合（以下为组合提示，字段/槽名仍以完整目录为准）：
 
@@ -26,7 +26,11 @@
 | 这张卡反转的场合，可以发动 | effect.type=trigger_o,event=flip；EVENT_FLIP包括反转召唤、被攻击翻开和效果翻开，可选择不发动；不是type=flip（现有反转效果帽） |
 | 这张卡反转召唤的场合，可以发动 | effect.type=trigger_o,event=flip_summon；EVENT_FLIP_SUMMON_SUCCESS只含反转召唤，不含被攻击或效果翻开；写“召唤·反转”时合并summon+flip，不能缩成summon+flip_summon |
 | 这张卡被送去墓地的场合 | effect.type=trigger_o,event=to_grave |
-| 这张卡因融合素材送去墓地 | event=to_grave；condition=[card_is(cards=[this_card],filter=[f_reason(fusion)])]；官方素材事件存在上述缺口 |
+| 这张卡成为融合召唤的素材送去墓地 | 用上方示例②的 be_material、event_reason 和 f_location 组合 |
+| 对方从手卡或额外卡组召唤的怪兽 | 在事件卡的 filter 组合 f_summon_player(who=opp) 和 f_summon_location(where=hand+extra) |
+| 从卡组上方送去墓地 | mill_deck(player=you,count=3) 放入 operation，作为发动代价时放入 cost |
+| 选择这张卡召唤实际使用的素材之一 | select 的 source 接 materials_used，可用 filter 限定素材目前的位置 |
+| 以互相连接的怪兽为对象 | take_target 的 source 接 all(where=mzone,who=both,filter=[f_related(relation=mutual_linked_group)]) |
 | 从卡组盖放1张「X」魔陷 | set_card(cards=[pick(who=you,where=deck,count=1,filter=[f_set(真实编号,X),f_kind(spell+trap)])]) |
 | 自己手卡·场上的怪兽作为融合素材 | fusion_summon(mats=hf)；filter限制召唤出的融合怪兽 |
 | 融合召唤龙族·魔法师族融合怪兽 | fusion_summon(filter=[f_race(race=dragon+spellcaster)]) |
@@ -54,3 +58,7 @@
 | 这个效果实际破坏的卡数量 | count_of(cards=[operated])，紧跟破坏处理使用；再接math做乘法 |
 
 本参考的样例是已执行沙盒情景与改坏对照的本地样例，不意味着模型新生成的卡也已经验证。
+
+放置、取除、读取指示物数量的积木共用 counter 参数。可填 1～65535 的整数或十六进制编号，例如 "0x342"。同种指示物在许可、上限、代价和效果处理中使用同一编号。
+
+已有整卡脚本积木时保留其函数、回调、返回值及提示文字。ls_program 单独放在 effects 最外层。函数体放 ls_stmt，调用对局操作用 ls_run.call，参数可放变量、常量、函数、表及嵌套调用。多返回值保留显式括号，ls_parens 只取第一个结果。原有中文效果积木仍可直接编写常规效果。整卡脚本的 desc、pdesc 可随规则改动一起编辑，hints 的 index 对应 0～15 的提示编号。token_cards 按顺序保存随包导出的衍生物数据，召唤处理在函数体里编排。

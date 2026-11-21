@@ -6,7 +6,7 @@ summon_lines(g) 返回 initial_effect 开头的语句；没有 v0.2 新写法的
 from .. import names
 from .common import ATTRIBUTE, LOC, RACE, TYPE
 
-COUNTER_CODE = {"spell": "0x1"}
+from ..counters import counter_code
 # 「这张卡不能作为同调素材」等（粹蛙、安全守卫者……）
 MATERIAL_CODE = {"fusion": "EFFECT_CANNOT_BE_FUSION_MATERIAL", "synchro": "EFFECT_CANNOT_BE_SYNCHRO_MATERIAL",
                  "xyz": "EFFECT_CANNOT_BE_XYZ_MATERIAL", "link": "EFFECT_CANNOT_BE_LINK_MATERIAL"}
@@ -241,9 +241,9 @@ class Summon:
         for p in s["material_permissions"]:
             out += self.permission(p)
         for name, spec in card["counters"].items():
-            out.append("c:EnableCounterPermit(%s)" % COUNTER_CODE[name])
+            out.append("c:EnableCounterPermit(%s)" % counter_code(name))
             if spec.get("max"):
-                out.append("c:SetCounterLimit(%s,%d)" % (COUNTER_CODE[name], spec["max"]))
+                out.append("c:SetCounterLimit(%s,%d)" % (counter_code(name), spec["max"]))
         if "pendulum" in card["card"]["subtypes"]:
             out.append("aux.EnablePendulumAttribute(c)")
         return out

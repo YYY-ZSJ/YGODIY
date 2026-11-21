@@ -29,7 +29,7 @@ def _install_application_identity():
             import ctypes
 
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-                "YGODIY.YGODIY.2.0.0"
+                "YGODIY.YGODIY.4.0.0"
             )
         except Exception:
             pass

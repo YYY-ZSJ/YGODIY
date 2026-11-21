@@ -7,11 +7,13 @@
 召唤手续（素材、出场限制、灵摆）照 Effect Model v0.2 的 summon 结构，用原来的生成代码写。
 """
 
+from effect_model.counters import counter_code
 from .catalog import ATTRIBUTES, BLOCKS, COST_ACTS, MultiMap, events_of, fits, multi_parts
+from .card_queries import CAPABILITIES, CARD_STATES, CARD_VALUES, PREVIOUS_VALUES, RELATED_CARDS, RELATED_GROUPS, RELATIONS, SHUFFLE_PILES
 
 LOC = {"mzone": "LOCATION_MZONE", "field": "LOCATION_ONFIELD", "szone": "LOCATION_SZONE", "hand": "LOCATION_HAND",
        "deck": "LOCATION_DECK", "grave": "LOCATION_GRAVE", "banished": "LOCATION_REMOVED", "extra": "LOCATION_EXTRA",
-       "fzone": "LOCATION_FZONE", "pzone": "LOCATION_PZONE",
+       "fzone": "LOCATION_FZONE", "pzone": "LOCATION_PZONE", "overlay": "LOCATION_OVERLAY",
        "hand_deck": "LOCATION_HAND+LOCATION_DECK", "hand_grave": "LOCATION_HAND+LOCATION_GRAVE",
        "deck_grave": "LOCATION_DECK+LOCATION_GRAVE", "hand_deck_grave": "LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE",
        "hand_field": "LOCATION_HAND+LOCATION_ONFIELD", "grave_banished": "LOCATION_GRAVE+LOCATION_REMOVED",
@@ -184,6 +186,7 @@ MAT_PRED = {"fusion": [("c:IsSetCard(", "c:IsFusionSetCard("), ("c:IsAttribute("
                      ("c:IsRace(", "c:IsLinkRace("), ("c:IsType(", "c:IsLinkType("), ("c:IsCode(", "c:IsLinkCode(")]}
 TWICE_FLAG = 60          # 「最多2次」的使用次数：这张卡身上的标记 id+60+效果编号
 ZONE_GROUP = {"column_group": "GetColumnGroup", "linked_group": "GetLinkedGroup", "equip_group": "GetEquipGroup"}
+ZONE_GROUP.update({key: getter for key, (_, getter) in RELATED_GROUPS.items()})
 PHASE_COND = {"main": "Duel.IsMainPhase()", "battle": "Duel.IsBattlePhase()",
               "main1": "Duel.GetCurrentPhase()==PHASE_MAIN1", "main2": "Duel.GetCurrentPhase()==PHASE_MAIN2",
               "standby": "Duel.GetCurrentPhase()==PHASE_STANDBY", "end": "Duel.GetCurrentPhase()==PHASE_END",
@@ -197,7 +200,12 @@ FUNC_LIB = {"s.efilter_opp": "function s.efilter_opp(e,te)\n\treturn te:GetOwner
             "s.efilter_other": "function s.efilter_other(e,te)\n\treturn te:GetOwner()~=e:GetOwner()\nend",
             "s.eqlimit": "function s.eqlimit(e,c)\n\treturn c==e:GetLabelObject()\nend",
             "s.indct": "function s.indct(e,re,r,rp)\n\treturn r&(REASON_BATTLE+REASON_EFFECT)~=0\nend",
-            "s.chlimit": "function s.chlimit(e,ep,tp)\n\treturn tp==ep\nend"}
+            "s.chlimit": "function s.chlimit(e,ep,tp)\n\treturn tp==ep\nend",
+            "s.relatedcard": "function s.relatedcard(c,getter)\n\tlocal tc=c and getter(c)\n\treturn tc and Group.FromCards(tc) or Group.CreateGroup()\nend",
+            "s.relatedgroup": "function s.relatedgroup(c,getter)\n\treturn c and getter(c) or Group.CreateGroup()\nend",
+            "s.cardvalue": "function s.cardvalue(c,getter,...)\n\treturn c and getter(c,...) or 0\nend",
+            "s.reasonhandler": "function s.reasonhandler(re,f,e,tp)\n\tlocal c=re and re:GetHandler()\n\treturn c and f(c,e,tp)\nend",
+            "s.exzones": "function s.exzones(tp,excluded,c)\n\treturn c and math.max(0,(Duel.GetLocationCountFromEx(tp,tp,excluded,c))) or 0\nend"}
 CHAIN_CAT = {"destroy": "CATEGORY_DESTROY", "special_summon": "CATEGORY_SPECIAL_SUMMON", "search": "CATEGORY_SEARCH",
              "remove": "CATEGORY_REMOVE", "to_grave": "CATEGORY_TOGRAVE", "draw": "CATEGORY_DRAW",
              "negate": "CATEGORY_NEGATE", "to_hand": "CATEGORY_TOHAND"}
@@ -435,6 +443,26 @@ class Compiler:
             return "c~=e:GetHandler()"
         if b == "f_controller":
             return "c:IsControler(%s)" % PLAYER[f["who"]]
+        if b == "f_card_owner":
+            return "c:GetOwner()==%s" % PLAYER[f["who"]]
+        if b == "f_effect_state":
+            return CARD_STATES[f["state"]][1]
+        if b == "f_reason_handler":
+            return "%s(c:GetReasonEffect(),%s,e,tp)" % (self.lib("s.reasonhandler"), self.filter_fn(f))
+        if b == "f_location":
+            return "c:IsLocation(%s)" % LOC[f["where"]]
+        if b == "f_summon_location":
+            return "c:IsSummonLocation(%s)" % LOC[f["where"]]
+        if b == "f_summon_player":
+            return "c:IsSummonPlayer(%s)" % PLAYER[f["who"]]
+        if b == "f_printed_type":
+            return "(c:GetOriginalType()&(%s))~=0" % TYPE[f["kind"]]
+        if b == "f_capable":
+            return CAPABILITIES[f["ability"]][1]
+        if b == "f_related":
+            relation = f["relation"]
+            expr = "e:GetHandler():%s()" % RELATIONS[relation][1]
+            return ("c==%s" % expr) if relation in RELATED_CARDS else ("%s:IsContains(c)" % expr)
         if b == "f_summon_type":
             ways = multi_parts(f["method"], SUMMON_TYPE)
             if len(ways) == 1:
@@ -538,6 +566,19 @@ class Compiler:
         return {"you": (loc, "0"), "opp": ("0", loc), "both": (loc, loc)}[node[who]]
 
     # ------------------------------------------------------------ 卡片组
+    def related_group(self, node, ability=None):
+        key = node["block"]
+        origin = one(node, "card")
+        if origin or key in RELATED_CARDS:
+            source = self.inline_source(origin, first=True) if origin else "e:GetHandler()"
+            helper = "s.relatedcard" if key in RELATED_CARDS else "s.relatedgroup"
+            expr = "%s(%s,Card.%s)" % (self.lib(helper), source, RELATIONS[key][1])
+        else:
+            expr = "e:GetHandler():%s()" % ZONE_GROUP[key]
+        if ability or node.get("filter"):
+            expr += ":Filter(%s,nil,e,tp)" % self.filter_fn(node, ability)
+        return expr
+
     def cards_expr(self, node, ability=None, hint="HINTMSG_SELECT", cost=False):
         """卡片组积木 → (先执行的语句, 变量, 执行前的检查)。"""
         if node is None:
@@ -561,12 +602,9 @@ class Compiler:
             f = self.filter_fn(node, ability)
             return ["local %s=Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp):RandomSelect(tp,%d)" % (v, f, s_, o_, node["count"])], \
                 v, "#%s>0" % v
-        if b in ("column_group", "linked_group", "equip_group"):
+        if b in ZONE_GROUP or b in RELATED_CARDS:
             v = self.fresh("zg")
-            get = ZONE_GROUP[b]
-            f = self.filter_fn(node, ability) if ability else None
-            expr = "e:GetHandler():%s()" % get + (":Filter(%s,nil,e,tp)" % f if f else "")
-            return ["local %s=%s" % (v, expr)], v, "#%s>0" % v
+            return ["local %s=%s" % (v, self.related_group(node, ability))], v, "#%s>0" % v
         if b == "max_of":
             pre, var, guard = self.cards_expr(one(node, "cards"), ability, hint, cost)
             if single(var):
@@ -690,8 +728,8 @@ class Compiler:
             return "e:GetHandler():GetEquipTarget()", False
         if b == "cost_cards":
             return "e:GetLabelObject()", True
-        if b in ("column_group", "linked_group", "equip_group"):
-            return "e:GetHandler():%s()" % ZONE_GROUP[b], True
+        if b in ZONE_GROUP or b in RELATED_CARDS:
+            return self.related_group(node), True
         if b == "max_of":
             inner, group = self.card_inline(one(node, "cards"))
             if isinstance(inner, dict):
@@ -718,12 +756,42 @@ class Compiler:
         raise CompileError("条件和数值里不能用「%s」" % BLOCKS[b].label)
 
     # ------------------------------------------------------------ 数值与条件
+    def inline_source(self, node, first=False):
+        expr, group = self.card_inline(node)
+        if isinstance(expr, dict):
+            mine, theirs = self.sides(expr)
+            expr = "Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp)" % (self.filter_fn(expr), mine, theirs)
+        if first and group:
+            return "(%s or Group.CreateGroup()):GetFirst()" % expr
+        return expr
+
+    def zone_count(self, node):
+        player = PLAYER[node["player"]]
+        exclude = one(node, "exclude")
+        excluded = self.inline_source(exclude) if exclude else "nil"
+        if node["block"] == "extra_zones":
+            source = one(node, "monster")
+            monster = self.inline_source(source, first=True) if source else "e:GetHandler()"
+            return "%s(%s,%s,%s)" % (self.lib("s.exzones"), player, excluded, monster)
+        getter = "Duel.GetMZoneCount" if node["zone"] == "mzone" else "Duel.GetSZoneCount"
+        return "math.max(0,(%s(%s,%s)))" % (getter, player, excluded)
+
     def number(self, node):
         if node is None:
             raise CompileError("有一个数值还没放积木")
         b = node["block"]
         if b == "num":
             return str(node["value"])
+        if b in ("free_zones", "extra_zones"):
+            return self.zone_count(node)
+        if b in CARD_VALUES or b in ("previous_value", "effect_instances"):
+            origin = one(node, "card")
+            card = self.inline_source(origin, first=True) if origin else "e:GetHandler()"
+            if b == "effect_instances":
+                getter = "GetEffectCount,%s" % node["code"]
+            else:
+                getter = PREVIOUS_VALUES[node["stat"]][1] if b == "previous_value" else CARD_VALUES[b][1]
+            return "%s(%s,Card.%s)" % (self.lib("s.cardvalue"), card, getter)
         if b == "turn_count":
             p = PLAYER[node["player"]]
             if node["what"] == "draw":
@@ -743,7 +811,7 @@ class Compiler:
         if b in ("counter_of", "sum_of"):
             key = "card" if b == "counter_of" else "cards"
             cards, group = self.card_inline(one(node, key))
-            getter, arg = ("Card.GetCounter", "," + node["counter"]) if b == "counter_of" else (STAT_GET[node["stat"]], "")
+            getter, arg = ("Card.GetCounter", "," + counter_code(node["counter"])) if b == "counter_of" else (STAT_GET[node["stat"]], "")
             if isinstance(cards, dict):
                 s_, o_ = self.sides(cards)
                 return "Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp):GetSum(%s%s)" % (self.filter_fn(cards), s_, o_, getter, arg)
@@ -799,6 +867,21 @@ class Compiler:
         b = node["block"]
         if b == "compare":
             return "%s%s%s" % (self.number(one(node, "left")), LUA_OP[node["op"]], self.number(one(node, "right")))
+        if b == "event_reason":
+            reasons = REASON[node["reason"]]
+            return "(r==%s)" % reasons if node.get("match") == "exact" else "((r or 0)&(%s))~=0" % reasons
+        if b == "event_effect_from":
+            return "%s(re,%s,e,tp)" % (self.lib("s.reasonhandler"), self.filter_fn(node))
+        if b == "environment":
+            who = node["who"]
+            code = int(node["code"])
+            if code <= 0:
+                raise CompileError("「指定场地卡的效果适用中」需要填写场地卡的卡号")
+            return "Duel.IsEnvironment(%d%s)" % (code, "" if who == "any" else "," + PLAYER[who])
+        if b == "chain_location":
+            return "(re and (re:GetActivateLocation()&(%s))~=0)" % LOC[node["where"]]
+        if b == "damage_calculated":
+            return "Duel.IsDamageCalculated()"
         if b == "exists":
             cards, group = self.card_inline(one(node, "cards"))
             if isinstance(cards, dict):
@@ -1037,7 +1120,22 @@ class Compiler:
         if b == "confirm_top":
             return ["Duel.ConfirmDecktop(%s,%d)" % (PLAYER[st["player"]], st["count"])], "true"
         if b == "shuffle":
-            return ["Duel.ShuffleDeck(%s)" % PLAYER[st["player"]]], "true"
+            return ["%s(%s)" % (SHUFFLE_PILES[st.get("pile", "deck")][1], PLAYER[st["player"]])], "true"
+        if b == "reset_flag":
+            who = "e:GetHandler():ResetFlagEffect(" if st["on"] == "card" else "Duel.ResetFlagEffect(tp,"
+            return ["%sid+%d)" % (who, st["name"])], None
+        if b == "set_turn_counter":
+            return ["e:GetHandler():SetTurnCounter(%s)" % self.count_of(st)], None
+        if b == "negate_related":
+            pre, var, guard = self.cards_expr(one(st, "cards"))
+            call = "Duel.NegateRelatedChain(%s,RESET_TURN_SET)"
+            body = call % var if single(var) else "for tc in aux.Next(%s) do %s end" % (var, call % "tc")
+            return pre + ["if %s then %s end" % (guard, body)], None
+        if b == "mill_deck":
+            player, n, result = PLAYER[st["player"]], self.fresh("n"), self.fresh("r")
+            lines = ["local %s=%s" % (n, self.count_of(st)),
+                     "local %s=%s>0 and Duel.DiscardDeck(%s,%s,REASON_EFFECT)>0" % (result, n, player, n)]
+            return lines, "%s and Duel.GetOperatedGroup():IsExists(Card.IsLocation,1,nil,LOCATION_GRAVE)" % result
         if b == "set_flag":
             reset = FLAG_RESET[(st["on"], st["reset"])]
             if st["on"] == "card":
@@ -1093,14 +1191,14 @@ class Compiler:
             return pre + ["local %s=0" % r, "for xc in aux.Next(%s) do" % var] + indent(body) + ["end"], "%s>0" % r
         if b == "add_counter":
             pre, var, guard = self.cards_expr(one(st, "cards"))
-            add = "%%s:AddCounter(%s,%s)" % (st["counter"], self.count_of(st))
+            add = "%%s:AddCounter(%s,%s)" % (counter_code(st["counter"]), self.count_of(st))
             if single(var):
                 return pre + ["if %s then %s end" % (guard, add % var)], "true"
             return pre + ["for ac in aux.Next(%s) do %s end" % (var, add % "ac")], "true"
         if b == "remove_counter":
             if st.get("from") == "field":
-                return ["Duel.RemoveCounter(tp,1,1,%s,%s,REASON_EFFECT)" % (st["counter"], self.count_of(st))], "true"
-            return ["c:RemoveCounter(tp,%s,%s,REASON_EFFECT)" % (st["counter"], self.count_of(st))], "true"
+                return ["Duel.RemoveCounter(tp,1,1,%s,%s,REASON_EFFECT)" % (counter_code(st["counter"]), self.count_of(st))], "true"
+            return ["c:RemoveCounter(tp,%s,%s,REASON_EFFECT)" % (counter_code(st["counter"]), self.count_of(st))], "true"
         if b == "create_token":
             return self.create_token(st)
         if b == "equip":
@@ -1132,33 +1230,7 @@ class Compiler:
         if b in ("register_player", "register_zone"):
             return self.register_field(st), "true"
         if b == "select":
-            src = one(st, "source")
-            if not src or src["block"] not in ("all", "pick"):
-                raise CompileError("「让玩家选卡」要从「全部……的卡」里选")
-            purpose = self.uses_of("var", st["as"], rest)
-            ability = ACTS[purpose][3] if purpose else None
-            hint = ACTS[purpose][2] if purpose else "HINTMSG_SELECT"
-            f = self.filter_fn(src, ability)
-            s_, o_ = self.sides(src)
-            v = "v%s" % st["as"]
-            lo, hi, need = self.span(st)
-            p = PLAYER[st["player"]]
-            # 卡片条件里「和那只怪兽相同等级」要用到；登记到之后的效果里还会用，卡片组要留住
-            keep = "s.v_%s=%s %s:KeepAlive()" % (st["as"], v, v)
-            if st.get("sum") == "level_eq":          # 等级合计正好是……
-                n = self.number(one(st, "sum_n")) if one(st, "sum_n") else str(st["count"])
-                return ["local %sa=Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp)" % (v, f, s_, o_),
-                        "Duel.Hint(HINT_SELECTMSG,%s,%s)" % (p, hint),
-                        "local %s=%sa:SelectWithSumEqual(%s,Card.GetLevel,%s,1,99) or Group.CreateGroup()" % (v, v, p, n),
-                        keep], "#%s>0" % v
-            if st.get("different") == "yes" and (need > 1 or one(st, "count_n") is not None):   # 卡名各不相同
-                return ["local %sa=Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp)" % (v, f, s_, o_),
-                        "Duel.Hint(HINT_SELECTMSG,%s,%s)" % (p, hint),
-                        "local %s=%sa:SelectSubGroup(%s,aux.dncheck,false,%s,%s) or Group.CreateGroup()" % (
-                            v, v, p, lo, hi), keep], "#%s>0" % v
-            return ["Duel.Hint(HINT_SELECTMSG,%s,%s)" % (p, hint),
-                    "local %s=Duel.SelectMatchingCard(%s,%s,tp,%s,%s,%s,%s,nil,e,tp)" % (v, p, f, s_, o_, lo, hi), keep], \
-                "#%s>0" % v
+            return self.select_cards(st, rest)
         if b == "if":
             lines = ["if %s then" % self.cond(one(st, "cond"))] + indent(self.statements(st.get("then", [])))
             if st.get("else"):
@@ -1184,6 +1256,34 @@ class Compiler:
         if b == "choose":
             return self.choose(st), None
         raise CompileError("积木「%s」不能放在处理里" % BLOCKS[b].label)
+
+    def select_pool(self, src, purpose):
+        ability = ACTS[purpose][3] if purpose else None
+        if src and src["block"] in RELATIONS:
+            return self.related_group(src, ability), None
+        if not src or src["block"] not in ("all", "pick"):
+            raise CompileError("「让玩家选卡」需要一个卡片来源")
+        scope = (self.filter_fn(src, ability), *self.sides(src))
+        return "Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp)" % scope, scope
+
+    def select_cards(self, st, rest):
+        purpose = self.uses_of("var", st["as"], rest)
+        pool, scope = self.select_pool(one(st, "source"), purpose)
+        p, v = PLAYER[st["player"]], "v%s" % st["as"]
+        lo, hi, need = self.span(st)
+        hint = ACTS[purpose][2] if purpose else "HINTMSG_SELECT"
+        if st.get("sum") == "level_eq":
+            n = self.number(one(st, "sum_n")) if one(st, "sum_n") else str(st["count"])
+            pick = "%s:SelectWithSumEqual(%s,Card.GetLevel,%s,1,99) or Group.CreateGroup()" % (pool, p, n)
+        elif st.get("different") == "yes" and (need > 1 or one(st, "count_n") is not None):
+            pick = "%s:SelectSubGroup(%s,aux.dncheck,false,%s,%s) or Group.CreateGroup()" % (pool, p, lo, hi)
+        elif scope:
+            f, mine, theirs = scope
+            pick = "Duel.SelectMatchingCard(%s,%s,tp,%s,%s,%s,%s,nil,e,tp)" % (p, f, mine, theirs, lo, hi)
+        else:
+            pick = "%s:Select(%s,%s,%s,nil)" % (pool, p, lo, hi)
+        return ["Duel.Hint(HINT_SELECTMSG,%s,%s)" % (p, hint), "local %s=%s" % (v, pick),
+                "s.v_%s=%s %s:KeepAlive()" % (st["as"], v, v)], "#%s>0" % v
 
     def create_token(self, st):
         """特殊召唤 DIY 衍生物：卡号＝这张卡＋编号（写法同 v0.2 的衍生物）。"""
@@ -1398,10 +1498,28 @@ class Compiler:
     def cost_parts(self, stmts):
         """代价 → (能不能支付的检查, 支付的语句)；召唤手续的代价也用。"""
         checks, body = [], []
+        mills, amount_lines = {}, []
+        if self.uses_cost_cards:
+            body.append("local paid=Group.CreateGroup()")
         for st in stmts:
             b = st["block"]
             if b not in COST_ACTS:
                 raise CompileError("「%s」不能当代价" % BLOCKS[b].label)
+            if b == "mill_deck":
+                if any(part["block"] in ("var", "target", "each", "carried", "cost_cards", "operated", "dice_value", "declared_num")
+                       for part in walk(st.get("count_n") or [])):
+                    raise CompileError("作为代价送墓时，张数要在支付前确定")
+                player, n = PLAYER[st["player"]], self.count_of(st)
+                mills.setdefault(player, []).append(n)
+                checks.append("(%s)>0" % n)
+                if one(st, "count_n"):
+                    value = self.fresh("ct")
+                    amount_lines.append("local %s=%s" % (value, n))
+                    n = value
+                body.append("Duel.DiscardDeck(%s,%s,REASON_COST)" % (player, n))
+                if self.uses_cost_cards:
+                    body.append("paid:Merge(Duel.GetOperatedGroup())")
+                continue
             if b == "pay_lp":
                 n = self.number(one(st, "amount"))
                 checks.append("Duel.CheckLPCost(tp,%s)" % n)
@@ -1411,16 +1529,18 @@ class Compiler:
                 n = self.count_of(st)
                 checks.append("e:GetHandler():CheckRemoveOverlayCard(tp,%s,REASON_COST)" % n)
                 body.append("e:GetHandler():RemoveOverlayCard(tp,%s,%s,REASON_COST)" % (n, n))
+                if self.uses_cost_cards:
+                    body.append("paid:Merge(Duel.GetOperatedGroup())")
                 continue
             if b == "remove_counter" and st.get("from") == "field":
                 n = self.count_of(st)
-                checks.append("Duel.IsCanRemoveCounter(tp,1,1,%s,%s,REASON_COST)" % (st["counter"], n))
-                body.append("Duel.RemoveCounter(tp,1,1,%s,%s,REASON_COST)" % (st["counter"], n))
+                checks.append("Duel.IsCanRemoveCounter(tp,1,1,%s,%s,REASON_COST)" % (counter_code(st["counter"]), n))
+                body.append("Duel.RemoveCounter(tp,1,1,%s,%s,REASON_COST)" % (counter_code(st["counter"]), n))
                 continue
             if b == "remove_counter":
                 n = self.count_of(st)
-                checks.append("e:GetHandler():IsCanRemoveCounter(tp,%s,%s,REASON_COST)" % (st["counter"], n))
-                body.append("e:GetHandler():RemoveCounter(tp,%s,%s,REASON_COST)" % (st["counter"], n))
+                checks.append("e:GetHandler():IsCanRemoveCounter(tp,%s,%s,REASON_COST)" % (counter_code(st["counter"]), n))
+                body.append("e:GetHandler():RemoveCounter(tp,%s,%s,REASON_COST)" % (counter_code(st["counter"]), n))
                 continue
             src = one(st, "cards")
             _, _, hint, _, able, call = ACTS[b]
@@ -1434,7 +1554,7 @@ class Compiler:
                 checks.append(able.replace("c:", "e:GetHandler():"))
                 body.append(call % "e:GetHandler()")
                 if self.uses_cost_cards:
-                    body += ["local kc=Group.FromCards(e:GetHandler())", "kc:KeepAlive()", "e:SetLabelObject(kc)"]
+                    body.append("paid:AddCard(e:GetHandler())")
             elif src["block"] == "pick":
                 f = self.filter_fn(src, able)
                 s_, o_ = self.sides(src)
@@ -1446,12 +1566,16 @@ class Compiler:
                          "local %s=Duel.SelectMatchingCard(tp,%s,tp,%s,%s,%s,%s,e:GetHandler(),e,tp)" % (g, f, s_, o_, lo, hi),
                          call % g]
                 if self.uses_cost_cards:          # 处理里要用「作为代价的卡」
-                    body += ["%s:KeepAlive()" % g, "e:SetLabelObject(%s)" % g]
+                    body.append("paid:Merge(%s)" % g)
                 if b == "reveal" and src["where"] == "hand":
                     body.append("Duel.ShuffleHand(tp)")
             else:
                 raise CompileError("代价里的卡只能是「这张卡」或「选几张」")
-        return checks, body
+        for player, amounts in mills.items():
+            checks.append("Duel.IsPlayerCanDiscardDeckAsCost(%s,%s)" % (player, "+".join(amounts)))
+        if self.uses_cost_cards:
+            body += ["paid:KeepAlive()", "e:SetLabelObject(paid)"]
+        return checks, amount_lines + body
 
     # ------------------------------------------------------------ 召唤条件与召唤手续
     def activate_filter(self, st):
@@ -1789,26 +1913,38 @@ class Compiler:
                 info.append("Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)")
             elif b == "select" and one(st, "source"):
                 src = one(st, "source")
+                if src["block"] in RELATIONS and any(part["block"] in (
+                        "var", "target", "operated", "cost_cards", "carried", "each", "f_declared", "dice_value")
+                        for part in walk([src])):
+                    continue  # 结算时才选定的来源，发动时还不能检查
                 purpose = self.uses_of("var", st["as"], stmts[i + 1:])
-                f = self.filter_fn(src, ACTS[purpose][3] if purpose else None)
-                s_, o_ = self.sides(src)
+                pool, scope = self.select_pool(src, purpose)
                 need = self.span(st)[2]
                 if st.get("sum") == "level_eq":
                     n = self.number(one(st, "sum_n")) if one(st, "sum_n") else str(st["count"])
-                    out.append("Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp):CheckWithSumEqual(Card.GetLevel,%s,1,99)" % (
-                        f, s_, o_, n))
+                    out.append("%s:CheckWithSumEqual(Card.GetLevel,%s,1,99)" % (pool, n))
                 elif st.get("different") == "yes" and need > 1:
-                    out.append("Duel.GetMatchingGroup(%s,tp,%s,%s,nil,e,tp):GetClassCount(Card.GetCode)>=%d" % (
-                        f, s_, o_, need))
+                    out.append("%s:GetClassCount(Card.GetCode)>=%d" % (pool, need))
+                elif scope:
+                    f, mine, theirs = scope
+                    out.append("Duel.IsExistingMatchingCard(%s,tp,%s,%s,%d,nil,e,tp)" % (f, mine, theirs, need))
                 else:
-                    out.append("Duel.IsExistingMatchingCard(%s,tp,%s,%s,%d,nil,e,tp)" % (f, s_, o_, need))
+                    out.append("#%s>=%d" % (pool, need))
                 if purpose and ACTS[purpose][1]:
-                    info.append("Duel.SetOperationInfo(0,%s,nil,%d,tp,%s)" % (ACTS[purpose][1], need,
-                                                                              s_ if s_ != "0" else o_))
+                    loc = (scope[1] if scope[1] != "0" else scope[2]) if scope else "0"
+                    info.append("Duel.SetOperationInfo(0,%s,nil,%d,tp,%s)" % (ACTS[purpose][1], need, loc))
                 if purpose == "special_summon":
                     out.insert(0, "Duel.GetLocationCount(tp,LOCATION_MZONE)>0")
                     if need > 1:
                         out.insert(0, NO_MULTI_SUMMON)
+            elif b == "mill_deck":
+                p = PLAYER[st["player"]]
+                dynamic = one(st, "count_n")
+                n = "0"
+                if dynamic is None or dynamic["block"] == "num":
+                    n = self.count_of(st)
+                    out.append("(%s)>0 and Duel.IsPlayerCanDiscardDeck(%s,%s)" % (n, p, n))
+                info.append("Duel.SetOperationInfo(0,CATEGORY_DECKDES,nil,0,%s,%s)" % (p, n))
             elif b == "draw":
                 n = self.count_of(st)
                 if one(st, "count_n") is None:       # 算出来的张数发动时不一定知道，不检查
@@ -1874,8 +2010,10 @@ class Compiler:
                 cats.append({"draw": "CATEGORY_DRAW", "damage": "CATEGORY_DAMAGE", "recover": "CATEGORY_RECOVER"}[b])
             elif b == "negate_activation":
                 cats.append("CATEGORY_NEGATE")
-            elif b == "negate_effect":
+            elif b in ("negate_effect", "negate_related"):
                 cats.append("CATEGORY_DISABLE")
+            elif b == "mill_deck":
+                cats.append("CATEGORY_DECKDES")
             elif b == "create_token":
                 cats += ["CATEGORY_TOKEN", "CATEGORY_SPECIAL_SUMMON"]
             elif b == "add_counter":
@@ -2282,6 +2420,20 @@ class Compiler:
     def compile(self):
         info = self.card["card"]
         hats = self.card.get("effects", [])
+        if any(h.get("block") == "ls_program" for h in hats):
+            from .script import ScriptError, program_of, prompt_strings, render
+            try:
+                program = program_of(self.card)
+                self.strings = prompt_strings(program)
+                source = render(program, info.get("code"))
+            except ScriptError as ex:
+                raise CompileError(str(ex)) from ex
+            if self.card.get("script_alias"):
+                alias = self.name_as({"code": self.card["script_alias"], "where": "all"})[0]
+                source = ("local function load_card(...)\n" + source + "\nend\nload_card(...)\n"
+                          "local card_table=GetID()\nlocal init=card_table.initial_effect\n"
+                          "function card_table.initial_effect(c)\n\t" + alias + "\n\treturn init(c)\nend\n")
+            return source
         body = self.summon_part()
         kind = info.get("kind", "monster")
         if kind in ("spell", "trap") and not any((h["block"] == "effect" and h["type"] == "activate") or
@@ -2296,7 +2448,6 @@ class Compiler:
                      "eql:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)", "eql:SetValue(1)", "c:RegisterEffect(eql)"]
         self.shared_limit = any(h.get("limit") == "name_shared" for h in hats)
         used = {b["block"] for b in walk(hats)}
-        self.uses_cost_cards = "cost_cards" in used
         self.uses_by_proc = "f_by_proc" in used
         self.need_draw_count = False
         for h in hats:
@@ -2313,6 +2464,7 @@ class Compiler:
                              self.string("效果%s" % "①②③④⑤⑥⑦⑧⑨⑩"[i] if i < 10 else str(i + 1)))
         d = iter(descs)
         for node in hats:
+            self.uses_cost_cards = any(part["block"] == "cost_cards" for part in walk([node]))
             if node.get("block") == "effect":
                 body += self.effect(node, next(d))
             elif node.get("block") == "continuous":
@@ -2374,9 +2526,9 @@ def v02_shell(card):
     counters = {}
     for b in walk(card.get("effects", [])):
         if b["block"] in ("add_counter", "remove_counter"):
-            counters["spell"] = dict(counters.get("spell") or {})
+            spec = counters.setdefault(counter_code(b["counter"]), {})
             if b.get("max"):
-                counters["spell"]["max"] = int(b["max"])
+                spec["max"] = int(b["max"])
     return {"schema": "ygodiy-effect/0.2",
             "card": {"code": info.get("code", 0), "name": info.get("name", ""), "kind": info.get("kind", "monster"),
                      "subtypes": info.get("subtypes", [])},

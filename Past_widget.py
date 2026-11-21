@@ -3352,7 +3352,7 @@ class PastWidget(QWidget):
         data['holo'], data['copyright'] = self.holo_selector.currentIndex(), self.copyright_selector.currentIndex()
         data['rare'], data['watermark'] = self.rare_selector.currentIndex(), self.water_selector.currentIndex()
         data['cardpass_vis'], data['cardpack_vis'] = self.card_pass_item.isVisible(), self.card_pack_item.isVisible()
-        data['holo_vis'], data['copyright_vis'] = self.holo_item.isVisible(), self.copyright_item.isVisible()
+        data['holo_vis'], data['copyright_vis'] = self.toggle_holo.is_checked, self.toggle_copy.is_checked
         data['local_source_flag'] = self.source_toggle.is_checked
         data['local_source_folder'] = self.local_image_folder
         data['round_corner'] = self.toggle_corner.is_checked
@@ -3689,10 +3689,8 @@ class PastWidget(QWidget):
         painter.end()
         res_img = combine
 
-        if self.output_format == 0:
-            res_img.save(file_name, format='PNG')
-        else:
-            res_img.save(file_name, format='JPG')
+        from print_export import save_image
+        save_image(res_img, file_name, "PNG" if self.output_format == 0 else "JPG")
         self.card_img_item.setVisible(True)
         self.update_mix_param()
         self.update_card_name()

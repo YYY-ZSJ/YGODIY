@@ -1,4 +1,4 @@
-"""虚拟测试卡只生成数据与固定辅助效果，不接收AI提交的Lua。"""
+"""布置官方陪测卡、积木效果卡和预设辅助卡。"""
 
 import copy
 
@@ -10,12 +10,21 @@ def card_record(code, definition):
     from blocks.catalog import ATTRIBUTES, RACES
     from ygopack import cardinfo as c
     kind = definition.get("kind", "spell" if "helper" in definition else "monster")
-    sub = definition.get("subtype", "normal")
+    sub = definition.get("subtype", "effect" if definition.get("effects") and kind == "monster" else "normal")
     typ = {"monster": c.TYPE_MONSTER, "spell": c.TYPE_SPELL, "trap": c.TYPE_TRAP}[kind]
     if kind == "monster":
+        if sub == "normal" and definition.get("effects"):
+            raise ValueError("带效果积木的怪兽请选 effect 或 fusion，或省略 subtype 自动使用效果怪兽。")
         typ |= {"normal": c.TYPE_NORMAL, "effect": c.TYPE_EFFECT, "fusion": c.TYPE_FUSION | c.TYPE_EFFECT}[sub]
-    elif sub == "quickplay":
-        typ |= c.TYPE_QUICKPLAY
+    else:
+        types = {"normal": 0, "continuous": c.TYPE_CONTINUOUS}
+        if kind == "spell":
+            types.update(quickplay=c.TYPE_QUICKPLAY, field=c.TYPE_FIELD, equip=c.TYPE_EQUIP, ritual=c.TYPE_RITUAL)
+        else:
+            types["counter"] = c.TYPE_COUNTER
+        if sub not in types:
+            raise ValueError("%s 不支持子类 %s。" % (kind, sub))
+        typ |= types[sub]
     return {"code": code, "name": definition["name"], "type": typ,
         "level": definition.get("level", 1) if kind == "monster" else 0,
         "attribute": c.ATTRIBUTE_BITS[dict(ATTRIBUTES)[definition.get("attribute", "earth")]] if kind == "monster" else 0,
@@ -47,21 +56,39 @@ def helper_effects(definition):
     return []
 
 
+def _fusion_recipe(definition, ref, filler):
+    from blocks.catalog import new
+    materials = definition.get("materials")
+    if materials is None:
+        eligible = [new("f_kind", kind="monster"), new("f_not", filter=[new("f_name", code=filler)])]
+        return new("fusion_materials", count=2, second=eligible)
+    names = [[new("f_name", code=ref(material))] for material in materials]
+    return new("fusion_materials", count=1, **dict(zip(("first", "second", "third"), names)))
+
+
 def prepare(core, own_code, definitions, allowed_real):
-    from blocks import SCHEMA, build
+    from blocks import SCHEMA, build, type_bits
+    from blocks.lua_guard import problems
+    from ygopack.cardinfo import model_card, TYPE_EFFECT, TYPE_PENDULUM, TYPE_SPELL, TYPE_TRAP
     codes = {"self": own_code}
     definitions = dict(definitions, __filler__={"name": "虚拟填充卡", "level": 1})
-    for index, (key, definition) in enumerate(sorted(definitions.items())):
-        code = VIRTUAL_CODE_START + index
-        if code == own_code:
-            code += len(definitions)
-        codes[key] = code
-        rec = card_record(code, definition)
-        core.add_card(rec)
-        model = {"schema": SCHEMA, "card": {"code": code, "name": rec["name"],
-            "kind": "spell" if rec["type"] & 2 else "trap" if rec["type"] & 4 else "monster"},
-            "effects": helper_effects(definition)}
-        core.overrides[code] = build(model)["lua"].encode("utf-8")
+    code = VIRTUAL_CODE_START
+    for key in sorted(definitions):
+        official = definitions[key].get("official_code")
+        if official is not None:
+            if official == own_code or official not in core.cdb:
+                raise ValueError("%s：本地官方卡库找不到陪测卡 %s，主测卡请用 self。" % (key, official))
+            row = core.cdb[official]
+            if row[3] & (TYPE_EFFECT | TYPE_PENDULUM | TYPE_SPELL | TYPE_TRAP):
+                script = "script/c%d.lua" % (row[1] or official)
+                if script not in core.zip.NameToInfo:
+                    raise ValueError("%s：本地脚本库缺少 %s。" % (key, script))
+            codes[key] = official
+        else:
+            while code in core.cdb or code == own_code:
+                code += 1
+            codes[key] = code
+            code += 1
 
     def ref(value):
         if isinstance(value, str) and value in codes:
@@ -69,6 +96,26 @@ def prepare(core, own_code, definitions, allowed_real):
         if type(value) is int and value in allowed_real:
             return value
         raise ValueError("未知引用或原文未明示的真实卡号：%s" % value)
+
+    for key, definition in definitions.items():
+        if "official_code" in definition:
+            continue
+        code = codes[key]
+        rec = card_record(code, definition)
+        effects = list(definition.get("effects") or helper_effects(definition))
+        if definition.get("subtype") == "fusion":
+            effects.append(_fusion_recipe(definition, ref, codes["__filler__"]))
+        model = {"schema": SCHEMA, "card": model_card(rec), "effects": effects}
+        try:
+            built = build(model)
+            issues = [msg for level, _, msg in built["issues"] if level == "error"] + problems(built["lua"])
+            if issues:
+                raise ValueError("；".join(issues))
+        except (ValueError, KeyError, TypeError, NotImplementedError) as error:
+            raise ValueError("%s 的陪测效果无法编译：%s" % (key, error)) from error
+        rec["type"] |= type_bits(model)
+        core.add_card(rec)
+        core.overrides[code] = built["lua"].encode("utf-8")
 
     return codes, ref
 

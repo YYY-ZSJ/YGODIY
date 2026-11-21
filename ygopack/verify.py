@@ -1,6 +1,10 @@
 """用测试沙盒验证导出的扩展包：像 MDPro3 一样加载它，逐张做加载检查，再跑情景；
 另外模拟 MDPro3 读字段名的方式，确认包里用到的字段在 MDPro3 里有名字。"""
 
+from contextlib import closing
+
+from .cdb import unpack_setcode
+
 import os
 import tempfile
 import zipfile
@@ -8,18 +12,8 @@ import zipfile
 
 def _parse_setnames(texts):
     """按 MDPro3 StringHelper.InitializeContent 的规则解析：「!」开头、按空格切开至少 3 段，同一编号只认第一个。"""
-    names = {}
-    for text in texts:
-        for line in text.replace("\r", "").split("\n"):
-            if len(line) > 1 and line[0] == "!":
-                parts = [p for p in line[1:].split(" ") if p]
-                if len(parts) > 2 and parts[0] == "setname":
-                    try:
-                        code = int(parts[1], 16) if parts[1][:2] == "0x" else int(parts[1])
-                    except ValueError:
-                        code = 0
-                    names.setdefault(code, " ".join(parts[2:]).split("\t")[0])
-    return names
+    from .string_names import read_names
+    return {int(code, 16): name for code, name in read_names(texts)["setnames"].items()}
 
 
 def setname_check(ypk_path, base_strings=""):
@@ -34,13 +28,9 @@ def setname_check(ypk_path, base_strings=""):
             for n in z.namelist():
                 if n.lower().endswith(".cdb"):
                     from ygopack import sqlite
-                    con = sqlite.connect(z.extract(n, tmp), readonly=True)
-                    for (setcode,) in con.query("select setcode from datas"):
-                        while setcode:
-                            if setcode & 0xffff:
-                                used.add(setcode & 0xffff)
-                            setcode >>= 16
-                    con.close()
+                    with closing(sqlite.connect(z.extract(n, tmp), readonly=True)) as con:
+                        for (value,) in con.query("select distinct setcode from datas"):
+                            used.update(unpack_setcode(value))
     out = []
     banlist_named = [n for n in confs if n.lower().endswith("lflist.conf")]
     out.append(("文件名以 lflist.conf 结尾的会被 MDPro3 当成禁限卡表", banlist_named))

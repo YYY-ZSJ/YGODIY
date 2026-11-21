@@ -110,7 +110,19 @@ def pack_id(manifest, codes):
 
 
 def stringids_used(lua):
-    return sorted({int(n) for n in re.findall(r"aux\.Stringid\(id,(\d+)\)", lua)})
+    from blocks.lua_guard import tokens
+    # 词法器跳过注释和字符串；重新拼合数字，保留实际调用中的槽位。
+    words = tokens(lua)
+    used = set()
+    for i, word in enumerate(words):
+        if word != "aux" or words[i + 1:i + 6] != [".", "Stringid", "(", "id", ","]:
+            continue
+        j = i + 6
+        while j < len(words) and words[j].isdecimal():
+            j += 1
+        if j > i + 6 and words[j:j + 1] == [")"]:
+            used.add(int("".join(words[i + 6:j])))
+    return sorted(used)
 
 
 def limit_codes(code, lua):
@@ -163,7 +175,7 @@ def _media_files(entry, code, label, assets_dir, base, report):
     return result
 
 
-def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
+def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None, database_path=None):
     """同 build，但清单是内存里的 dict（制卡器的 DIY 工作台用）。base 是清单里相对路径的起点。"""
     from blocks import build as build_blocks, is_blocks, type_bits     # v0.3 积木树（工作台存的）
     from effect_model import build as build_effect
@@ -185,6 +197,7 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
             report.error(label, str(ex))
             continue
         label = rec["name"]
+        card_script = ""
         for n in notes:
             report.warn(label, n)
         code = entry.get("code") or str(data.get("cardpass") or "").strip()
@@ -192,9 +205,11 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
             report.error(label, "没有卡号：清单里写 code，或在卡面上填卡号")
             continue
         rec["code"] = code = int(code)
-        rec["ot"] = ot
+        rec["ot"] = int(entry.get("ot", ot))
         rec["type"] |= type_bits(model)       # 积木的「不能通常召唤」写进 cdb 的 type
-        if code > STRINGID_LIMIT:
+        if database_path and code > 0xffffffff:
+            report.error(label, "卡号超出 32 位无符号整数范围")
+        elif not database_path and code > STRINGID_LIMIT:
             report.error(label, "卡号 %d 太大，效果提示文字（aux.Stringid）会溢出；请用 %d 以下的卡号" % (code, STRINGID_LIMIT))
         if known_codes and code in known_codes:
             report.error(label, "卡号 %d 已被 %s 使用" % (code, known_codes[code]))
@@ -204,9 +219,9 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
             report.error(label, "字段写法不对：%s" % ex)
             rec["setcodes"] = []
         for sc in rec["setcodes"]:
-            if "0x%x" % (sc & 0xfff) not in setnames:
-                report.warn(label, "字段 0x%x 没有在 setnames 里起名字（官方字段可以忽略这条）" % sc)
-        desc, pdesc = rec["desc"], rec.get("pdesc", "")
+            if not database_path and "0x%x" % sc not in setnames and "0x%x" % (sc & 0xfff) not in setnames:
+                report.warn(label, "字段 0x%x 没有在 setnames 里起名字。自制字段请在「卡包」登记名称；官方已有名称可沿用" % sc)
+        desc, pdesc = rec["desc"] or str(entry.get("design_text") or "").strip(), rec.get("pdesc", "")
         if model:
             model = dict(model)
             old = model.get("card") or {}
@@ -215,48 +230,60 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
                 report.warn(label, "Effect Model 里写的卡种是 %s，卡片数据是 %s，以卡片数据为准" % (old["kind"], model["card"]["kind"]))
             model.setdefault("schema", "ygodiy-effect/0.1")
             try:
-                result = build_blocks(model) if is_blocks(model) else build_effect(model)
+                result = build_blocks(model, manifest.get("counters")) if is_blocks(model) else build_effect(model)
             except Exception as ex:   # 生成器不认识的写法：整张卡导不出来，但不影响别的卡
                 report.error(label, "生成脚本失败：%s" % ex)
                 continue
             for level, where, msg in result["issues"]:
                 (report.error if level == "error" else report.warn)(label, "%s %s" % (where, msg))
-            if desc and desc.replace("\r", "") != result["desc"]:
-                report.warn(label, "卡面上的效果文字和 Effect Model 生成的规范文本不同，卡包里用生成的（与脚本一致）")
-            desc, pdesc = result["desc"], result["pdesc"]
-            scripts[code] = result["lua"]
+            differs = desc and desc.replace("\r", "").strip() != result["desc"].strip()
+            if manifest.get("text_source") == "generated":
+                if differs:
+                    report.warn(label, "卡面文本和积木生成的规范文本不同，卡包里用积木生成的")
+                desc, pdesc = result["desc"], result["pdesc"]
+            else:
+                if differs:
+                    report.warn(label, "卡面文本和积木生成的规范文本不同，卡包里显示卡面文本，实际效果以脚本为准")
+                desc, pdesc = desc or result["desc"], pdesc or result["pdesc"]
+            card_script = result["lua"]
             rec["strings"] = merge_strings(result["strings"], entry.get("strings"))
-            for n in stringids_used(result["lua"]):
-                if n >= 16 or n >= len(rec["strings"]) or not rec["strings"][n]:
-                    report.error(label, "脚本用到 aux.Stringid(id,%d)，但没有对应的提示文字" % n)
-        elif not entry.get("script") and (rec["type"] & cardinfo.TYPE_EFFECT or not rec["type"] & cardinfo.TYPE_MONSTER):
+        elif not database_path and not entry.get("script") and (rec["type"] & cardinfo.TYPE_EFFECT or not rec["type"] & cardinfo.TYPE_MONSTER):
             report.warn(label, "没有 Effect Model：这张卡在对局里没有效果")
         if entry.get("script"):             # 手写脚本优先于积木生成的
             from blocks.lua_guard import problems
-            for text in problems(entry["script"]):
+            for text in (() if database_path else problems(entry["script"])):
                 report.error(label, "手写脚本：" + text)
-            scripts[code] = entry["script"]
+            card_script = entry["script"]
             rec["strings"] = merge_strings(rec.get("strings") or [], entry.get("strings"))
-            for n in stringids_used(entry["script"]):
-                if n >= 16 or n >= len(rec["strings"]) or not rec["strings"][n]:
-                    report.error(label, "脚本用到 aux.Stringid(id,%d)，但没有对应的提示文字" % n)
+        if card_script:
+            scripts[code] = card_script
+        for n in (() if database_path else stringids_used(card_script)):
+            if n >= 16:
+                report.error(label, "aux.Stringid(id,%d) 超出范围，请在脚本中改用 0～15。" % n)
+            elif n >= len(rec["strings"]) or not rec["strings"][n]:
+                report.error(label, "aux.Stringid(id,%d) 缺少提示文字 str%d。打开「效果 → 卡片数据」，填写 str%d。"
+                             % (n, n + 1, n + 1))
         rec["cdb_desc"] = cardinfo.ygopro_desc(rec, desc, pdesc)
-        image = None
-        if entry.get("art"):
-            with open(os.path.join(base, entry["art"]), "rb") as f:
-                image = f.read()
-        else:
-            image = cardinfo.card_image_bytes(data, assets_dir)
-        if image:
-            arts[code] = _to_jpg(image)
-        else:
-            report.warn(label, "没有卡图")
-        media += _media_files(entry, code, label, assets_dir, base, report)
+        if not database_path:
+            image = None
+            if entry.get("art"):
+                with open(os.path.join(base, entry["art"]), "rb") as f:
+                    image = f.read()
+            else:
+                image = cardinfo.card_image_bytes(data, assets_dir)
+            if image:
+                arts[code] = _to_jpg(image)
+            else:
+                report.warn(label, "没有卡图")
+            media += _media_files(entry, code, label, assets_dir, base, report)
         if not model and entry.get("strings"):
             rec["strings"] = merge_strings([], entry["strings"])
         rec["category"] = int(entry.get("category", 0))
         if entry.get("alias"):
             rec["alias"] = int(entry["alias"])
+        for key, pair in (entry.get("cdb_original") or {}).items():
+            if key in ("name", "type", "level", "attribute", "race", "atk", "def", "cdb_desc") and rec[key] == pair[0]:
+                rec[key] = pair[1]
         records.append(rec)
         for token in cardinfo.token_records(model, code, ot):      # DIY 衍生物：卡号接在这张卡后面
             if known_codes and token["code"] in known_codes:
@@ -267,6 +294,10 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
     _check_collisions(records, scripts, report)
     if not report.ok:
         return None, report
+
+    if database_path:
+        cdb.write_atomic(database_path, records)
+        return database_path, report
 
     stem = "ygodiy-" + slug(name)
     try:
@@ -284,6 +315,7 @@ def build_manifest(manifest, base, out_dir, assets_dir=None, known_codes=None):
         with zipfile.ZipFile(tmp_out, "w", zipfile.ZIP_DEFLATED) as z:
             z.write(cdb_path, inner + ".cdb")
             names = ["!setname %s %s" % (k, v) for k, v in setnames.items()]
+            names.extend("!counter %s %s" % (code, label) for code, label in (manifest.get("counters") or {}).items())
             head = "#YGODIY 导出：%s" % name
             z.writestr(inner + "-strings.conf", "\n".join([head] + names) + "\n")
             if names:
@@ -338,97 +370,10 @@ def _to_jpg(png_bytes):
 
 
 def known_setcodes(expansions, skip_file=None):
-    """扩展目录里别的卡包已经用掉的字段：{编号(小写十六进制): (字段名或空, 来源)}。
-    名字读 conf 里的「!setname」；没起名字、但卡片已经用上的编号（cdb 的 setcode）也算占用。"""
-    import tempfile
-    from . import sqlite
-    out = {}
-
-    def from_conf(text, source):
-        for line in text.splitlines():
-            if line.startswith("!setname "):
-                code, _, name = line[len("!setname "):].strip().partition(" ")
-                try:
-                    key = "0x%x" % int(code, 16)
-                except ValueError:
-                    continue
-                if not out.get(key, ("",))[0]:                # 有名字的优先
-                    out[key] = (name.split("\t")[0].strip(), source)
-
-    def from_cdb(path, source):
-        try:
-            con = sqlite.connect(path, readonly=True)
-            for (sc,) in con.query("select setcode from datas"):
-                sc = int(sc or 0)
-                while sc:
-                    part = sc & 0xffff
-                    if part:
-                        out.setdefault("0x%x" % part, ("", source))
-                    sc >>= 16
-            con.close()
-        except Exception:
-            pass
-
-    if not expansions or not os.path.isdir(expansions):
-        return out
-    for f in sorted(os.listdir(expansions)):
-        path = os.path.join(expansions, f)
-        if skip_file and os.path.normcase(f) == os.path.normcase(skip_file):
-            continue
-        low = f.lower()
-        if low.endswith(".conf"):
-            try:
-                with open(path, encoding="utf-8", errors="replace") as fh:
-                    from_conf(fh.read(), "扩展 " + f)
-            except OSError:
-                pass
-        elif low.endswith(".cdb"):
-            from_cdb(path, "扩展 " + f)
-        elif low.endswith((".ypk", ".zip")):
-            try:
-                with zipfile.ZipFile(path) as z, tempfile.TemporaryDirectory() as tmp:
-                    for e in z.namelist():
-                        if e.lower().endswith(".conf"):
-                            from_conf(z.read(e).decode("utf-8", "replace"), "扩展 " + f)
-                        elif e.lower().endswith(".cdb"):
-                            from_cdb(z.extract(e, tmp), "扩展 " + f)
-            except (zipfile.BadZipFile, OSError):
-                pass
-    return out
+    from .expansion_index import installed_index
+    return installed_index(None, expansions, skip_file)[1]
 
 
 def known_codes(mdpro3_dir, skip_file=None, expansions=None):
-    """MDPro3 里已有的卡号：官方卡库 + 扩展目录里的其他扩展。skip_file 是要被替换的旧版本卡包。
-    expansions：卡包要装进的扩展目录（用户自定义了 DIY 路径时就是那个目录），默认 MDPro3 自带的 Expansions。"""
-    import tempfile
-    from . import sqlite
-    out = {}
-
-    def read(path, source):
-        try:
-            con = sqlite.connect(path, readonly=True)
-            for (code,) in con.query("select id from datas"):
-                out.setdefault(code, source)
-            con.close()
-        except Exception:
-            pass
-
-    if mdpro3_dir:
-        read(os.path.join(mdpro3_dir, "Data", "locales", "zh-CN", "cards.cdb"), "官方卡")
-    exp = expansions or (os.path.join(mdpro3_dir, "Expansions") if mdpro3_dir else None)
-    if exp and os.path.isdir(exp):
-        for f in sorted(os.listdir(exp)):
-            path = os.path.join(exp, f)
-            if skip_file and os.path.normcase(f) == os.path.normcase(skip_file):
-                continue
-            if f.lower().endswith(".cdb"):
-                read(path, "扩展 " + f)
-            elif f.lower().endswith((".ypk", ".zip")):
-                try:
-                    with zipfile.ZipFile(path) as z, tempfile.TemporaryDirectory() as tmp:
-                        for e in z.namelist():
-                            if e.lower().endswith(".cdb"):
-                                read(z.extract(e, tmp), "扩展 " + f)
-                except (zipfile.BadZipFile, OSError):
-                    pass
-    return out
+    from .expansion_index import installed_index
+    return installed_index(mdpro3_dir, expansions, skip_file)[0]

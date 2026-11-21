@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="304" viewBox="0 0 740 304">
+  <rect width="740" height="304" rx="12" fill="#f3f7f9"/>
+  <g font-family="Microsoft YaHei, sans-serif" fill="#183749">
+    <text x="22" y="36" font-size="23" font-weight="bold">我用攻击力 2000 的怪兽攻击</text>
+    <text x="24" y="64" font-size="16">假设场上没有改变战斗伤害、破坏或发动效果的卡。</text>
+    <rect x="22" y="81" width="696" height="37" rx="3" fill="#365968"/>
+    <g fill="white" font-size="17" font-weight="bold">
+      <text x="34" y="106">对方的情况</text><text x="289" y="106">哪只怪兽被破坏</text><text x="521" y="106">谁的基本分减少</text>
+    </g>
+    <rect x="22" y="120" width="696" height="39" fill="#e2eee9"/>
+    <rect x="22" y="161" width="696" height="39" fill="#fff"/>
+    <rect x="22" y="202" width="696" height="39" fill="#e2eee9"/>
+    <rect x="22" y="243" width="696" height="39" fill="#fff"/>
+    <g font-size="17">
+      <text x="34" y="146">攻击表示，攻击力1500</text><text x="289" y="146">对方那只</text><text x="521" y="146">对方减少 500</text>
+      <text x="34" y="187">守备表示，守备力1500</text><text x="289" y="187">对方那只</text><text x="521" y="187">双方都不扣分</text>
+      <text x="34" y="228">守备表示，守备力2500</text><text x="289" y="228">两只都留场</text><text x="521" y="228">我方减少 500</text>
+      <text x="34" y="269">对方没有怪兽，直接攻击</text><text x="289" y="269">没有怪兽被破坏</text><text x="521" y="269">对方减少 2000</text>
+    </g>
+  </g>
+</svg>

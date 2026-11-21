@@ -22,9 +22,10 @@ class CardTextButton(QToolButton):
         self.setMenu(menu)
         self.clicked.connect(self.copy)
         app.combo_box.currentIndexChanged.connect(self.refresh)
-        self.refresh(app.combo_box.currentIndex())
+        self.refresh()
 
-    def refresh(self, index):
+    def refresh(self):
+        index = self.app.combo_box.currentIndex()      # 选「支持作者」时下拉框已退回，不能用信号带来的序号
         self.setVisible(any(row["index"] == index and row["id"] in TEXT_MODES for row in card_context.modes(self.app)))
 
     def text_now(self):

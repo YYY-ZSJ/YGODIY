@@ -62,12 +62,11 @@ class Core:
         self.zip = zipfile.ZipFile(os.path.join(mdpro3, "Data", "script.zip"))
         self.cdb, self.names = {}, {}
         from ygopack import sqlite
-        con = sqlite.connect(os.path.join(mdpro3, "Data", "locales", "zh-CN", "cards.cdb"), readonly=True)
-        for row in con.query("select id,alias,setcode,type,level,attribute,race,atk,def from datas"):
-            self.cdb[row[0]] = row
-        for code, name in con.query("select id,name from texts"):
-            self.names[code] = name
-        con.close()
+        with contextlib.closing(sqlite.connect(os.path.join(mdpro3, "Data", "locales", "zh-CN", "cards.cdb"), readonly=True)) as con:
+            for row in con.query("select id,alias,setcode,type,level,attribute,race,atk,def from datas"):
+                self.cdb[row[0]] = row
+            for code, name in con.query("select id,name from texts"):
+                self.names[code] = name
 
         self.overrides = {}   # 卡号 → 脚本源码（bytes），优先于一切
         self.pack_scripts = {}  # 扩展包里的脚本：文件名 → 源码，优先于 script.zip（与 MDPro3 相同）
@@ -90,13 +89,12 @@ class Core:
 
         def load_cdb(file):
             from ygopack import sqlite
-            con = sqlite.connect(file, readonly=True)
-            for row in con.query("select id,alias,setcode,type,level,attribute,race,atk,def from datas"):
-                self.cdb[row[0]] = row
-                codes.append(row[0])
-            for code, name in con.query("select id,name from texts"):
-                self.names[code] = name
-            con.close()
+            with contextlib.closing(sqlite.connect(file, readonly=True)) as con:
+                for row in con.query("select id,alias,setcode,type,level,attribute,race,atk,def from datas"):
+                    self.cdb[row[0]] = row
+                    codes.append(row[0])
+                for code, name in con.query("select id,name from texts"):
+                    self.names[code] = name
 
         if path.lower().endswith(".cdb"):
             load_cdb(path)
@@ -178,12 +176,9 @@ class Core:
             d.link_marker = def_
         else:
             d.defense = def_
-        i = 0
-        while setcode and i < 16:
-            if setcode & 0xffff:
-                d.setcode[i] = setcode & 0xffff
-                i += 1
-            setcode >>= 16
+        from ygopack.cdb import unpack_setcode
+        for i, part in enumerate(unpack_setcode(setcode)):
+            d.setcode[i] = part
         return 0
 
     def _handle_message(self, pduel, msg_type):

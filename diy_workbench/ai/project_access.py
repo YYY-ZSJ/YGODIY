@@ -60,6 +60,7 @@ class ProjectAccess:
 
     def capture(self):
         from language_switch import _card_uid
+        self.flush()  # 把刚更换的卡图引用也纳入本批快照。
         cards, packs, images = {}, {}, {}
         for pack in self.manager.packs:
             key = self.pack_id(pack)
@@ -79,8 +80,15 @@ class ProjectAccess:
         return cards, packs, images
 
     def new_card(self, name, source=None):
-        from card_tabs import _tab_title_from_data
-        tab = copy.deepcopy(source) if source else self.manager._new_default_tab()
+        from card_tabs import _FALLBACK_IMAGE_BASE64, _tab_title_from_data
+        if source is None:
+            tab = self.manager._new_default_tab()
+            tab["data"].pop("_search_card_id", None)
+            tab["data"].pop("_image_ref", None)
+            tab["data"].update(name="新卡片", effect_text="", lb_text="", cardpass="", cardpack="",
+                               ATK="", DEF="", level=0, image=_FALLBACK_IMAGE_BASE64)
+        else:
+            tab = copy.deepcopy(source)
         tab["_card_uid"] = uuid.uuid4().hex
         if name is not None:
             tab["data"]["name"] = name
@@ -94,7 +102,6 @@ class ProjectAccess:
         self.manager._sync_current_pack()
 
     def insert(self, creation, index=None):
-        from card_tabs import _data_has_saved_image
         if creation["kind"] == "pack":
             pack = creation["document"]
             items = self.manager.packs
@@ -109,10 +116,6 @@ class ProjectAccess:
             image = creation.get("images", {}).get(card["_card_uid"])
             if image is not None:
                 self.manager._image_cache[id(card)] = image
-            else:
-                self.manager._prime_tab_image_cache(card)
-                if id(card) not in self.manager._image_cache and not _data_has_saved_image(card["data"]) and not card["data"].get("_search_card_id"):
-                    self.manager._set_default_visual_cache(card)
             self.manager._render_cache.pop(id(card), None)
 
     def remove(self, creation):

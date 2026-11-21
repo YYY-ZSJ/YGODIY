@@ -12,7 +12,7 @@ PHASE_CODE = {"draw": "PHASE_DRAW", "standby": "PHASE_STANDBY", "main1": "PHASE_
               "main2": "PHASE_MAIN2", "end": "PHASE_END"}
 SKIP_CODE = {"draw": "EFFECT_SKIP_DP", "standby": "EFFECT_SKIP_SP", "main1": "EFFECT_SKIP_M1",
              "battle": "EFFECT_SKIP_BP", "main2": "EFFECT_SKIP_M2"}
-COUNTER_CODE = {"spell": "0x1"}
+from ..counters import counter_code
 
 
 class ActsMixin:
@@ -453,7 +453,7 @@ class ActsMixin:
     def act_add_counter(self, step):
         if not is_ref(step.get("what"), "self"):
             raise NotImplementedError("放置指示物目前只支持这张卡")
-        return [], [], ["e:GetHandler():AddCounter(%s,%d)" % (COUNTER_CODE[step["counter"]], step.get("count", 1))], [], None
+        return [], [], ["e:GetHandler():AddCounter(%s,%d)" % (counter_code(step["counter"]), step.get("count", 1))], [], None
 
     def act_schedule_operation(self, step):
         at = step["at"]

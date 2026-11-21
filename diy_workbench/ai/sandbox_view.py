@@ -23,6 +23,21 @@ def expectation_text(check):
     return subject + {"eq": "＝", "ge": "至少", "le": "至多"}[key] + str(check[key])
 
 
+def blocked_detail(result):
+    if result.get("status") != "执行受阻":
+        return ""
+    errors = result.get("errors") or []
+    question = result.get("current_question") or {}
+    pending = result.get("unreached_assertions") or []
+    detail = [str(errors[0]) if errors else "情景尚未走到预期检查。"]
+    if question:
+        detail.append("引擎提问 %s" % question.get("type", "未知"))
+    if pending and "check" in pending[0]:
+        detail.append("尚待验证：" + expectation_text(pending[0]))
+    detail.append("请按此步核对布场、可选素材和发动意图，再重测该情景。")
+    return "\n".join(detail)
+
+
 class TestReports(QWidget):
     inspect_requested = pyqtSignal(str)
 
@@ -47,7 +62,7 @@ class TestReports(QWidget):
             self.root.addWidget(QLabel("本次测试记录；当前是否过期可在下方查看。"))
         for report in latest.values():
             state = report["status"]
-            label = QLabel(report["name"] + " · " + state)
+            label = QLabel("\n".join(filter(None, (report["name"] + " · " + state, blocked_detail(report)))))
             label.setWordWrap(True)
             label.setStyleSheet("color:%s;" % ("#327657" if state == "通过" else "#a34a4a"))
             self.root.addWidget(label)
@@ -70,7 +85,7 @@ class TestReports(QWidget):
 class TestDialog(QDialog):
     def __init__(self, document, pending=False, parent=None):
         super().__init__(parent)
-        from sandbox.test_data import coverage, digest, revision, suite
+        from sandbox.test_data import coverage, revision, scenario_revision, suite
         self.setWindowTitle("候选测试 · 尚未应用" if pending else "卡片测试结果")
         self.resize(680, 580)
         apply_font(self)
@@ -89,9 +104,11 @@ class TestDialog(QDialog):
         latest = {r["scenario_id"]: r for r in tests["results"]}
         for scene in tests["scenarios"]:
             result = latest.get(scene["id"], {})
-            stale = bool(result) and (result.get("revision") != revision(document) or result.get("scenario_revision") != digest(scene))
+            stale = bool(result) and (result.get("revision") != revision(document) or result.get("scenario_revision") != scenario_revision(scene))
             status = "过期，请重测" if stale else result.get("status", "未验证")
-            label = QLabel(scene["name"] + " · " + status + "\n原文：" + scene["basis"])
+            official = "、".join(dict.fromkeys((result.get("official_fixtures") or {}).values()))
+            label = QLabel("\n".join(filter(None, (scene["name"] + " · " + status, "原文：" + scene["basis"],
+                                                 "官方陪测卡：" + official if official else "", blocked_detail(result)))))
             label.setWordWrap(True)
             body.addWidget(label)
             button = QToolButton()

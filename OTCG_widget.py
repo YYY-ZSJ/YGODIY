@@ -1721,17 +1721,6 @@ class OTCGWidget(QWidget):
 
 
 
-        flag = True
-        for compo in self.typing_components:
-            if compo.has_user_type:
-                flag = False
-                break
-        if flag:
-            self.card_name_edit.setText(self.config.demo_card_name[self.language])
-            self.text_input.setText(self.config.demo_card_text[self.language])
-            self.card_pass_edit.setText(self.config.demo_card_pass)
-            self.card_pack_edit.setText(self.config.demo_card_pack)
-
         if not tc_supported:
             # 不留一个「能选但没反应」的下拉
             blocked = self.tc_type_selector.blockSignals(True)
@@ -2951,13 +2940,84 @@ class OTCGWidget(QWidget):
         self.switch_base_image()
         pass
 
+    _fetch_race_guard_installed = True
+
     def on_cardpass_return(self):
-        worker = Worker(self.fetch_info)
-        worker.signals.finished.connect(self.after_info_fetch)
+        password = self.card_pass_edit.text().strip().zfill(8)
+        self.card_pass_edit.setText(password)
+        self.request_card_lookup(password)
+
+    def _lookup_settings(self):
+        current = self.info_fetcher
+        return current.offical_cn, current.local_image_use, current.local_image_source
+
+    @staticmethod
+    def _lookup(password, language, settings, art_only):
+        official, local, folder = settings
+        fetcher = InfoFetcher(official)
+        fetcher.local_image_use, fetcher.local_image_source = local, folder
+        if art_only:
+            fetcher.card_pass = password
+            fetcher.update_card_img()
+        else:
+            fetcher.set_card_pass(password, language)
+        return fetcher
+
+    def lookup_art(self, password):
+        return self._lookup(str(password), self.language, self._lookup_settings(), True).card_img
+
+    def apply_lookup_art(self, image):
+        self.card_img = image
+        if self.card_type == "怪兽卡" and self.detail_extra1 == "灵摆":
+            self.transform_LB_img()
+        else:
+            self.transform_normal_img()
+
+    def request_card_lookup(self, password, art_only=False):
+        manager = getattr(self.parent_app, "card_tab_manager", None)
+        owner = manager._current_tab() if manager else None
+        token = manager._apply_token if manager else None
+        image_before = self.card_img
+        request = object()
+        self._active_lookup = request
+        settings, language = self._lookup_settings(), self.language
+        result = []
+
+        def fetch():
+            result.append(self._lookup(password, language, settings, art_only))
+
+        def finish():
+            if self._active_lookup is not request:
+                return
+            self._active_lookup = None
+            self.parent_app.hide_loading_gif()
+            for button in (self.name_search_btn, self.card_pass_btn, self.random_btn):
+                button.setEnabled(True)
+            if manager and (manager._current_tab() is not owner or manager._apply_token != token):
+                return
+            if art_only:
+                if result and result[0].card_img is not None and self.card_img is image_before:
+                    self.apply_lookup_art(result[0].card_img)
+                    if manager:
+                        manager._cache_current_visuals()
+                return
+            if self.card_pass_edit.text().strip().zfill(8) != password or self.language != language:
+                return
+            previous = self.info_fetcher
+            try:
+                if result:
+                    self.info_fetcher = result[0]
+                else:
+                    previous.valid = False
+                self.after_info_fetch()
+            finally:
+                self.info_fetcher = previous
+
+        worker = Worker(fetch)
+        worker.signals.finished.connect(finish, Qt.QueuedConnection)
         self.parent_app.show_loading_gif()
-        self.name_search_btn.setEnabled(False)
-        self.card_pass_btn.setEnabled(False)
-        self.random_btn.setEnabled(False)
+        for button in (self.name_search_btn, self.card_pass_btn, self.random_btn):
+            button.setEnabled(False)
         self.threadpool.start(worker)
 
     def fetch_info(self):
@@ -2967,7 +3027,6 @@ class OTCGWidget(QWidget):
         self.card_pass_edit.setText(card_pass)
         self.info_fetcher.set_card_pass(card_pass, self.language)
 
-    @card_tabs._restore_after_search_refetch
     @watermark._recheck_secret_watermark_after
     def after_info_fetch(self):
         if not self.info_fetcher.valid:
@@ -3276,7 +3335,7 @@ class OTCGWidget(QWidget):
         data['holo'], data['copyright'] = self.holo_selector.currentIndex(), self.copyright_selector.currentIndex()
         data['rare'], data['watermark'] = self.rare_selector.currentIndex(), self.water_selector.currentIndex()
         data['cardpass_vis'], data['cardpack_vis'] = self.card_pass_item.isVisible(), self.card_pack_item.isVisible()
-        data['holo_vis'], data['copyright_vis'] = self.holo_item.isVisible(), self.copyright_item.isVisible()
+        data['holo_vis'], data['copyright_vis'] = self.toggle_holo.is_checked, self.toggle_copy.is_checked
         data['local_source_flag'] = self.source_toggle.is_checked
         data['local_source_folder'] = self.local_image_folder
         data['round_corner'] = self.toggle_corner.is_checked
@@ -3710,10 +3769,8 @@ class OTCGWidget(QWidget):
             painter.end()
             res_img = combine
             pass
-        if self.output_format == 0:
-            res_img.save(file_name, format='PNG')
-        else:
-            res_img.save(file_name, format='JPG')
+        from print_export import save_image
+        save_image(res_img, file_name, "PNG" if self.output_format == 0 else "JPG")
         self.card_img_item.setVisible(True)
         self.update_mix_param()
         self.update_card_name()

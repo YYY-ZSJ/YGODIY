@@ -68,7 +68,7 @@ def check_backends():
     for code, fields in list(CASES.items())[:4]:
         data = {"extra1": 0, "extra2": 0, "link_status": N8, "effect_text": "效果\n第二行", "lb_text": "", **fields}
         rec, _ = cardinfo.from_ygodiy(data)
-        rec.update(code=code, setcodes=[0xa01, 0x19e], strings=["提示", "", "第三条"],
+        rec.update(code=code, setcodes=[0xa01, 0x19e, 0x4001, 0xf004], strings=["提示", "", "第三条"],
                    cdb_desc=cardinfo.ygopro_desc(rec, rec["desc"], rec.get("pdesc", "")))
         recs.append(rec)
     with tempfile.TemporaryDirectory() as tmp:
@@ -77,6 +77,11 @@ def check_backends():
             path = os.path.join(tmp, backend + ".cdb")
             cdb.write(path, recs, backend=backend)
             con = sqlite3.connect(path)
+            value = con.execute("select setcode from datas limit 1").fetchone()[0]
+            if value >= 0 or cdb.unpack_setcode(value) != recs[0]["setcodes"]:
+                con.close()
+                print("失败  第四个字段占用符号位时往返不一致")
+                return 1
             dumps.append(list(con.iterdump()))
             con.close()
     same = dumps[0] == dumps[1]
@@ -168,6 +173,43 @@ def check_setnames():
     return bad
 
 
+
+def check_block_setnames():
+    """手填过的编号换号时，两种字段积木的编号和名称一起更新。"""
+    from blocks.catalog import new
+    from diy_workbench import setnames
+    filters = [new("f_set", setcode=3441, name=""), new("f_prev_set", setcode="0x0D71", name="旧字段")]
+    effect = new("effect", type="ignition", operation=[new("destroy", cards=[new("pick", filter=filters)])])
+    tab = {"diy": {"blocks": {"effects": [effect]}, "setcodes": ["0x8"]}}
+    pack = {"tabs": [tab], "diy": {"setnames": {"0xd71": "旧字段"}}}
+    setnames.change(pack, "0xd71", "0xd72", "新字段", [])
+    chosen = tab["diy"]["blocks"]["effects"][0]["operation"][0]["cards"][0]["filter"]
+    ok = [(node["setcode"], node["name"]) for node in chosen] == [("0xd72", "新字段")] * 2 and tab["diy"]["setcodes"] == ["0x8"]
+    print("%s  两种字段积木更新引用，卡片保留自己的所属字段" % ("通过" if ok else "失败"))
+    return int(not ok)
+
+
+def check_counter_numbers():
+    """改号须更新本包脚本和两份 MDPro3 名称表，并保留同值的普通数值。"""
+    from diy_workbench import counter_catalog, store
+    from ygopack import build, expansion
+    data = dict(CASES[89631139], cardpass="100049301")
+    script = "function c100049301.initial_effect(c)\n c:EnableCounterPermit(0xc01)\nend\nlocal atk=0xc01"
+    tab = {"title": "指示物样例", "data": data, "diy": {"script": script}}
+    pack = {"title": "自检", "tabs": [tab], "diy": {"counters": {"0xc01": "冰镜指示物"}}}
+    code, review = counter_catalog.change(pack, "0xc01", "3074", "新镜指示物", {}, counter_catalog.used_codes(pack))
+    with tempfile.TemporaryDirectory() as directory:
+        path, report = build.build_manifest(store.manifest(pack, [tab]), directory, directory)
+        if not path:
+            print("失败  指示物样例导出", report.lines())
+            return 1
+        with expansion.open_cards(path, pack_settings=True) as (_, settings, cards):
+            saved = next(cards)["script"]
+        ok = (code == "0xc02" and review == ["指示物样例"] and settings["counters"] == {code: "新镜指示物"}
+              and "EnableCounterPermit(0xc02)" in saved and "local atk=0xc01" in saved)
+    print("%s  指示物改号、脚本及卡包名称表往返" % ("通过" if ok else "失败"))
+    return int(not ok)
+
 def main():
     md, _ = mdpro3.find_mdpro3()
     bad = 0
@@ -179,6 +221,8 @@ def main():
         print("跳过  对照官方 cdb（没有找到 MDPro3）")
     bad += check_backends()
     bad += check_setnames()
+    bad += check_block_setnames()
+    bad += check_counter_numbers()
     bad += check_real_tab()
     print("自检%s" % ("通过" if not bad else "有 %d 项不通过" % bad))
     return 1 if bad else 0

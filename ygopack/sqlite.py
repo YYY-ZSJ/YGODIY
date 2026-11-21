@@ -10,6 +10,7 @@ YGODIY 打包的 Python 没有带 sqlite3 模块，导出卡包、测试沙盒�
 
 import ctypes
 import os
+from pathlib import Path
 
 SQLITE_OK, SQLITE_ROW, SQLITE_DONE = 0, 100, 101
 SQLITE_INTEGER, SQLITE_FLOAT, SQLITE_TEXT, SQLITE_BLOB, SQLITE_NULL = 1, 2, 3, 4, 5
@@ -18,6 +19,12 @@ TRANSIENT = ctypes.c_void_p(-1)
 
 # 测试用：在有 sqlite3 的环境里也走 ctypes 这条路（环境变量 YGODIY_FORCE_WINSQLITE=1 等同于程序里的情况）
 FORCE_CTYPES = bool(os.environ.get("YGODIY_FORCE_WINSQLITE"))
+
+
+try:
+    from sqlite3 import DatabaseError
+except ImportError:
+    DatabaseError = OSError
 
 
 def available_backend():
@@ -31,6 +38,7 @@ def available_backend():
 
 
 def connect(path, readonly=False):
+    path = os.fspath(path)
     if available_backend() == "sqlite3":
         return _StdConnection(path, readonly)
     return _CtypesConnection(path, readonly)
@@ -39,7 +47,7 @@ def connect(path, readonly=False):
 class _StdConnection:
     def __init__(self, path, readonly):
         import sqlite3
-        uri = "file:%s?mode=ro" % path.replace("\\", "/") if readonly else path
+        uri = Path(path).resolve().as_uri() + "?mode=ro" if readonly else path
         self._con = sqlite3.connect(uri, uri=readonly)
 
     def query(self, sql, params=()):
@@ -105,6 +113,7 @@ class _CtypesConnection:
         flags = OPEN_READONLY if readonly else OPEN_READWRITE | OPEN_CREATE
         if self._lib.sqlite3_open_v2(os.fsencode(path) if os.name != "nt" else path.encode("utf-8"),
                                      ctypes.byref(self._db), flags, None) != SQLITE_OK:
+            self.close()
             raise OSError("SQLite 打不开 %s" % path)
         self._in_tx = False
 
@@ -116,16 +125,20 @@ class _CtypesConnection:
         lib = self._lib
         stmt = ctypes.c_void_p()
         self._check(lib.sqlite3_prepare_v2(self._db, sql.encode("utf-8"), -1, ctypes.byref(stmt), None))
-        for i, p in enumerate(params, 1):
-            if p is None:
-                self._check(lib.sqlite3_bind_null(stmt, i))
-            elif isinstance(p, str):
-                data = p.encode("utf-8")
-                self._check(lib.sqlite3_bind_text(stmt, i, data, len(data), TRANSIENT))
-            elif isinstance(p, float):
-                self._check(lib.sqlite3_bind_double(stmt, i, p))
-            else:
-                self._check(lib.sqlite3_bind_int64(stmt, i, int(p)))
+        try:
+            for i, p in enumerate(params, 1):
+                if p is None:
+                    self._check(lib.sqlite3_bind_null(stmt, i))
+                elif isinstance(p, str):
+                    data = p.encode("utf-8")
+                    self._check(lib.sqlite3_bind_text(stmt, i, data, len(data), TRANSIENT))
+                elif isinstance(p, float):
+                    self._check(lib.sqlite3_bind_double(stmt, i, p))
+                else:
+                    self._check(lib.sqlite3_bind_int64(stmt, i, int(p)))
+        except Exception:
+            lib.sqlite3_finalize(stmt)
+            raise
         return stmt
 
     def query(self, sql, params=()):

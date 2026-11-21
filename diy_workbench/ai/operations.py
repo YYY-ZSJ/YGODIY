@@ -138,7 +138,7 @@ class Operations:
                       lambda **p: self.changes.stage("fields", **p)),
             Operation("set_effect_blocks", "替换DIY积木候选；返回中文读回和编译警告，无需再次get_effect_blocks核对。不写回效果文字，不运行脚本。", "modify",
                       _schema({"model": {"type": "object"}, "card_uid": uid}, ("model",)), lambda **p: self.changes.stage("blocks", **p)),
-            Operation("new_card", "按程序默认资料新建卡片候选，可指定名称和卡包。", "modify", _schema({"name": name, "pack_id": pack}),
+            Operation("new_card", "新建空白卡片，可指定名称和卡包。后续修改请传本工具返回的 card_uid。", "modify", _schema({"name": name, "pack_id": pack}),
                       lambda **p: self.changes.stage("new_card", **p)),
             Operation("copy_card", "复制指定卡片资料和积木，新卡不继承 AI 会话。", "modify", _schema({"source_uid": uid, "name": name, "pack_id": pack}),
                       lambda **p: self.changes.stage("new_card", **dict(p, source_uid=p.get("source_uid") or self.changes.current.target))),
@@ -240,7 +240,8 @@ class Operations:
                 self._switch_mode("ocg")
         else:
             self._switch_mode("diy")
-            self.app._workbench.tabs.setCurrentIndex(0 if page == "diy_effects" else 1)
+            workbench = self.app._workbench
+            workbench.tabs.setCurrentWidget(workbench.effect_page if page == "diy_effects" else workbench.pack_page)
         return {"page": page, "mode": card_context.active_mode(self.app)}
 
     def _search(self, query, limit=5):

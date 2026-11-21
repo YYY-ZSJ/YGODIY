@@ -1,10 +1,12 @@
 """工作台的「卡包」页：卡片一览（卡包就是数据库）、卡包设置、自己的字段、导出。"""
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from functools import lru_cache
+
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
-    QAbstractItemView, QComboBox, QFrame, QGridLayout, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QMenu, QPushButton, QSpinBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QAbstractItemView, QBoxLayout, QComboBox, QFrame, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QMenu, QPushButton, QSpinBox, QTableView, QTabWidget, QVBoxLayout, QWidget,
 )
 
 GREEN, RED, ORANGE, GREY = "#2c6e2f", "#b3261e", "#9a5a00", "#666666"
@@ -16,17 +18,67 @@ def _section(title):
     frame.setStyleSheet("QFrame#diy_section{background:#ffffff;border:1px solid #c9c9c9;}")
     box = QVBoxLayout(frame)
     box.setContentsMargins(10, 8, 10, 10)
-    label = QLabel(title)
-    label.setStyleSheet("font-weight:bold;font-size:15px;")
-    box.addWidget(label)
+    if title:
+        label = QLabel(title)
+        label.setStyleSheet("font-weight:bold;font-size:15px;")
+        box.addWidget(label)
     return frame, box
+
+
+class PackTableModel(QAbstractTableModel):
+    headers = ("卡号", "卡名", "种类", "字段", "效果", "卡面文字", "检查")
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.count = 0
+        self.row_at = None
+
+    def set_rows(self, count, read):
+        self.beginResetModel()
+        self.count = count
+        self.row_at = lru_cache(maxsize=256)(read)
+        self.endResetModel()
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else self.count
+
+    def columnCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.headers)
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.headers[section]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or role not in (Qt.DisplayRole, Qt.BackgroundRole, Qt.ForegroundRole, Qt.ToolTipRole):
+            return None
+        try:
+            row = self.row_at(index.row())
+        except Exception as error:
+            row = ("", "", "", "", "", "", "× 这张卡的数据无法读取：" + str(error), False)
+        col = index.column()
+        value = str(row[col])
+        clash = col == 0 and len(row) > 8 and row[8]
+        if role == Qt.DisplayRole:
+            return value
+        if role == Qt.BackgroundRole and (clash or row[7]):
+            return QColor("#fde7e5" if clash else "#eaf2fa")
+        if role == Qt.ToolTipRole and clash:
+            return row[8]
+        if role == Qt.ForegroundRole:
+            if clash or col == 6 and value.startswith("×"):
+                return QColor(RED)
+            if col == 5:
+                return QColor(GREEN if value == "一致" else ORANGE if value == "不同" else GREY)
+            if col == 6:
+                return QColor(GREEN if value.startswith("√") else GREY)
 
 
 class PackPage(QWidget):
     card_selected = pyqtSignal(int)          # 点一行：切到那张卡的效果页
-    settings_changed = pyqtSignal(dict)      # author / ot / code_start / code_step
+    settings_changed = pyqtSignal(dict)      # author / ot / code_start / code_step / text_source
     assign_codes = pyqtSignal()
-    setname_added = pyqtSignal(str, str)     # 编号, 名字
+    setname_requested = pyqtSignal(str)     # 修改的编号，新建时为空
     setname_removed = pyqtSignal(str)
     export_requested = pyqtSignal(bool)      # True：导出并装进；False：只导出 .ypk
     transfer_requested = pyqtSignal(str)     # import、export_card、export_pack、text_card、text_pack
@@ -46,15 +98,17 @@ class PackPage(QWidget):
         self.overview_note = QLabel()
         self.overview_note.setStyleSheet("color:%s;" % GREY)
         box.addWidget(self.overview_note)
-        self.table = QTableWidget(0, 7)
-        self.table.setHorizontalHeaderLabels(["卡号", "卡名", "种类", "字段", "效果", "卡面文字", "检查"])
+        self.table = QTableView()
+        self.table_model = PackTableModel(self.table)
+        self.table.setModel(self.table_model)
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setResizeContentsPrecision(0)
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.cellDoubleClicked.connect(lambda r, c: self.card_selected.emit(r))
+        self.table.doubleClicked.connect(lambda index: self.card_selected.emit(index.row()))
         self.table.setMinimumHeight(170)
         box.addWidget(self.table, 1)
         tip = QLabel("双击一行：切到那张卡的效果页")
@@ -63,6 +117,7 @@ class PackPage(QWidget):
         root.addWidget(frame, 1)
 
         row = QHBoxLayout()
+        self.settings_row = row
         row.setSpacing(8)
         frame, box = _section("卡包设置")
         grid = QGridLayout()
@@ -81,6 +136,13 @@ class PackPage(QWidget):
             self.ot.addItem(text, v)
         self.ot.currentIndexChanged.connect(self._emit_settings)
         grid.addWidget(self.ot, 2, 1)
+        grid.addWidget(QLabel("效果文字"), 6, 0)
+        self.text_source = QComboBox()
+        for v, text in (("card", "卡面文本（设计稿）"), ("generated", "积木生成的规范文本")):
+            self.text_source.addItem(text, v)
+        self.text_source.setToolTip("卡包里显示的效果文字。卡面是空的时用设计稿，再没有就用积木生成的。实际效果都以脚本为准。")
+        self.text_source.currentIndexChanged.connect(self._emit_settings)
+        grid.addWidget(self.text_source, 6, 1)
         grid.addWidget(QLabel("卡号"), 3, 0)
         codes = QHBoxLayout()
         codes.addWidget(QLabel("从"))
@@ -115,29 +177,39 @@ class PackPage(QWidget):
         box.addStretch(1)
         row.addWidget(frame, 3)
 
-        frame, box = _section("自己的字段")
+        self.name_tabs = QTabWidget()
+        frame, box = _section("")
         self.setnames = QListWidget()
         self.setnames.setMaximumHeight(110)
         box.addWidget(self.setnames)
         btns = QHBoxLayout()
-        add = QPushButton("＋ 新建字段")
-        add.clicked.connect(self._add_setname)
+        self.add_field = QPushButton("＋ 新建字段")
+        self.add_field.clicked.connect(lambda: self.setname_requested.emit(""))
+        self.edit_field = QPushButton("修改编号或名称")
+        self.edit_field.clicked.connect(self._edit_setname)
+        self.setnames.itemDoubleClicked.connect(lambda _: self._edit_setname())
         remove = QPushButton("删除选中的")
+        remove.setToolTip("只移除当前卡包的字段名称。卡片的字段编号、其他项目卡包和已安装扩展包各自保留。")
         remove.clicked.connect(self._remove_setname)
         find = QPushButton("查找字段…")
         find.clicked.connect(self.find_setcode.emit)
-        btns.addWidget(add)
+        btns.addWidget(self.add_field)
+        btns.addWidget(self.edit_field)
         btns.addWidget(remove)
         btns.addWidget(find)
         btns.addStretch(1)
         box.addLayout(btns)
         hint = QLabel("官方字段（如「罪宝」）和已装扩展包里的字段不用在这里新建：点「查找字段」按名字找，双击就加到当前卡上。"
-                      "新建的字段会自动避开已经被用掉的编号。")
+                      "新建时可指定编号，留空会自动分配。双击已有字段可修改编号和名称。")
         hint.setWordWrap(True)
         hint.setStyleSheet("color:%s;" % GREY)
         box.addWidget(hint)
         box.addStretch(1)
-        row.addWidget(frame, 2)
+        from .counter_widgets import CounterList
+        self.counter_list = CounterList()
+        self.name_tabs.addTab(frame, "自己的字段")
+        self.name_tabs.addTab(self.counter_list, "指示物")
+        row.addWidget(self.name_tabs, 2)
         root.addLayout(row)
 
         frame, box = _section("导出")
@@ -152,36 +224,48 @@ class PackPage(QWidget):
         top.addWidget(change)
         top.addWidget(reset)
         box.addLayout(top)
-        actions = QHBoxLayout()
+        actions = self.export_row = QHBoxLayout()
+        files = QHBoxLayout()
+        outputs = QHBoxLayout()
+        actions.addLayout(files)
+        actions.addLayout(outputs, 1)
         for text, action in (("导入卡片或卡包…", "import"), ("导出这张卡…", "export_card"), ("导出这个卡包…", "export_pack")):
             button = QPushButton(text)
             button.clicked.connect(lambda _, a=action: self.transfer_requested.emit(a))
-            actions.addWidget(button)
+            files.addWidget(button)
         text_button = QPushButton("导出文字")
         text_menu = QMenu(text_button)
         text_menu.addAction("这张卡…", lambda: self.transfer_requested.emit("text_card"))
         text_menu.addAction("这个卡包…", lambda: self.transfer_requested.emit("text_pack"))
         text_button.setMenu(text_menu)
-        actions.addWidget(text_button)
-        actions.addStretch(1)
-        only = QPushButton("只导出 .ypk 文件…")
+        outputs.addWidget(text_button)
+        only = QPushButton("另存 .ypk / .cdb…")
         only.clicked.connect(lambda: self.export_requested.emit(False))
         self.export_button = QPushButton("导出并装进 MDPro3")
         self.export_button.setStyleSheet("QPushButton{background:#2f7fc4;border:1px solid #23669f;border-radius:3px;"
                                          "color:#ffffff;padding:6px 16px;font-weight:bold;}"
                                          "QPushButton:disabled{background:#9dbfdc;}")
         self.export_button.clicked.connect(lambda: self.export_requested.emit(True))
-        actions.addWidget(only)
-        actions.addWidget(self.export_button)
+        outputs.addWidget(only)
+        outputs.addStretch(1)
+        outputs.addWidget(self.export_button)
         box.addLayout(actions)
         self.results = QListWidget()
         self.results.setMinimumHeight(110)
         box.addWidget(self.results)
         root.addWidget(frame)
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        for row in (self.settings_row, self.export_row):
+            needed = sum(row.itemAt(i).minimumSize().width() for i in range(row.count())) + row.spacing()
+            direction = QBoxLayout.LeftToRight if row.contentsRect().width() >= needed else QBoxLayout.TopToBottom
+            if row.direction() != direction:
+                row.setDirection(direction)
+
     # ------------------------------------------------------------ 显示
 
-    def show_pack(self, title, settings, rows, target_text, code_status=None, setname_conflicts=None):
+    def show_pack(self, title, settings, rows, target_text, code_status=None, setname_conflicts=None, row_at=None, fields_ready=True):
         """rows：[(卡号, 卡名, 种类, 字段, 效果, 卡面文字, 检查, 是否当前卡, 卡号的问题)]；
         code_status：(说明, 颜色) 卡号核查的结果。"""
         self._loading = True
@@ -189,8 +273,12 @@ class PackPage(QWidget):
             self.pack_name.setText(title)
             self.author.setText(settings.get("author", ""))
             self.ot.setCurrentIndex(max(0, self.ot.findData(settings.get("ot", 3))))
+            self.text_source.setCurrentIndex(max(0, self.text_source.findData(settings.get("text_source", "card"))))
             self.code_start.setValue(int(settings.get("code_start", 100001000)))
             self.code_step.setValue(int(settings.get("code_step", 100)))
+            self.add_field.setEnabled(fields_ready)
+            self.edit_field.setEnabled(fields_ready)
+            self.add_field.setToolTip("" if fields_ready else "正在检查已安装卡包占用的字段编号")
             self.setnames.clear()
             for code, name in settings.get("setnames", {}).items():
                 clash = (setname_conflicts or {}).get(code)
@@ -200,22 +288,7 @@ class PackPage(QWidget):
                     item.setForeground(QColor(RED))
                     item.setToolTip(clash)
                 self.setnames.addItem(item)
-            self.table.setRowCount(len(rows))
-            for r, row in enumerate(rows):
-                for c, value in enumerate(row[:7]):
-                    item = QTableWidgetItem(str(value))
-                    if c == 5:
-                        item.setForeground(QColor(GREEN if value == "一致" else ORANGE if value == "不同" else GREY))
-                    if c == 6:
-                        item.setForeground(QColor(RED if str(value).startswith("×") else
-                                                  GREEN if str(value).startswith("√") else GREY))
-                    if row[7]:
-                        item.setBackground(QColor("#eaf2fa"))
-                    if c == 0 and len(row) > 8 and row[8]:        # 卡号被占用：标红
-                        item.setForeground(QColor(RED))
-                        item.setBackground(QColor("#fde7e5"))
-                        item.setToolTip(row[8])
-                    self.table.setItem(r, c, item)
+            self.table_model.set_rows(len(rows), row_at or rows.__getitem__)
             self.overview_note.setText("卡包「%s」· %d 张" % (title, len(rows)))
             text, color = code_status or ("", GREY)
             self.code_status.setText(text)
@@ -247,12 +320,13 @@ class PackPage(QWidget):
         if self._loading:
             return
         self.settings_changed.emit({"author": self.author.text().strip(), "ot": self.ot.currentData(),
-                                    "code_start": self.code_start.value(), "code_step": self.code_step.value()})
+                                    "code_start": self.code_start.value(), "code_step": self.code_step.value(),
+                                    "text_source": self.text_source.currentData()})
 
-    def _add_setname(self):
-        name, ok = QInputDialog.getText(self, "新建字段", "字段名（如 星光）")
-        if ok and name.strip():
-            self.setname_added.emit("", name.strip())
+    def _edit_setname(self):
+        item = self.setnames.currentItem()
+        if self.edit_field.isEnabled() and item is not None:
+            self.setname_requested.emit(item.data(Qt.UserRole))
 
     def _remove_setname(self):
         item = self.setnames.currentItem()

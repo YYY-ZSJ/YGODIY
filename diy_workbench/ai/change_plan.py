@@ -27,8 +27,8 @@ def block_feedback(document):
     intent = (document.get("data") or {}).get("effect_text") or ""
     if re.search(r"(?:成为融合召唤的素材|作为融合素材).*(?:送去墓地|送墓)", intent):
         for index, effect in enumerate((result.model or {}).get("effects", [])):
-            if effect.get("block") == "effect" and effect.get("event") in ("to_grave", "be_material"):
-                warnings.append({"level": "语义差异", "message": "effects[%d].event：当前%s组合尚未精确覆盖官方EVENT_BE_MATERIAL、墓地去向及原因判断；这是近似候选，编译成功不代表严格素材语义已验证。" % (index, effect["event"])})
+            if effect.get("block") == "effect" and effect.get("event") == "to_grave":
+                warnings.append({"level": "语义差异", "message": "effects[%d]使用了送墓时机。原文要求作为融合素材时，可选 be_material，用 event_reason 精确匹配 fusion，并检查这张卡在墓地且自身的原因不含 return。" % index})
     return {"reading": reading.strip(), "warnings": warnings, "compiled": result.error is None}
 
 
@@ -187,7 +187,14 @@ class ChangePlan:
         if strings is not None:
             if any(not re.fullmatch(r"[1-9]|1[0-6]", key) or not isinstance(text, str) or len(text) > 100 for key, text in strings.items()):
                 raise ValueError('strings：键是"1"到"16"（对应str1～str16，str1是aux.Stringid(id,0)），值是最多100字的文字。')
-            changes["strings"] = {str(int(key) - 1): text for key, text in strings.items() if text.strip()} or None
+            merged = dict((self.working_document(uid).get("diy") or {}).get("strings") or {})
+            for key, text in strings.items():
+                slot = str(int(key) - 1)
+                if text.strip():
+                    merged[slot] = text
+                else:
+                    merged.pop(slot, None)
+            changes["strings"] = merged or None
         if category is not None:
             unknown = [name for name in category if name not in NAMES]
             if unknown:

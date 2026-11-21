@@ -67,9 +67,10 @@ class LuaIntel:
             return [self.by_name[word]]
         return self.by_method.get(word.split(".")[-1], [])
 
-    def search(self, text):
+    def search(self, text, entries=None):
         text = text.strip().lower()
-        entries = self.functions + self.constants + self.snippets
+        if entries is None:
+            entries = self.functions + self.constants + self.snippets
         return [entry for entry in entries if not text or text in entry.name.lower() or text in entry.doc.lower() or text in entry.detail.lower()][:MAX_ITEMS]
 
     def unknown_calls(self, code):

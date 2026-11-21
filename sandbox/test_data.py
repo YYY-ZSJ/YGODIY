@@ -10,7 +10,7 @@ MAX_SCENARIOS = 60
 MAX_INTENTS = 30
 CHECKS = {"count", "lp", "atk", "def", "level", "disabled", "faceup", "overlay", "event", "drawn", "offered"}
 COMMANDS = {"activate", "summon", "spsummon", "mset", "sset", "reposition", "attack", "battle", "main2", "end_turn", "flip"}
-ZONES = {"deck", "hand", "grave", "banished", "extra", "mzone", "szone"}
+ZONES = {"deck", "hand", "grave", "banished", "extra", "mzone", "szone", "fzone", "pzone"}
 OFFERED = {"activate", "summon", "spsummon", "reposition", "mset", "sset", "attack", "chain", "battle_phase"}
 
 
@@ -21,6 +21,14 @@ def digest(value):
 def intent_text(document):
     """测试依据的原文：有设计稿用设计稿，否则用卡面效果文字。"""
     return (document.get("diy") or {}).get("design_text") or (document.get("data") or {}).get("effect_text", "")
+
+
+def scenario_revision(scene):
+    fixtures = scene.get("virtual_cards") or {}
+    if any(card.get("subtype") == "fusion" for card in fixtures.values()):
+        # 旧虚拟融合怪兽没有素材手续，旧的「不能发动」也须重测。
+        return digest(["fusion-materials-v1", scene])
+    return digest(scene)
 
 
 def revision(document):
@@ -53,9 +61,29 @@ def _definitions(definitions):
     from .fixtures import card_record, helper_effects
     for key, definition in definitions.items():
         if not isinstance(key, str) or not isinstance(definition, dict) or set(definition) - {
-                "name", "kind", "subtype", "attribute", "race", "level", "atk", "def", "setcodes", "helper", "source"}:
-            raise ValueError("virtual_cards只接受属性描述与固定辅助设施，不能提供脚本。")
+                "name", "kind", "subtype", "attribute", "race", "level", "atk", "def", "setcodes", "helper", "source", "materials", "effects", "official_code"}:
+            raise ValueError("虚拟卡可指定官方卡号、属性、效果积木或辅助设施。")
         try:
+            if "official_code" in definition:
+                code = definition["official_code"]
+                if set(definition) != {"official_code"} or type(code) is not int or not 0 < code <= 0xffffffff:
+                    raise ValueError("引用官方卡只填 official_code 正整数，属性和效果由本地卡库提供。")
+                continue
+            if "effects" in definition:
+                from blocks import SCHEMA
+                from diy_workbench.ai.block_edits import validate_tree
+                if not definition["effects"] or "helper" in definition:
+                    raise ValueError("效果积木须为非空数组，与固定 helper 任选一种。")
+                definition["effects"] = validate_tree({"schema": SCHEMA, "effects": definition["effects"]})["effects"]
+            if "materials" in definition:
+                materials = definition["materials"]
+                if (definition.get("subtype") != "fusion" or not isinstance(materials, list)
+                        or len(materials) not in (2, 3)):
+                    raise ValueError("materials 仅用于融合怪兽，填两至三个素材卡引用。")
+                for material in materials:
+                    if not isinstance(material, (str, int)):
+                        raise ValueError("materials 的每项须为一个卡片引用。")
+                    _reference(material, set(definitions) | {"self"}, "materials")
             card_record(1, definition)
             helper_effects(definition)
         except (KeyError, TypeError, ValueError) as error:
@@ -72,6 +100,7 @@ def _field(field, names):
         for zone, cards in zones.items():
             if not isinstance(cards, list) or len(cards) > 40:
                 raise ValueError("field.%s.%s须为最多40张的数组。" % (player, zone))
+            capacity = {"mzone": 5, "szone": 5, "fzone": 1, "pzone": 2}.get(zone, 40)
             occupied = 0
             for item in cards:
                 _reference(item, names, "field." + zone)
@@ -80,10 +109,10 @@ def _field(field, names):
                         raise ValueError("布场卡片只支持ref/repeat/pos/seq。")
                     if item.get("pos", "attack") not in ("attack", "defense", "set"):
                         raise ValueError("pos须为attack/defense/set。")
-                    if "seq" in item and (type(item["seq"]) is not int or not 0 <= item["seq"] < 5 or item["seq"] + item.get("repeat", 1) > 5):
+                    if "seq" in item and (type(item["seq"]) is not int or not 0 <= item["seq"] < min(5, capacity) or item["seq"] + item.get("repeat", 1) > min(5, capacity)):
                         raise ValueError("seq及repeat超出场上格子范围。")
                 occupied += item.get("repeat", 1) if isinstance(item, dict) else 1
-            if occupied > (5 if zone in ("mzone", "szone") else 40):
+            if occupied > capacity:
                 raise ValueError("field.%s.%s卡片过多。" % (player, zone))
 
 
@@ -162,7 +191,7 @@ def _parameters(result, field):
 def validate(value, text):
     if not isinstance(value, dict):
         raise ValueError("scenario须为对象。")
-    allowed = {"id", "name", "effect", "basis", "template", "parameters", "virtual_cards", "field", "intents", "expect"}
+    allowed = {"id", "name", "effect", "basis", "template", "parameters", "virtual_cards", "field", "intents", "expect", "lp"}
     if set(value) - allowed:
         raise ValueError("scenario包含未开放字段：" + ",".join(sorted(set(value) - allowed)))
     result = copy.deepcopy(value)
@@ -175,6 +204,9 @@ def validate(value, text):
         raise ValueError("scenario.effect须为1～20的编号。")
     if result.get("template") not in TEMPLATES:
         raise ValueError("scenario.template须为：" + "/".join(TEMPLATES))
+    lp = result.get("lp", [8000, 8000])
+    if not isinstance(lp, list) or len(lp) != 2 or any(type(n) is not int or not 1 <= n <= 2147483647 for n in lp):
+        raise ValueError("lp 须为两个正整数，分别表示双方开局基本分。")
     names = _definitions(result.setdefault("virtual_cards", {}))
     field = result.get("field")
     _field(field, names)
@@ -194,7 +226,7 @@ def coverage(document, tests=None):
     results = {r["scenario_id"]: r for r in tests.get("results", [])}
     def state(scene):
         result = results.get(scene["id"], {})
-        if result and (result.get("revision") != current or result.get("scenario_revision") != digest(scene)):
+        if result and (result.get("revision") != current or result.get("scenario_revision") != scenario_revision(scene)):
             return "过期"
         return result.get("status", "未验证")
     rows = []

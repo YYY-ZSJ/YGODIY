@@ -3,17 +3,15 @@
 由补丁分片 p36、p43 整理而来。
 """
 
-import json
-import os
 import re
 import sys
 import threading
 import traceback
 
+import app_preferences
 from PyQt5.QtCore import QTimer
 
 from common import (
-    _app_dir,
     _call_original,
     _json_clone,
     _plain_text_from,
@@ -314,7 +312,7 @@ def _ai_translate_previous_after_switch(editor):
         _tab_log("切换语言：%s 的记录实际不是该语言，已丢弃并重新翻译" % new_language)
         saved = None
     if saved:
-        # 卡名不翻译：始终用当前卡名（期间可能改过名），只还原效果与灵摆效果
+        # 卡名已按本次切换处理，缓存只还原效果与灵摆效果。
         _translate_apply(editor, (snapshot[0], saved[1], saved[2]))
         return
     if actual_language == new_language:
@@ -348,7 +346,7 @@ def _ai_translate_previous_after_switch(editor):
         except Exception:
             _tab_log("切换语言翻译失败:\n" + traceback.format_exc())
             values = None
-        relay.done.emit(job, values)
+        relay.done.emit(job, (snapshot[0], values[1], values[2]) if values else None)
 
     threading.Thread(target=work, name="ygo-translate", daemon=True).start()
 
@@ -511,13 +509,6 @@ def _update_language_keeping_text(editor, standard, args, kwargs):
         before = (str(getattr(editor, "language", "") or ""), _translate_snapshot(editor))
     except Exception:
         before = None
-    # 宿主 update_language 末尾在「没有任何输入框被标记为用户输入」时，把卡名/效果/卡密/卡包
-    # 重置成演示卡（演示卡文字是空的，见 p23）。不只用户切语言，载入不同语言的卡、切换
-    # OCG/RD/漫画卡模式（各模式语言不同）时程序也会改语言，卡名就这样被清空。
-    # 标记一个输入框为「用户输入」即可让宿主跳过这次重置（p11 载入搜索卡时也是这样做的）。
-    pass_edit = getattr(editor, "card_pass_edit", None)
-    if pass_edit is not None and hasattr(pass_edit, "has_user_type"):
-        pass_edit.has_user_type = True
     try:
         _strip_ruby_for_language(editor)
         # 宿主会把卡名字体改成新语言的；记下来，下次绘制卡名时按卡名自己的语言改回
@@ -600,53 +591,19 @@ def _switch_mode_keeping_language(app, index, switch):
     return result
 
 
-_AI_TRANSLATE_SETTINGS_FILE = "制卡器设置.json"
-_AI_TRANSLATE_KEY = "ai_translate"
-_AI_TRANSLATE_CACHE = {}
-
-
-def _ai_settings_path():
-    return os.path.join(_app_dir(), _AI_TRANSLATE_SETTINGS_FILE)
-
-
-def _ai_load_settings():
-    if "settings" in _AI_TRANSLATE_CACHE:
-        return _AI_TRANSLATE_CACHE["settings"]
-    settings = {}
-    try:
-        with open(_ai_settings_path(), encoding="utf-8") as handle:
-            loaded = json.load(handle)
-        if isinstance(loaded, dict):
-            settings = loaded
-    except FileNotFoundError:
-        pass
-    except Exception:
-        _tab_log("读取制卡器设置失败:\n" + traceback.format_exc())
-    _AI_TRANSLATE_CACHE["settings"] = settings
-    return settings
-
-
 def _ai_translate_enabled(mode):
-    states = _ai_load_settings().get(_AI_TRANSLATE_KEY)
+    states = app_preferences.get("ai_translate", {})
     return bool(states.get(mode, False)) if isinstance(states, dict) else False
 
 
 def _ai_set_translate_enabled(mode, enabled):
-    settings = _ai_load_settings()
-    states = settings.get(_AI_TRANSLATE_KEY)
-    if not isinstance(states, dict):
-        states = settings[_AI_TRANSLATE_KEY] = {}
-    states[mode] = bool(enabled)
-    if os.environ.get("YGODIY_NO_STATE_WRITE"):
-        return
-    path = _ai_settings_path()
-    temp = path + ".tmp"
+    states = app_preferences.get("ai_translate", {})
+    updated = dict(states) if isinstance(states, dict) else {}
+    updated[mode] = bool(enabled)
     try:
-        with open(temp, "w", encoding="utf-8") as handle:
-            json.dump(settings, handle, ensure_ascii=False, indent=2)
-        os.replace(temp, path)
-    except Exception:
-        _tab_log("保存制卡器设置失败:\n" + traceback.format_exc())
+        app_preferences.set_value("ai_translate", updated)
+    except OSError as error:
+        _tab_log("保存翻译设置失败：" + str(error))
 
 
 def _ai_translate_mode_of(editor):
@@ -663,9 +620,26 @@ def _ai_translate_mode_of(editor):
 
 
 def _translate_after_user_switch(editor):
-    if editor is None or _ai_translate_enabled(_ai_translate_mode_of(editor)):
-        return _ai_translate_previous_after_switch(editor)
+    if editor is None:
+        return
     pending = getattr(editor, "_ygodiy_language_before", None)
+    if pending:
+        old, values = pending
+        new = str(getattr(editor, "language", ""))
+        if _language_family(old) == _language_family(new) == "zh" and old.startswith("繁体") != new.startswith("繁体"):
+            from ygo_translator import chinese
+            convert = chinese.to_traditional if new.startswith("繁体") else chinese.to_simplified
+            # 保存原拼写，避免「发/髮/發」等非一一对应的字在往返时被替换。
+            record = _language_record(editor).setdefault("name_pair", {})
+            name = values[0]
+            target = "繁" if new.startswith("繁体") else "简"
+            source = "简" if target == "繁" else "繁"
+            converted = record[target] if record.get(source) == name and target in record else convert(name)
+            record.update({source: name, target: converted})
+            pending = (old, (converted, values[1], values[2]))
+            editor._ygodiy_language_before = pending
+    if _ai_translate_enabled(_ai_translate_mode_of(editor)):
+        return _ai_translate_previous_after_switch(editor)
     editor._ygodiy_language_before = None
     editor._ygodiy_translation_job = None  # 作废进行中的翻译
     if not pending:
@@ -710,7 +684,7 @@ def _ai_add_toggle(container, selector, mode, editors):
         return None
     label = QLabel("AI翻译", container)
     toggle = components.ToggleButton(container, check=_ai_translate_enabled(mode), width=42, height=20)
-    toggle.setToolTip("打开后，切换语言时用 AI 翻译效果文字；关闭时效果文字保持不变")
+    toggle.setToolTip("切换简繁中文时自动转换卡名。打开此开关还会翻译效果文字。")
     row.addWidget(label)
     row.addWidget(toggle)
     # 同一行多了开关，别让语言下拉被挤到显示不全（旧版卡那一行还有「类型」下拉）

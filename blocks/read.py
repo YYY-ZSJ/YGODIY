@@ -6,10 +6,11 @@
 import os
 
 from .catalog import (
-    ATTRIBUTES, CMPS, COUNTERS, KINDS, PHASES, PLAYERS, RACES, RANGES, SUBTYPES, SUMMON_METHODS, TO_POSITIONS, ZONES, code_zh,
-    EVENTS, MultiMap, events_of, multi_parts,
+    ATTRIBUTES, CMPS, counter_name, KINDS, PHASES, PLAYERS, RACES, RANGES, SUBTYPES, SUMMON_METHODS, TO_POSITIONS, ZONES, code_zh,
+    CARD_LOCATIONS, EVENTS, REASONS, MultiMap, events_of, multi_parts,
 )
 from .compile import one
+from .card_queries import CAPABILITIES, CARD_STATES, CARD_VALUES, PREVIOUS_VALUES, RELATIONS, SHUFFLE_PILES
 
 ZONE_ZH = MultiMap(dict(ZONES, mzone="场上"), "·",
                    alias={"mzone": "场上", "szone": "场上", "fzone": "场上", "pzone": "场上", "field": "场上"})
@@ -18,6 +19,9 @@ RACE_NAMES = MultiMap(dict(RACES), "·")
 PHASE_NAMES = MultiMap(dict(PHASES), "或者")
 ATTR_NAMES = MultiMap(dict(ATTRIBUTES), "·")
 KIND_NAMES = MultiMap(dict(KINDS), "·", strip=True)
+PRINTED_KINDS = MultiMap(dict(KINDS + SUBTYPES), "或")
+EXACT_ZONES = MultiMap(dict(CARD_LOCATIONS), "或")
+EVENT_REASON_NAMES = MultiMap(dict(REASONS), "或")
 SUBTYPE_NAMES = MultiMap(dict(SUBTYPES), "·")
 SUMMON_NAMES = MultiMap(dict(SUMMON_METHODS), "·", strip=True)
 OFF_FIELD_PLACES = {"hand", "grave", "banished", "deck", "extra"}
@@ -64,7 +68,7 @@ PHRASE_OPP = {"EFFECT_CANNOT_BE_EFFECT_TARGET": "不会成为对方的效果的�
               "EFFECT_IMMUNE_EFFECT": "不受对方的效果影响"}
 REASON_PRE = {"battle": "因战斗", "effect": "因效果", "cost": "作为代价", "material": "作为素材", "release": "被解放",
               "discard": "被丢弃", "destroy": "被破坏", "fusion": "作为融合素材", "synchro": "作为同调素材",
-              "xyz": "作为超量素材", "link": "作为连接素材", "return": "回到手卡·卡组", "reveal": "被翻开", "draw": "被抽到"}
+              "xyz": "作为超量素材", "link": "作为连接素材", "return": "回到墓地", "reveal": "被翻开", "draw": "被抽到"}
 REASON_PRE = MultiMap(REASON_PRE, "·", strip=True)      # 「因战斗·效果」
 # 时机：(说法里的事件, 后缀)；{w} 是「谁的」
 EVENT_READ = {"summon": ("这张卡召唤", "的场合"), "spsummon": ("这张卡特殊召唤", "的场合"),
@@ -185,9 +189,29 @@ def filter_noun(filters, default="卡"):
             pre.insert(0, "这张卡以外的")
         elif b == "f_controller":
             pre.insert(0, "%s的" % dict(PLAYERS)[f["who"]])
+        elif b == "f_card_owner":
+            pre.append("原本持有者为%s的" % dict(PLAYERS)[f["who"]])
+        elif b == "f_effect_state":
+            pre.append(CARD_STATES[f["state"]][0] + "的")
+        elif b == "f_reason_handler":
+            pre.append("因%s的效果发生此次变化的" % filter_noun(f.get("filter", [])))
         elif b == "f_summon_type":
             pre.append("%s的" % SUMMON_NAMES[f["method"]])
             kind = monster(kind)
+        elif b == "f_location":
+            pre.append("现在位于%s的" % EXACT_ZONES[f["where"]])
+        elif b == "f_summon_location":
+            pre.append("从%s召唤的" % EXACT_ZONES[f["where"]])
+            kind = monster(kind)
+        elif b == "f_summon_player":
+            pre.append("由%s召唤的" % dict(PLAYERS)[f["who"]])
+            kind = monster(kind)
+        elif b == "f_printed_type":
+            pre.append("原本种类含%s的" % PRINTED_KINDS[f["kind"]])
+        elif b == "f_capable":
+            pre.append(CAPABILITIES[f["ability"]][0] + "的")
+        elif b == "f_related":
+            pre.append("属于「%s」的" % RELATIONS[f["relation"]][0])
         elif b == "f_prev_location":
             pre.append("从额外卡组特殊召唤的" if f["where"] == "extra" else "从%s离开的" % ZONE_ZH[f["where"]])
         elif b == "f_prev_position":
@@ -322,7 +346,8 @@ def zone(node):
 
 
 class Reader:
-    def __init__(self):
+    def __init__(self, counter_names=None):
+        self.counter_names = counter_names
         self.target = None          # 当前效果的取对象积木
         self.each = None            # 「对每一张」里「当前这张」读作什么
         self.last_verb = None       # 前一个动作怎么说（「不能除外的场合」「这个效果特殊召唤的卡」）
@@ -397,6 +422,12 @@ class Reader:
             return "随机选%s%d%s%s" % (zone(node), node["count"], measure(noun), noun)
         if b == "equip_group":
             return "这张卡装备着的卡"
+        if b in RELATIONS:
+            label = RELATIONS[b][0]
+            origin = one(node, "card")
+            if origin:
+                label = label.replace("这张卡", self.cards(origin))
+            return label + "中的" + filter_noun(node["filter"]) if node.get("filter") else label
         if b == "card_target":
             return "那只怪兽"
         if b == "prev_equip_target":
@@ -439,6 +470,22 @@ class Reader:
         b = node["block"]
         if b == "num":
             return str(node["value"])
+        if b in CARD_VALUES:
+            return "%s的%s" % (self.cards(one(node, "card")) if node.get("card") else "这张卡", CARD_VALUES[b][0])
+        if b == "effect_instances":
+            card = self.cards(one(node, "card")) if node.get("card") else "这张卡"
+            return "%s受到的「%s」效果的数量" % (card, code_zh(node["code"]))
+        if b == "previous_value":
+            return "%s离场前的%s" % (self.cards(one(node, "card")), PREVIOUS_VALUES[node["stat"]][0])
+        if b in ("free_zones", "extra_zones"):
+            who = dict(PLAYERS)[node["player"]]
+            exclude = one(node, "exclude")
+            prefix = "将%s视为已离场时，" % self.cards(exclude) if exclude else ""
+            if b == "extra_zones":
+                source = one(node, "monster")
+                return "%s%s从额外卡组召唤%s可用的区域数" % (prefix, who, self.cards(source) if source else "这张卡")
+            zone_name = "主要怪兽区域" if node["zone"] == "mzone" else "魔法与陷阱区域"
+            return "%s%s空闲的%s数" % (prefix, who, zone_name)
         if b in ("atk_of", "def_of", "level_of", "base_atk_of", "base_def_of", "text_atk_of", "text_def_of", "scale_of", "attacked_count", "prev_overlay_count"):
             return "%s的%s" % (self.cards(one(node, "card")),
                               {"atk_of": "攻击力", "def_of": "守备力", "level_of": "等级", "base_atk_of": "原本攻击力",
@@ -468,7 +515,7 @@ class Reader:
         if b == "event_value":
             return "那个数值"
         if b == "counter_of":
-            return "%s的%s数量" % (self.cards(one(node, "card")), dict(COUNTERS)[node["counter"]])
+            return "%s的%s数量" % (self.cards(one(node, "card")), counter_name(node["counter"], self.counter_names))
         if b == "sum_of":
             return "%s的%s合计" % (self.cards(one(node, "cards")), STAT_ZH[node["stat"]])
         if b == "name_kinds":
@@ -523,6 +570,8 @@ class Reader:
             return "不是这张卡送去墓地的回合"
         if b == "player_affected":
             return "%s受到「%s」的效果" % (dict(PLAYERS)[node["player"]], code_zh(node["code"]))
+        if b == "event_effect_from":
+            return "本次事件由%s的效果引发" % filter_noun(node.get("filter", []))
         if b == "can_enter_bp":
             return "这个回合可以进行战斗阶段"
         if b == "can_normal_draw":
@@ -540,12 +589,26 @@ class Reader:
             return "这张卡当作装备卡使用中"
         if b == "chain_is":
             return "那个发动的是%s" % CHAIN_IS_ZH[node["what"]]
+        if b == "environment":
+            where = "场上" if node["who"] == "any" else dict(PLAYERS)[node["who"]] + "场上"
+            return "%s有「%s」的场地效果适用" % (where, node.get("name") or node["code"])
+        if b == "event_reason":
+            if node.get("match") == "exact":
+                reasons = "、".join(EVENT_REASON_NAMES[key] for key in multi_parts(node["reason"], EVENT_REASON_NAMES))
+                return "本次事件的原因恰为「%s」" % reasons
+            return "本次事件的原因包含「%s」" % EVENT_REASON_NAMES[node["reason"]]
+        if b == "chain_location":
+            return "那个效果在%s发动" % EXACT_ZONES[node["where"]]
+        if b == "damage_calculated":
+            return "伤害计算已完成"
         if b == "chain_does":
             return "那个发动的效果是%s效果" % CHAIN_ZH[node["what"]]
         if b == "has_flag":
             return "%s有标记%d" % ("这张卡" if node["on"] == "card" else "自己", node["name"])
         if b == "card_is":
             filters = node.get("filter", [])
+            if len(filters) == 1 and filters[0]["block"] == "f_location" and (one(node, "cards") or {}).get("block") == "this_card":
+                return "这张卡现在位于%s" % EXACT_ZONES[filters[0]["where"]]
             if filters and all(f["block"] == "f_summon_type" for f in filters):   # 「这张卡是同调召唤的」
                 return "%s是%s的" % (self.cards(one(node, "cards")),
                                     "·".join(SUMMON_NAMES[f["method"]] for f in filters))
@@ -691,11 +754,15 @@ class Reader:
                      if st.get("sum") == "level_eq" else self.qty(st, noun))
                 return "从%s把%s%s%s%s" % (where, diff, q, noun, self.verb(nxt)), 1
             noun = filter_noun(src.get("filter", []), default_noun(src) if src else "卡")
+            if src.get("block") in RELATIONS:
+                where = self.cards(dict(src, filter=[]))
+            else:
+                where = zone(src) if src else "（哪里？）"
             if st.get("sum") == "level_eq":
                 n = self.number(one(st, "sum_n")) if one(st, "sum_n") else str(st["count"])
-                return "%s从%s选等级合计是%s的%s（记作%s）" % (dict(PLAYERS)[st["player"]], zone(src) if src else "（哪里？）",
+                return "%s从%s选等级合计是%s的%s（记作%s）" % (dict(PLAYERS)[st["player"]], where,
                                                     n, noun, st["as"]), 0
-            return "%s从%s选%s%s（记作%s）" % (dict(PLAYERS)[st["player"]], zone(src) if src else "（哪里？）",
+            return "%s从%s选%s%s（记作%s）" % (dict(PLAYERS)[st["player"]], where,
                                          ("卡名不同的" if st.get("different") == "yes" else "") + self.qty(st, noun),
                                          noun, st["as"]), 0
         if b == "draw":
@@ -716,10 +783,10 @@ class Reader:
                 return "%s的超量素材全部取除" % who, 0
             return "把%s%s超量素材取除" % (who, self.count_text(st, "个")), 0
         if b == "add_counter":
-            return "给%s放置%s%s" % (self.cards(one(st, "cards")), self.count_text(st, "个"), dict(COUNTERS)[st["counter"]]), 0
+            return "给%s放置%s%s" % (self.cards(one(st, "cards")), self.count_text(st, "个"), counter_name(st["counter"], self.counter_names)), 0
         if b == "remove_counter":
             return "把%s%s%s取除" % ("场上" if st.get("from") == "field" else "这张卡", self.count_text(st, "个"),
-                                    dict(COUNTERS)[st["counter"]]), 0
+                                    counter_name(st["counter"], self.counter_names)), 0
         if b == "create_token":
             return "在自己场上把%s「%s」（%s·%s·%d星·攻%d/守%d）特殊召唤" % (
                 self.count_text(st, "只"), st["name"], RACE_NAMES[st["race"]], ATTR_NAMES[st["attribute"]], st["level"],
@@ -800,7 +867,17 @@ class Reader:
         if b == "confirm_top":
             return "翻开%s卡组最上面%d张卡" % (dict(PLAYERS)[st["player"]], st["count"]), 0
         if b == "shuffle":
-            return "%s卡组洗切" % dict(PLAYERS)[st["player"]], 0
+            return "%s%s洗切" % (dict(PLAYERS)[st["player"]], SHUFFLE_PILES[st.get("pile", "deck")][0]), 0
+        if b == "mill_deck":
+            self.last_verb = "送去墓地"
+            return "把%s卡组上方%s卡送去墓地" % (dict(PLAYERS)[st["player"]], self.qty(st, "卡")), 0
+        if b == "negate_related":
+            return "%s已发动且尚未处理的效果无效" % self.cards(one(st, "cards")), 0
+        if b == "set_turn_counter":
+            amount = one(st, "count_n")
+            return "将这张卡的回合计数变为%s" % (self.number(amount) if amount else st["count"]), 0
+        if b == "reset_flag":
+            return "清除%s的标记%d" % ("这张卡" if st["on"] == "card" else "自己", st["name"]), 0
         if b == "set_flag":
             return "", 0                  # 标记是给条件用的，卡面上不写
         if b == "set_lp":
@@ -867,7 +944,7 @@ class Reader:
     # ------------------------------------------------------------ 发动部分
     def cost(self, st):
         b = st["block"]
-        if b in ("pay_lp", "detach", "remove_counter"):
+        if b in ("pay_lp", "detach", "remove_counter", "mill_deck"):
             return self.statement(st, [])[0]
         src = one(st, "cards")
         verb = self.verb(st) or ""
@@ -1043,7 +1120,9 @@ class Reader:
                 return later
             ev = self.events_text(events_of(node), who, suffix=False) or "（什么时候？）"
             self.target = None
-            return "每次%s，%s。" % (ev, body or "（处理还没放积木）")
+            cond = one(node, "condition")
+            clause = "，若%s" % self.cond(cond) if cond else ""
+            return "每次%s%s，%s。" % (ev, clause, body or "（处理还没放积木）")
         text = self.head(node) + (body + "。" if body else "" if node.get("operation") else "（处理还没放积木）")
         if node.get("chain_limit") == "opp":
             text += "对方不能对应这个效果的发动把卡的效果发动。"
@@ -1135,9 +1214,9 @@ def walk_nodes(node):
                     yield from walk_nodes(x)
 
 
-def part_text(effects, name=""):
+def part_text(effects, name="", counter_names=None):
     """一栏（怪兽效果 / 灵摆效果）的中文：每个效果一句，带①②编号；「这个卡名的……1回合只能使用1次」放在最前面。"""
-    r = Reader()
+    r = Reader(counter_names)
     lines = []
     # 编号：反转效果写「反转：」，不占编号
     marks, n = [], 0
@@ -1292,15 +1371,18 @@ def summon_text(card):
         return ""
 
 
-def read_full(card):
+def read_full(card, counter_names=None):
     """→ (效果文字, 灵摆效果文字)。"""
     VAR_DONE.clear()
     effects = card.get("effects", [])
+    for node in effects:
+        if node.get("block") == "ls_program":
+            return node.get("desc", ""), node.get("pdesc", "")
     head = summon_text(card)
     name = (card.get("card") or {}).get("name", "")
-    desc = part_text([e for e in effects if e.get("part") != "pendulum"], name)
+    desc = part_text([e for e in effects if e.get("part") != "pendulum"], name, counter_names)
     return ("\n".join(x for x in (head, desc) if x),
-            part_text([e for e in effects if e.get("part") == "pendulum"], name))
+            part_text([e for e in effects if e.get("part") == "pendulum"], name, counter_names))
 
 
 def read_card(card):

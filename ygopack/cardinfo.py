@@ -226,3 +226,15 @@ def card_image_bytes(data, assets_dir=None):
             with open(path, "rb") as f:
                 return f.read()
     return None
+
+
+def original_cdb_fields(source, data, has_effects):
+    """只记录编辑器无法无损表达的数据库值，如左右不同的灵摆刻度、扩展类型位和换行。"""
+    rendered, _ = from_ygodiy(data, has_effects=has_effects)
+    rendered["cdb_desc"] = ygopro_desc(rendered, rendered["desc"], rendered.get("pdesc", ""))
+    overrides = {}
+    for key in ("name", "type", "level", "attribute", "race", "atk", "def", "cdb_desc"):
+        original = source["desc" if key == "cdb_desc" else key]
+        if rendered[key] != original:
+            overrides[key] = [rendered[key], original]
+    return overrides
